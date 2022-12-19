@@ -2,9 +2,10 @@
 name = "rust_coco_tools"
 version = "0.1.0"
 edition = "2021"
+authors = ["Hoel Bagard"]
+
 
 [dependencies]
-serde = "1.0.117"
-serde_derive = "1.0.117"
-serde_json = "1.0.59"
 clap = { version = "4.0.29", features = ["derive"] }
+serde = { version = "1.0.151", features = ["derive"] }
+serde_json = "1.0.91"
