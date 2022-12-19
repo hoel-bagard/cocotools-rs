@@ -1,9 +1,13 @@
+use serde::Deserialize;
+
+#[derive(Deserialize, Debug)]
 pub struct Dataset {
     pub images: Vec<Image>,
-    pub annotatons: Vec<Annotation>,
+    pub annotations: Vec<Annotation>,
     pub categories: Vec<Category>,
 }
 
+#[derive(Deserialize, Debug)]
 pub struct Image {
     id: u32,
     width: u32,
@@ -11,6 +15,7 @@ pub struct Image {
     file_name: String,
 }
 
+#[derive(Deserialize, Debug)]
 pub struct Annotation {
     id: u32,
     image_id: u32,
@@ -28,29 +33,36 @@ pub struct Annotation {
     iscrowd: u32,
 }
 
+#[derive(Deserialize, Debug)]
+#[serde(untagged)]
 pub enum Segmentation {
+    // Move { x: i32, y: i32 },
     Polygon(Vec<Vec<f64>>),
     RLE(RLE),
     EncodedRLE(EncodedRLE),
 }
 
+#[derive(Deserialize, Debug)]
 pub struct RLE {
     size: Vec<u32>,
     counts: Vec<u32>,
 }
 
+#[derive(Deserialize, Debug)]
 pub struct EncodedRLE {
     size: Vec<u32>,
     counts: String,
 }
 
+#[derive(Deserialize, Debug)]
 pub struct BBox {
-    left: u32,
-    top: u32,
-    width: u32,
-    height: u32,
+    left: f64,
+    top: f64,
+    width: f64,
+    height: f64,
 }
 
+#[derive(Deserialize, Debug)]
 pub struct Category {
     id: u32,
     name: String,
