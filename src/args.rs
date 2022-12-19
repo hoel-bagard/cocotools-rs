@@ -14,8 +14,9 @@ pub struct COCOtoolsArgs {
 pub enum CommandType {
     /// Visualize COCO labels.
     Visualize(VisualizeCommand),
-    // /// Split a COCO dataset in two.
-    // Split(SplitCommand),
+
+    /// Split a COCO dataset in two.
+    Split(DatasetPathsArgs),
 }
 
 #[derive(Debug, Args)]
@@ -27,13 +28,25 @@ pub struct VisualizeCommand {
 #[derive(Debug, Subcommand)]
 pub enum VisualizeSubcommand {
     /// Visualize a single sample.
-    Sample(VisualizeSample),
-    // /// Visualize all samples one by one.
-    // All(VisualizeAll),
+    VisualizeSample(VisualizeSampleArgs),
+
+    /// Visualize all samples one by one.
+    VisualizeAll(DatasetPathsArgs),
 }
 
 #[derive(Debug, Args)]
-pub struct VisualizeSample {
+pub struct VisualizeSampleArgs {
+    /// Path to the COCO json annotation file.
+    pub annotation_file: String,
+
+    /// Path to the folder with the images.
+    pub image_folder: String,
+
+    pub sample_name: String,
+}
+
+#[derive(Debug, Args)]
+pub struct DatasetPathsArgs {
     /// Path to the COCO json annotation file.
     pub annotation_file: String,
 
