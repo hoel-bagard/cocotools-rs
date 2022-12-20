@@ -28,7 +28,7 @@ pub struct Annotation {
     pub area: f64,
     /// The COCO bounding box format is [top left x position, top left y position, width, height].
     /// bbox exemple:  "bbox": [473.07,395.93,38.65,28.67]
-    pub bbox: BBox,
+    pub bbox: Bbox,
     /// Either 1 or 0
     pub iscrowd: u32,
 }
@@ -55,7 +55,7 @@ pub struct EncodedRLE {
 }
 
 #[derive(Deserialize, Debug)]
-pub struct BBox {
+pub struct Bbox {
     pub left: f64,
     pub top: f64,
     pub width: f64,

@@ -1,10 +1,10 @@
-use crate::annotations::coco_types::BBox;
+use crate::annotations::coco_types::Bbox;
 use image::Rgb;
 use image::RgbImage;
 use imageproc::{drawing::draw_hollow_rect_mut, rect::Rect};
 
 pub fn draw_bbox(img: &mut image::RgbImage) {
-    let bbox = BBox {
+    let bbox = Bbox {
         left: 100.0,
         top: 100.0,
         width: 100.0,
