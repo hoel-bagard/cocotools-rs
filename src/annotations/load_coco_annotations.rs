@@ -1,4 +1,4 @@
-use crate::annotations::coco_types::Dataset;
+use crate::annotations::coco_types::{Annotation, Dataset};
 use std::fs;
 use std::io::ErrorKind;
 
@@ -16,3 +16,7 @@ pub fn load_json(annotations_path: &String) -> Dataset {
 
     dataset
 }
+
+// pub fn get_img_ann(dataset: Dataset, id: u32) -> Annotation {
+//     // Use a Hashmap to store the annotations.
+// }
