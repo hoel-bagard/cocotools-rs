@@ -3,37 +3,6 @@ use std::collections::HashMap;
 use std::fs;
 use std::io::ErrorKind;
 
-// def createIndex(self):
-//     # create index
-//     print('creating index...')
-//     anns, cats, imgs = {}, {}, {}
-//     imgToAnns,catToImgs = defaultdict(list),defaultdict(list)
-//     if 'annotations' in self.dataset:
-//         for ann in self.dataset['annotations']:
-//             imgToAnns[ann['image_id']].append(ann)
-//             anns[ann['id']] = ann
-
-//     if 'images' in self.dataset:
-//         for img in self.dataset['images']:
-//             imgs[img['id']] = img
-
-//     if 'categories' in self.dataset:
-//         for cat in self.dataset['categories']:
-//             cats[cat['id']] = cat
-
-//     if 'annotations' in self.dataset and 'categories' in self.dataset:
-//         for ann in self.dataset['annotations']:
-//             catToImgs[ann['category_id']].append(ann['image_id'])
-
-//     print('index created!')
-
-//     # create class members
-//     self.anns = anns
-//     self.imgToAnns = imgToAnns
-//     self.catToImgs = catToImgs
-//     self.imgs = imgs
-//     self.cats = cats
-
 #[derive(Debug)]
 pub struct HashmapDataset {
     pub anns: HashMap<u32, Annotation>,
@@ -41,7 +10,7 @@ pub struct HashmapDataset {
     pub cats: HashMap<u32, Category>,
 }
 
-impl HashmapDataset {
+impl<'a> HashmapDataset {
     pub fn new(dataset: Dataset) -> Self {
         let mut anns: HashMap<u32, Annotation> = HashMap::new();
         let mut imgs: HashMap<u32, Image> = HashMap::new();
@@ -61,9 +30,27 @@ impl HashmapDataset {
 
         HashmapDataset { anns, imgs, cats }
     }
+
+    pub fn get_ann(&'a self, ann_id: u32) -> &'a Annotation {
+        self.anns.get(&ann_id).unwrap_or_else(|| {
+            panic!("The dataset does not contain an annotation with id {ann_id}");
+        })
+    }
+
+    pub fn get_img(&'a self, img_id: u32) -> &'a Image {
+        self.imgs.get(&img_id).unwrap_or_else(|| {
+            panic!("The dataset does not contain an annotation with id {img_id}");
+        })
+    }
+
+    pub fn get_cat(&'a self, cat_id: u32) -> &'a Category {
+        self.cats.get(&cat_id).unwrap_or_else(|| {
+            panic!("The dataset does not contain an annotation with id {cat_id}");
+        })
+    }
 }
 
-pub fn load_json(annotations_path: &String) -> Dataset {
+pub fn load_json(annotations_path: &String) -> HashmapDataset {
     let annotations_file_content = fs::read_to_string(annotations_path).unwrap_or_else(|error| {
         if error.kind() == ErrorKind::NotFound {
             panic!("Could not find the annotations file: {:?}", error);
@@ -75,10 +62,5 @@ pub fn load_json(annotations_path: &String) -> Dataset {
     let dataset: Dataset =
         serde_json::from_str(&annotations_file_content).expect("Error decoding the json file");
 
-    dataset
+    HashmapDataset::new(dataset)
 }
-
-// pub fn get_img_ann(dataset: Dataset, id: u32) -> Annotation {
-//     // Use a Hashmap to store the annotations.
-//     // Use a trait / impl
-// }
