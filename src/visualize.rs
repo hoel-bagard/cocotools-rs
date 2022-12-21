@@ -7,7 +7,9 @@ use std::path::Path;
 pub fn visualize_sample(sample_args: VisualizeSampleArgs) {
     let dataset = load_json(&sample_args.annotation_file);
 
-    let sample_path = Path::new(&sample_args.image_folder).join(&sample_args.sample_name);
+    let sample_path = Path::new(&sample_args.image_folder)
+        .join(&dataset.get_img(&sample_args.sample_id).file_name);
+
     let mut img = ImageReader::open(&sample_path)
         .unwrap_or_else(|error| {
             panic!(
@@ -26,6 +28,7 @@ pub fn visualize_sample(sample_args: VisualizeSampleArgs) {
         })
         .into_rgb8();
 
+    // dataset.get_ann(sample_args.sample_id).bbox
     bbox::draw_bbox(&mut img);
 
     img.save("out.jpg").unwrap_or_else(|error| {
