@@ -42,7 +42,7 @@ pub struct VisualizeSampleArgs {
     /// Path to the folder with the images.
     pub image_folder: String,
 
-    pub sample_name: String,
+    pub sample_id: u32,
 }
 
 #[derive(Debug, Args)]
