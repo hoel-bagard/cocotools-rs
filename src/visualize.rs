@@ -1,7 +1,9 @@
 pub mod bbox;
 use crate::annotations::load_coco_annotations::load_json;
 use crate::args::VisualizeSampleArgs;
+use image;
 use image::io::Reader as ImageReader;
+use rand::Rng;
 use std::path::Path;
 
 pub fn visualize_sample(sample_args: VisualizeSampleArgs) {
@@ -28,10 +30,13 @@ pub fn visualize_sample(sample_args: VisualizeSampleArgs) {
         })
         .into_rgb8();
 
-    // dataset.get_ann(sample_args.sample_id).bbox
-    bbox::draw_bbox(&mut img);
+    let mut rng = rand::thread_rng();
+    for ann in dataset.get_img_anns(&sample_args.sample_id) {
+        let color = image::Rgb([rng.gen::<u8>(), rng.gen::<u8>(), rng.gen::<u8>()]);
+        bbox::draw_bbox(&mut img, &ann.bbox, &color);
+    }
 
-    img.save("out.jpg").unwrap_or_else(|error| {
+    img.save("outputs/out.jpg").unwrap_or_else(|error| {
         panic!("Could not save the image: {:?}", error);
     });
 }
