@@ -5,6 +5,7 @@ use image;
 use image::io::Reader as ImageReader;
 use rand::Rng;
 use std::path::Path;
+use viuer;
 
 pub fn visualize_sample(sample_args: VisualizeSampleArgs) {
     let dataset = load_json(&sample_args.annotation_file);
@@ -36,7 +37,16 @@ pub fn visualize_sample(sample_args: VisualizeSampleArgs) {
         bbox::draw_bbox(&mut img, &ann.bbox, &color);
     }
 
-    img.save("outputs/out.jpg").unwrap_or_else(|error| {
-        panic!("Could not save the image: {:?}", error);
-    });
+    print!("{esc}[2J{esc}[1;1H", esc = 27 as char); // Clear terminal
+    viuer::print(
+        &image::DynamicImage::from(img.clone()),
+        &viuer::Config {
+            ..Default::default()
+        },
+    )
+    .expect("Image printing failed.");
+
+    // img.save("outputs/out.jpg").unwrap_or_else(|error| {
+    //     panic!("Could not save the image: {:?}", error);
+    // });
 }
