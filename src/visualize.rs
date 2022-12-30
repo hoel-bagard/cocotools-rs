@@ -35,10 +35,9 @@ pub fn visualize_sample(sample_args: VisualizeSampleArgs) {
     for ann in dataset.get_img_anns(&sample_args.sample_id) {
         let color = image::Rgb([rng.gen::<u8>(), rng.gen::<u8>(), rng.gen::<u8>()]);
         bbox::draw_bbox(&mut img, &ann.bbox, &color);
-        println!("bbbbbbbbbb");
         let mask = segmentation::Mask::from(&ann.segmentation);
 
-        mask.save("outputs/mask2.jpg").unwrap_or_else(|error| {
+        mask.save("outputs/mask.jpg").unwrap_or_else(|error| {
             panic!("Could not save the image: {:?}", error);
         });
     }
