@@ -37,7 +37,7 @@ pub enum VisualizeSubcommand {
 #[derive(Debug, Args)]
 pub struct VisualizeSampleArgs {
     /// Path to the COCO json annotation file.
-    pub annotation_file: String,
+    pub annotations_file: String,
 
     /// Path to the folder with the images.
     pub image_folder: String,
@@ -48,7 +48,7 @@ pub struct VisualizeSampleArgs {
 #[derive(Debug, Args)]
 pub struct DatasetPathsArgs {
     /// Path to the COCO json annotation file.
-    pub annotation_file: String,
+    pub annotations_file: String,
 
     /// Path to the folder with the images.
     pub image_folder: String,

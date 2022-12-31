@@ -57,11 +57,11 @@ impl<'a> HashmapDataset {
         })
     }
 
-    pub fn get_cat(&'a self, cat_id: &u32) -> &'a Category {
-        self.cats.get(cat_id).unwrap_or_else(|| {
-            panic!("The dataset does not contain an annotation with id {cat_id}");
-        })
-    }
+    // pub fn get_cat(&'a self, cat_id: &u32) -> &'a Category {
+    //     self.cats.get(cat_id).unwrap_or_else(|| {
+    //         panic!("The dataset does not contain an annotation with id {cat_id}");
+    //     })
+    // }
 
     pub fn get_img_anns(&'a self, img_id: &u32) -> Vec<&'a Annotation> {
         let mut anns: Vec<&Annotation> = Vec::new();
