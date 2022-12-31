@@ -2,7 +2,7 @@ pub mod bbox;
 pub mod segmentation;
 use crate::annotations::load_coco_annotations::load_json;
 use crate::args::VisualizeSampleArgs;
-use image;
+
 use image::io::Reader as ImageReader;
 use rand::Rng;
 use std::path::Path;

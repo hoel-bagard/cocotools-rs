@@ -15,7 +15,7 @@ fn main() {
         args::CommandType::Visualize(visualize_command) => match visualize_command.command {
             args::VisualizeSubcommand::VisualizeSample(sample_args) => {
                 visualize::visualize_sample(sample_args);
-                ()
+                
             }
             args::VisualizeSubcommand::VisualizeAll(_dataset_paths) => (),
         },

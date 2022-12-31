@@ -82,9 +82,7 @@ pub struct Category {
 impl From<&EncodedRLE> for RLE {
     /// Converts a RLE to its uncompressed mask.
     fn from(encoded_rle: &EncodedRLE) -> Self {
-        if !encoded_rle.counts.is_ascii() {
-            panic!("Encoded RLE is not in valid ascii.")
-        }
+        assert!(encoded_rle.counts.is_ascii(), "Encoded RLE is not in valid ascii.");
 
         let bytes_rle = encoded_rle.counts.as_bytes();
 
@@ -101,7 +99,7 @@ impl From<&EncodedRLE> for RLE {
                 let byte = bytes_rle[current_byte_idx] - 48; // The encoding uses the ascii chars 48-111.
 
                 // 0x1f is 31, i.e. 001111 --> Here we select the first four bits of the byte.
-                continuous_pixels |= (byte as i32 & 31) << shift;
+                continuous_pixels |= (i32::from(byte) & 31) << shift;
                 // 0x20 is 32 as int, i.e. 2**5, i.e 010000 --> Here we select the fifth bit of the byte.
                 high_order_bit = byte & 32;
                 current_byte_idx += 1;
@@ -124,7 +122,7 @@ impl From<&EncodedRLE> for RLE {
             current_count_idx += 1;
         }
 
-        RLE {
+        Self {
             size: encoded_rle.size.clone(),
             counts,
         }

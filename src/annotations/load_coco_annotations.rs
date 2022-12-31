@@ -1,4 +1,4 @@
-use crate::annotations::coco_types::{Annotation, Bbox, Category, Dataset, Image, Segmentation};
+use crate::annotations::coco_types::{Annotation, Category, Dataset, Image};
 use std::collections::HashMap;
 use std::fs;
 use std::io::ErrorKind;
@@ -22,12 +22,10 @@ impl<'a> HashmapDataset {
         let mut img_to_anns: HashMap<u32, Vec<u32>> = HashMap::new();
 
         for annotation in dataset.annotations {
-            let ann_id = annotation.id.clone();
-            let img_id = annotation.image_id.clone();
+            let ann_id = annotation.id;
+            let img_id = annotation.image_id;
             anns.insert(annotation.id, annotation);
-            if !img_to_anns.contains_key(&img_id) {
-                img_to_anns.insert(img_id, Vec::new());
-            }
+            img_to_anns.entry(img_id).or_insert_with(Vec::new);
             img_to_anns.get_mut(&img_id).unwrap().push(ann_id);
         }
 
@@ -39,7 +37,7 @@ impl<'a> HashmapDataset {
             cats.insert(category.id, category);
         }
 
-        HashmapDataset {
+        Self {
             anns,
             imgs,
             cats,

@@ -1,5 +1,5 @@
 use crate::annotations::coco_types;
-use image::{GrayImage, ImageBuffer, Luma};
+use image::Luma;
 
 /// A boolean mask indicating for each pixel whether it belongs to the object or not.
 pub type Mask = image::GrayImage;
@@ -7,7 +7,7 @@ pub type Mask = image::GrayImage;
 impl From<&coco_types::RLE> for Mask {
     /// Converts a RLE to its uncompressed mask.
     fn from(rle: &coco_types::RLE) -> Self {
-        let mut mask = ImageBuffer::new(rle.size[1], rle.size[0]);
+        let mut mask = Self::new(rle.size[1], rle.size[0]);
         let mut current_value = 0u8;
         let mut x = 0u32;
         let mut y = 0u32;
@@ -28,14 +28,13 @@ impl From<&coco_types::RLE> for Mask {
 
 impl From<&coco_types::Segmentation> for Mask {
     fn from(coco_segmentation: &coco_types::Segmentation) -> Self {
-        let mask = match coco_segmentation {
-            coco_types::Segmentation::RLE(rle) => Mask::from(rle),
+        match coco_segmentation {
+            coco_types::Segmentation::RLE(rle) => Self::from(rle),
             coco_types::Segmentation::EncodedRLE(encoded_rle) => {
-                Mask::from(&coco_types::RLE::from(encoded_rle))
+                Self::from(&coco_types::RLE::from(encoded_rle))
             }
-            coco_types::Segmentation::Polygon(_) => GrayImage::new(10, 10),
-        };
-        mask
+            coco_types::Segmentation::Polygon(_) => Self::new(10, 10),
+        }
     }
 }
 
