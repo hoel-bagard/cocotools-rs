@@ -39,7 +39,7 @@ impl From<&coco_types::Segmentation> for Mask {
     }
 }
 
-pub fn draw_mask(img: &mut image::RgbImage, mask: &Mask, color: &image::Rgb<u8>) {
+pub fn draw_mask(img: &mut image::RgbImage, mask: &Mask, color: image::Rgb<u8>) {
     let mask_alpha = 0.4;
     let img_alpha = 1.0 - mask_alpha;
     for (Rgb([r, g, b]), Luma([mask])) in zip(img.pixels_mut(), mask.pixels()) {
