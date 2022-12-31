@@ -36,6 +36,7 @@ pub fn visualize_sample(sample_args: VisualizeSampleArgs) {
         let color = image::Rgb([rng.gen::<u8>(), rng.gen::<u8>(), rng.gen::<u8>()]);
         bbox::draw_bbox(&mut img, &ann.bbox, &color);
         let mask = segmentation::Mask::from(&ann.segmentation);
+        segmentation::draw_mask(&mut img, &mask, &color);
 
         mask.save("outputs/mask.jpg").unwrap_or_else(|error| {
             panic!("Could not save the image: {:?}", error);
