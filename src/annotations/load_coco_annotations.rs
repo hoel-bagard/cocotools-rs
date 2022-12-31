@@ -45,14 +45,14 @@ impl<'a> HashmapDataset {
         }
     }
 
-    pub fn get_ann(&'a self, ann_id: &u32) -> &'a Annotation {
-        self.anns.get(ann_id).unwrap_or_else(|| {
+    pub fn get_ann(&'a self, ann_id: u32) -> &'a Annotation {
+        self.anns.get(&ann_id).unwrap_or_else(|| {
             panic!("The dataset does not contain an annotation with id {ann_id}");
         })
     }
 
-    pub fn get_img(&'a self, img_id: &u32) -> &'a Image {
-        self.imgs.get(img_id).unwrap_or_else(|| {
+    pub fn get_img(&'a self, img_id: u32) -> &'a Image {
+        self.imgs.get(&img_id).unwrap_or_else(|| {
             panic!("The dataset does not contain an annotation with id {img_id}");
         })
     }
@@ -63,10 +63,10 @@ impl<'a> HashmapDataset {
     //     })
     // }
 
-    pub fn get_img_anns(&'a self, img_id: &u32) -> Vec<&'a Annotation> {
+    pub fn get_img_anns(&'a self, img_id: u32) -> Vec<&'a Annotation> {
         let mut anns: Vec<&Annotation> = Vec::new();
-        for ann_id in self.img_to_anns.get(img_id).unwrap() {
-            anns.push(self.get_ann(ann_id))
+        for ann_id in self.img_to_anns.get(&img_id).unwrap() {
+            anns.push(self.get_ann(*ann_id))
         }
         anns
     }

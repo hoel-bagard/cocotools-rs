@@ -39,18 +39,18 @@ type Polygon = Vec<Vec<f64>>;
 #[serde(untagged)]
 pub enum Segmentation {
     Polygon(Polygon),
-    RLE(RLE),
-    EncodedRLE(EncodedRLE),
+    Rle(Rle),
+    EncodedRle(EncodedRle),
 }
 
 #[derive(Deserialize, Debug)]
-pub struct RLE {
+pub struct Rle {
     pub size: Vec<u32>,
     pub counts: Vec<u32>,
 }
 
 #[derive(Deserialize, Debug)]
-pub struct EncodedRLE {
+pub struct EncodedRle {
     pub size: Vec<u32>,
     pub counts: String,
 }
@@ -79,10 +79,13 @@ pub struct Category {
 /// LEB128 wikipedia article: https://en.wikipedia.org/wiki/LEB128#Decode_signed_integer
 /// It is similar to LEB128, but here shift is incremented by 5 instead of 7 because the implementation uses
 /// 6 bits per byte instead of 8. (no idea why, I guess it's more efficient for the COCO dataset?)
-impl From<&EncodedRLE> for RLE {
+impl From<&EncodedRle> for Rle {
     /// Converts a RLE to its uncompressed mask.
-    fn from(encoded_rle: &EncodedRLE) -> Self {
-        assert!(encoded_rle.counts.is_ascii(), "Encoded RLE is not in valid ascii.");
+    fn from(encoded_rle: &EncodedRle) -> Self {
+        assert!(
+            encoded_rle.counts.is_ascii(),
+            "Encoded RLE is not in valid ascii."
+        );
 
         let bytes_rle = encoded_rle.counts.as_bytes();
 

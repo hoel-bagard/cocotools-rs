@@ -5,9 +5,9 @@ use std::iter::zip;
 /// A boolean mask indicating for each pixel whether it belongs to the object or not.
 pub type Mask = image::GrayImage;
 
-impl From<&coco_types::RLE> for Mask {
+impl From<&coco_types::Rle> for Mask {
     /// Converts a RLE to its uncompressed mask.
-    fn from(rle: &coco_types::RLE) -> Self {
+    fn from(rle: &coco_types::Rle) -> Self {
         let mut mask = Self::new(rle.size[1], rle.size[0]);
         let mut current_value = 0u8;
         let mut x = 0u32;
@@ -30,9 +30,9 @@ impl From<&coco_types::RLE> for Mask {
 impl From<&coco_types::Segmentation> for Mask {
     fn from(coco_segmentation: &coco_types::Segmentation) -> Self {
         match coco_segmentation {
-            coco_types::Segmentation::RLE(rle) => Self::from(rle),
-            coco_types::Segmentation::EncodedRLE(encoded_rle) => {
-                Self::from(&coco_types::RLE::from(encoded_rle))
+            coco_types::Segmentation::Rle(rle) => Self::from(rle),
+            coco_types::Segmentation::EncodedRle(encoded_rle) => {
+                Self::from(&coco_types::Rle::from(encoded_rle))
             }
             coco_types::Segmentation::Polygon(_) => Self::new(10, 10),
         }
