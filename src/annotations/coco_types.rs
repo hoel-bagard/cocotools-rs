@@ -33,11 +33,12 @@ pub struct Annotation {
     pub iscrowd: u32,
 }
 
+type Polygon = Vec<Vec<f64>>;
+
 #[derive(Deserialize, Debug)]
 #[serde(untagged)]
 pub enum Segmentation {
-    // Move { x: i32, y: i32 },
-    Polygon(Vec<Vec<f64>>),
+    Polygon(Polygon),
     RLE(RLE),
     EncodedRLE(EncodedRLE),
 }
@@ -67,4 +68,63 @@ pub struct Category {
     pub id: u32,
     pub name: String,
     pub supercategory: String,
+}
+
+/// """Decode encoded rle segmentation information into a rle.
+
+/// See the (hard to read) implementation:
+/// https://github.com/cocodataset/cocoapi/blob/master/common/maskApi.c#L218
+/// https://github.com/cocodataset/cocoapi/blob/8c9bcc3cf640524c4c20a9c40e89cb6a2f2fa0e9/PythonAPI/pycocotools/_mask.pyx#L145
+
+/// LEB128 wikipedia article: https://en.wikipedia.org/wiki/LEB128#Decode_signed_integer
+/// It is similar to LEB128, but here shift is incremented by 5 instead of 7 because the implementation uses
+/// 6 bits per byte instead of 8. (no idea why, I guess it's more efficient for the COCO dataset?)
+impl From<&EncodedRLE> for RLE {
+    /// Converts a RLE to its uncompressed mask.
+    fn from(encoded_rle: &EncodedRLE) -> Self {
+        assert!(encoded_rle.counts.is_ascii(), "Encoded RLE is not in valid ascii.");
+
+        let bytes_rle = encoded_rle.counts.as_bytes();
+
+        let mut current_count_idx: usize = 0;
+        let mut current_byte_idx: usize = 0;
+        let mut counts: Vec<u32> = vec![0; encoded_rle.counts.len()];
+        while current_byte_idx < bytes_rle.len() {
+            let mut continuous_pixels: i32 = 0;
+            let mut shift = 0;
+            let mut high_order_bit = 1;
+
+            // When the high order bit of a byte becomes 0, we have decoded the integer and can move on to the next one.
+            while high_order_bit != 0 {
+                let byte = bytes_rle[current_byte_idx] - 48; // The encoding uses the ascii chars 48-111.
+
+                // 0x1f is 31, i.e. 001111 --> Here we select the first four bits of the byte.
+                continuous_pixels |= (i32::from(byte) & 31) << shift;
+                // 0x20 is 32 as int, i.e. 2**5, i.e 010000 --> Here we select the fifth bit of the byte.
+                high_order_bit = byte & 32;
+                current_byte_idx += 1;
+                shift += 5;
+                // 0x10 is 16 as int, i.e. 1000
+                if high_order_bit == 0 && (byte & 16 != 0) {
+                    continuous_pixels |= !0 << shift;
+                }
+            }
+
+            if current_count_idx > 2 {
+                // My hypothesis as to what is happening here, is that most objects are going to be somewhat
+                // 'vertically convex' (i.e. have only one continuous run per line).
+                // In which case, the next 'row' of black/white pixels is going to be similar to the one preceding it.
+                // Therefore, by have the continuous count of pixels be an offset of the one preceding it, we can have it be
+                // a smaller int and therefore use less bits to encode it.
+                continuous_pixels += counts[current_count_idx - 2] as i32;
+            }
+            counts[current_count_idx] = continuous_pixels as u32;
+            current_count_idx += 1;
+        }
+
+        Self {
+            size: encoded_rle.size.clone(),
+            counts,
+        }
+    }
 }
