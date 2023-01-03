@@ -1,5 +1,5 @@
 mod annotations;
-use crate::annotations::load_coco_annotations::load_json;
+use crate::annotations::load_coco::load_json;
 
 mod argparse;
 mod visualize;

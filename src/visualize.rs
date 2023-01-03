@@ -1,7 +1,7 @@
 pub mod bbox;
 pub mod segmentation;
 
-use crate::annotations::load_coco_annotations::HashmapDataset;
+use crate::annotations::load_coco::HashmapDataset;
 use image::io::Reader as ImageReader;
 use rand::Rng;
 use std::path::Path;
