@@ -15,6 +15,7 @@ pub struct HashmapDataset {
 }
 
 impl<'a> HashmapDataset {
+    #[must_use]
     pub fn new(dataset: Dataset) -> Self {
         let mut anns: HashMap<u32, Annotation> = HashMap::new();
         let mut imgs: HashMap<u32, Image> = HashMap::new();
@@ -26,7 +27,10 @@ impl<'a> HashmapDataset {
             let img_id = annotation.image_id;
             anns.insert(annotation.id, annotation);
             img_to_anns.entry(img_id).or_insert_with(Vec::new);
-            img_to_anns.get_mut(&img_id).unwrap().push(ann_id);
+            img_to_anns
+                .get_mut(&img_id)
+                .expect("Image id not in the hashmap, eventhough it should have been initialized on the previous line.")
+                .push(ann_id);
         }
 
         for image in dataset.images {
@@ -63,15 +67,17 @@ impl<'a> HashmapDataset {
     //     })
     // }
 
-    pub fn get_img_anns(&'a self, img_id: u32) -> Vec<&'a Annotation> {
+    /// Return the annotations for the given image id.
+    pub fn get_img_anns(&'a self, img_id: u32) -> Option<Vec<&'a Annotation>> {
         let mut anns: Vec<&Annotation> = Vec::new();
-        for ann_id in self.img_to_anns.get(&img_id).unwrap() {
+        for ann_id in self.img_to_anns.get(&img_id)? {
             anns.push(self.get_ann(*ann_id))
         }
-        anns
+        Some(anns)
     }
 }
 
+#[must_use]
 pub fn load_json(annotations_path: &String) -> HashmapDataset {
     let annotations_file_content = fs::read_to_string(annotations_path).unwrap_or_else(|error| {
         if error.kind() == ErrorKind::NotFound {
