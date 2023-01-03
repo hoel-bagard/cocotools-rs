@@ -28,11 +28,16 @@ pub fn visualize_sample(dataset: &HashmapDataset, image_folder: &String, sample_
         .into_rgb8();
 
     let mut rng = rand::thread_rng();
-    for ann in dataset.get_img_anns(sample_id) {
-        let color = image::Rgb([rng.gen::<u8>(), rng.gen::<u8>(), rng.gen::<u8>()]);
-        bbox::draw_bbox(&mut img, &ann.bbox, color);
-        let mask = segmentation::Mask::from(&ann.segmentation);
-        segmentation::draw_mask(&mut img, &mask, color);
+    match dataset.get_img_anns(sample_id) {
+        None => panic!("The given image id is not present in the dataset."),
+        Some(annotations) => {
+            for ann in annotations {
+                let color = image::Rgb([rng.gen::<u8>(), rng.gen::<u8>(), rng.gen::<u8>()]);
+                bbox::draw_bbox(&mut img, &ann.bbox, color);
+                let mask = segmentation::Mask::from(&ann.segmentation);
+                segmentation::draw_mask(&mut img, &mask, color);
+            }
+        }
     }
 
     // Use show_image or viuer here.
