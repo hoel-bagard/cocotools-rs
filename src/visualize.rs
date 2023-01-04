@@ -7,6 +7,13 @@ use image::io::Reader as ImageReader;
 use rand::Rng;
 use std::path::Path;
 
+/// # Panics
+///
+/// Will panic if it cannot read the image file corresponding to the `img_id`.
+///
+/// # Errors
+///
+/// Will return `Err` if `img_id` is not present in the dataset.
 pub fn visualize_img(
     dataset: &HashmapDataset,
     image_folder: &String,

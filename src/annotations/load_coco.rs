@@ -98,6 +98,9 @@ impl<'a> HashmapDataset {
     }
 }
 
+/// # Panics
+///
+/// Will panic if the json file does not exists or cannot be opened.
 #[must_use]
 pub fn load_json(annotations_path: &String) -> HashmapDataset {
     let annotations_file_content = fs::read_to_string(annotations_path).unwrap_or_else(|error| {
