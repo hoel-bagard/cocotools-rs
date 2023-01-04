@@ -2,12 +2,17 @@ pub mod bbox;
 pub mod segmentation;
 
 use crate::annotations::load_coco::HashmapDataset;
+use crate::errors;
 use image::io::Reader as ImageReader;
 use rand::Rng;
 use std::path::Path;
 
-pub fn visualize_sample(dataset: &HashmapDataset, image_folder: &String, sample_id: u32) {
-    let sample_path = Path::new(image_folder).join(&dataset.get_img(sample_id).file_name);
+pub fn visualize_img(
+    dataset: &HashmapDataset,
+    image_folder: &String,
+    img_id: u32,
+) -> Result<(), errors::MissingIdError> {
+    let sample_path = Path::new(image_folder).join(&dataset.get_img(img_id)?.file_name);
 
     let mut img = ImageReader::open(&sample_path)
         .unwrap_or_else(|error| {
@@ -28,7 +33,7 @@ pub fn visualize_sample(dataset: &HashmapDataset, image_folder: &String, sample_
         .into_rgb8();
 
     let mut rng = rand::thread_rng();
-    match dataset.get_img_anns(sample_id) {
+    match dataset.get_img_anns(img_id) {
         None => panic!("The given image id is not present in the dataset."),
         Some(annotations) => {
             for ann in annotations {
@@ -44,4 +49,6 @@ pub fn visualize_sample(dataset: &HashmapDataset, image_folder: &String, sample_
     img.save("outputs/out.jpg").unwrap_or_else(|error| {
         panic!("Could not save the image: {:?}", error);
     });
+
+    Ok(())
 }
