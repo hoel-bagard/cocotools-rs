@@ -81,12 +81,20 @@ impl<'a> HashmapDataset {
     }
 
     /// Return the annotations for the given image id, or None if there is no annotation corresponding to the given image id.
-    pub fn get_img_anns(&'a self, img_id: u32) -> Option<Vec<&'a Annotation>> {
+    pub fn get_img_anns(
+        &'a self,
+        img_id: u32,
+    ) -> Result<Vec<&'a Annotation>, errors::MissingImageIdError> {
         let mut anns: Vec<&Annotation> = Vec::new();
-        for ann_id in self.img_to_anns.get(&img_id)? {
-            anns.push(self.get_ann(*ann_id).expect("The img_to_anns should not contain annotation ids that are not present in the anns hashmap."))
+        match self.img_to_anns.get(&img_id) {
+            None => return Err(errors::MissingImageIdError { id: img_id }),
+            Some(ann_ids) => {
+                for ann_id in ann_ids {
+                    anns.push(self.get_ann(*ann_id).expect("The img_to_anns should not contain annotation ids that are not present in the anns hashmap."))
+                }
+            }
         }
-        Some(anns)
+        Ok(anns)
     }
 }
 

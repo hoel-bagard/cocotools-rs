@@ -20,7 +20,7 @@ fn main() {
                 ) {
                     Ok(()) => {}
                     Err(err) => {
-                        println!("{err}")
+                        println!("{err}");
                     }
                 }
             }
