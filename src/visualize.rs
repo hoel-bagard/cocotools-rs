@@ -10,45 +10,23 @@ use std::path::Path;
 extern crate image;
 extern crate minifb;
 
-use image::*;
 use minifb::{Key, Window, WindowOptions};
-use std::cmp;
 
-pub trait DrawExt {
-    fn draw_to_buffer(&self, dst: &mut [u32], dst_width: usize, offset: (i32, i32));
-}
+/// Note: implement this as a trait when adding support for grayscale.
+fn draw_rgb_to_buffer(img: &image::RgbImage, dst: &mut [u32]) {
+    for x in 0..img.width() {
+        for y in 0..img.height() {
+            let pixel = img.get_pixel(x, y);
 
-impl DrawExt for RgbImage {
-    fn draw_to_buffer(&self, dst: &mut [u32], dst_width: usize, offset: (i32, i32)) {
-        let dst_size = (dst_width as i32, (dst.len() / dst_width) as i32);
+            // Convert pixel to 0RGB
+            let raw = 0xFF00_0000
+                | (u32::from(pixel[0]) << 16)
+                | (u32::from(pixel[1]) << 8)
+                | u32::from(pixel[2]);
 
-        let (width, height) = self.dimensions();
-
-        // Make sure only the pixels get rendered that are inside the dst
-        let min_x = cmp::max(-offset.0, 0);
-        let min_y = cmp::max(-offset.1, 0);
-
-        let max_x = cmp::min(dst_size.0 - offset.0, width as i32);
-        let max_y = cmp::min(dst_size.1 - offset.1, height as i32);
-
-        for y in min_y..max_y {
-            for x in min_x..max_x {
-                let pixel = self.get_pixel(x as u32, y as u32);
-
-                // Convert pixel to Color
-                let raw = 0xFF000000
-                    | ((pixel[0] as u32) << 16)
-                    | ((pixel[1] as u32) << 8)
-                    | (pixel[2] as u32);
-
-                // Apply the offsets
-                let dst_x = (x + offset.0) as usize;
-                let dst_y = (y + offset.1) as usize;
-
-                // Calculate the index
-                let index = dst_x + dst_y * dst_size.0 as usize;
-                dst[index] = raw;
-            }
+            // Calculate the index in the 1D dist buffer.
+            let index = x + y * img.width();
+            dst[index as usize] = raw;
         }
     }
 }
@@ -96,8 +74,8 @@ pub fn visualize_img(
 
     let img_width = img.width() as usize;
     let img_height = img.height() as usize;
-    let mut buffer: Vec<u32> = vec![0x00FFFFFF; img_width * img_height];
-    img.draw_to_buffer(&mut buffer, img_width, (0, 0));
+    let mut buffer: Vec<u32> = vec![0x00FF_FFFF; img_width * img_height];
+    draw_rgb_to_buffer(&img, &mut buffer);
 
     let mut window = Window::new(
         format!("{img_name} - Press Q or ESC to exit",).as_str(),
