@@ -6,6 +6,7 @@ use crate::annotations::load_coco::load_json;
 
 use clap::Parser;
 
+#[show_image::main]
 fn main() {
     let args = argparse::COCOtoolsArgs::parse();
 

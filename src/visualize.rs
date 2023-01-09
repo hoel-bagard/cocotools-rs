@@ -5,6 +5,7 @@ use crate::annotations::load_coco::HashmapDataset;
 use crate::errors;
 use image::io::Reader as ImageReader;
 use rand::Rng;
+use show_image::create_window;
 use std::path::Path;
 
 /// # Panics
@@ -48,9 +49,17 @@ pub fn visualize_img(
     }
 
     // Use show_image or viuer here.
-    img.save("outputs/out.jpg").unwrap_or_else(|error| {
-        panic!("Could not save the image: {:?}", error);
-    });
+    // img.save("outputs/out.jpg").unwrap_or_else(|error| {
+    //     panic!("Could not save the image: {:?}", error);
+    // });
+
+    let window = create_window("image", Default::default())
+        .map_err(|e| e.to_string())
+        .unwrap();
+    window
+        .set_image("aaa", img)
+        .map_err(|e| e.to_string())
+        .unwrap();
 
     Ok(())
 }
