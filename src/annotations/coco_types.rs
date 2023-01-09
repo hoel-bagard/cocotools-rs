@@ -39,18 +39,18 @@ type Polygon = Vec<Vec<f64>>;
 #[serde(untagged)]
 pub enum Segmentation {
     Polygon(Polygon),
-    RLE(RLE),
-    EncodedRLE(EncodedRLE),
+    Rle(Rle),
+    EncodedRle(EncodedRle),
 }
 
 #[derive(Deserialize, Debug)]
-pub struct RLE {
+pub struct Rle {
     pub size: Vec<u32>,
     pub counts: Vec<u32>,
 }
 
 #[derive(Deserialize, Debug)]
-pub struct EncodedRLE {
+pub struct EncodedRle {
     pub size: Vec<u32>,
     pub counts: String,
 }
@@ -73,16 +73,20 @@ pub struct Category {
 /// """Decode encoded rle segmentation information into a rle.
 
 /// See the (hard to read) implementation:
-/// https://github.com/cocodataset/cocoapi/blob/master/common/maskApi.c#L218
-/// https://github.com/cocodataset/cocoapi/blob/8c9bcc3cf640524c4c20a9c40e89cb6a2f2fa0e9/PythonAPI/pycocotools/_mask.pyx#L145
+/// <https://github.com/cocodataset/cocoapi/blob/master/common/maskApi.c#L218>
+/// <https://github.com/cocodataset/cocoapi/blob/8c9bcc3cf640524c4c20a9c40e89cb6a2f2fa0e9/PythonAPI/pycocotools/_mask.pyx#L145>
 
-/// LEB128 wikipedia article: https://en.wikipedia.org/wiki/LEB128#Decode_signed_integer
+/// [LEB128 wikipedia article](https://en.wikipedia.org/wiki/LEB128#Decode_signed_integer)
 /// It is similar to LEB128, but here shift is incremented by 5 instead of 7 because the implementation uses
 /// 6 bits per byte instead of 8. (no idea why, I guess it's more efficient for the COCO dataset?)
-impl From<&EncodedRLE> for RLE {
+#[allow(clippy::cast_sign_loss, clippy::cast_possible_wrap)]
+impl From<&EncodedRle> for Rle {
     /// Converts a RLE to its uncompressed mask.
-    fn from(encoded_rle: &EncodedRLE) -> Self {
-        assert!(encoded_rle.counts.is_ascii(), "Encoded RLE is not in valid ascii.");
+    fn from(encoded_rle: &EncodedRle) -> Self {
+        assert!(
+            encoded_rle.counts.is_ascii(),
+            "Encoded RLE is not in valid ascii."
+        );
 
         let bytes_rle = encoded_rle.counts.as_bytes();
 
@@ -114,7 +118,7 @@ impl From<&EncodedRLE> for RLE {
                 // My hypothesis as to what is happening here, is that most objects are going to be somewhat
                 // 'vertically convex' (i.e. have only one continuous run per line).
                 // In which case, the next 'row' of black/white pixels is going to be similar to the one preceding it.
-                // Therefore, by have the continuous count of pixels be an offset of the one preceding it, we can have it be
+                // Therefore, by having the continuous count of pixels be an offset of the one preceding it, we can have it be
                 // a smaller int and therefore use less bits to encode it.
                 continuous_pixels += counts[current_count_idx - 2] as i32;
             }
