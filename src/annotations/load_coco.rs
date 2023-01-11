@@ -49,7 +49,11 @@ impl<'a> HashmapDataset {
         }
     }
 
-    /// Returns the annotation with the given ID, or an error if the dataset does not contain such an annotation.
+    /// Return a result containing the annotation struct corresponding to the given id.
+    ///
+    /// # Errors
+    ///
+    /// Will return `Err` if there is no entry in the dataset corresponding to `ann_id`.
     pub fn get_ann(
         &'a self,
         ann_id: u32,
@@ -62,6 +66,11 @@ impl<'a> HashmapDataset {
         Ok(ann)
     }
 
+    /// Return a result containing the category struct corresponding to the given id.
+    ///
+    /// # Errors
+    ///
+    /// Will return `Err` if there is no entry corresponding to `cat_id`.
     pub fn get_cat(&'a self, cat_id: u32) -> Result<&'a Category, errors::MissingCategoryIdError> {
         let cat = match self.cats.get(&cat_id) {
             None => return Err(errors::MissingCategoryIdError { id: cat_id }),
@@ -71,6 +80,11 @@ impl<'a> HashmapDataset {
         Ok(cat)
     }
 
+    /// Return a result containing the image struct corresponding to the given image id.
+    ///
+    /// # Errors
+    ///
+    /// Will return `Err` if there is no entry corresponding to `img_id`.
     pub fn get_img(&'a self, img_id: u32) -> Result<&'a Image, errors::MissingImageIdError> {
         let img = match self.imgs.get(&img_id) {
             None => return Err(errors::MissingImageIdError { id: img_id }),
@@ -80,7 +94,11 @@ impl<'a> HashmapDataset {
         Ok(img)
     }
 
-    /// Return the annotations for the given image id, or None if there is no annotation corresponding to the given image id.
+    /// Return a result containing the annotations for the given image id.
+    ///
+    /// # Errors
+    ///
+    /// Will return `Err` if there is no entry corresponding to `img_id`.
     pub fn get_img_anns(
         &'a self,
         img_id: u32,
@@ -90,7 +108,7 @@ impl<'a> HashmapDataset {
             None => return Err(errors::MissingImageIdError { id: img_id }),
             Some(ann_ids) => {
                 for ann_id in ann_ids {
-                    anns.push(self.get_ann(*ann_id).expect("The img_to_anns should not contain annotation ids that are not present in the anns hashmap."))
+                    anns.push(self.get_ann(*ann_id).expect("The img_to_anns should not contain annotation ids that are not present in the anns hashmap."));
                 }
             }
         }
