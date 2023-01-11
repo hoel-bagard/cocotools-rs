@@ -90,7 +90,9 @@ pub fn visualize_img(
     while window.is_open() && !window.is_key_down(Key::Escape) && !window.is_key_down(Key::Q) {
         window
             .update_with_buffer(&buffer, img_width, img_height)
-            .unwrap();
+            .unwrap_or_else(|e| {
+                panic!("Could not update buffer, got the following error: {}", e);
+            });
     }
 
     Ok(())
