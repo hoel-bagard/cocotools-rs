@@ -1,5 +1,6 @@
 use crate::annotations::coco_types;
 use image::{Luma, Rgb};
+use imageproc::drawing;
 use std::iter::zip;
 
 /// A boolean mask indicating for each pixel whether it belongs to the object or not.
@@ -34,13 +35,61 @@ impl From<&coco_types::Segmentation> for Mask {
             coco_types::Segmentation::EncodedRle(encoded_rle) => {
                 Self::from(&coco_types::Rle::from(encoded_rle))
             }
-            coco_types::Segmentation::Polygon(_) => Self::new(10, 10),
+            coco_types::Segmentation::PolygonRS(poly) => Self::from(poly),
+            coco_types::Segmentation::Polygon(_) => {
+                panic!("Segmentation from poly .... use the function")
+            }
         }
     }
 }
 
+impl From<&coco_types::PolygonRS> for Mask {
+    /// Converts a polygon representation of a mask to an RLE one.
+    fn from(poly: &coco_types::PolygonRS) -> Self {
+        let mut points_poly: Vec<imageproc::point::Point<i32>> = Vec::new();
+        for i in (0..poly.counts.len()).step_by(2) {
+            points_poly.push(imageproc::point::Point::new(
+                poly.counts[i] as i32,
+                poly.counts[i + 1] as i32,
+            ));
+        }
+        if points_poly[0].x == points_poly.last().unwrap().x
+            && points_poly[0].y == points_poly.last().unwrap().y
+        {
+            points_poly.pop();
+        }
+        let mut mask = image::GrayImage::new(poly.size[1], poly.size[0]);
+        drawing::draw_polygon_mut(&mut mask, &points_poly, image::Luma([1u8]));
+
+        mask
+    }
+}
+
+// impl From<&coco_types::Polygon> for Mask {
+//     /// Converts a polygon representation of a mask to an RLE one.
+//     fn from(poly: &coco_types::Polygon) -> Self {
+//         let mut points_poly: Vec<imageproc::point::Point<i32>> = Vec::new();
+//         let mut max_x = 0u32;
+//         let mut max_y = 0u32;
+//         for i in (0..poly.0[0].len()).step_by(2) {
+//             points_poly.push(imageproc::point::Point::new(
+//                 poly.0[0][i] as i32,
+//                 poly.0[0][i + 1] as i32,
+//             ));
+//             max_x = std::cmp::max(max_x, poly.0[0][i] as u32);
+//             max_y = std::cmp::max(max_y, poly.0[0][i + 1] as u32);
+//         }
+//         let mut mask = image::GrayImage::new(max_x, max_y);
+//         drawing::draw_polygon_mut(&mut mask, &points_poly, image::Luma([1u8]));
+
+//         mask
+//     }
+// }
+
 #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
 pub fn draw_mask(img: &mut image::RgbImage, mask: &Mask, color: image::Rgb<u8>) {
+    // If the mask was originally encoded as a polygon, it will likely be smaller than the image. It is therefore padded with zeros.
+
     let mask_alpha: f64 = 0.4;
     let img_alpha = 1.0 - mask_alpha;
     for (Rgb([r, g, b]), Luma([mask])) in zip(img.pixels_mut(), mask.pixels()) {
