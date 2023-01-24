@@ -1,5 +1,5 @@
 use image;
-use imageproc::drawing;
+
 use serde::Deserialize;
 
 #[derive(Deserialize, Debug)]
@@ -165,7 +165,7 @@ impl From<&image::GrayImage> for Rle {
         }
         counts.push(count);
 
-        Rle {
+        Self {
             size: vec![mask.width(), mask.height()],
             counts,
         }

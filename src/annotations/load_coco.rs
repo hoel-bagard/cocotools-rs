@@ -4,6 +4,7 @@ use std::collections::HashMap;
 use std::fs;
 use std::io::ErrorKind;
 
+/// Transforms the COCO dataset into a hashmap version where the ids are keys.
 #[derive(Debug)]
 pub struct HashmapDataset {
     anns: HashMap<u32, Annotation>,
@@ -16,7 +17,12 @@ pub struct HashmapDataset {
 }
 
 impl<'a> HashmapDataset {
-    pub fn new(dataset: Dataset) -> Self {
+    /// Creates a `HashmapDataset` from a standard COCO one.
+    ///
+    /// # Errors
+    ///
+    /// Will return `Err` if there is an annotation with an image id X, but no image entry has this id.
+    pub fn new(dataset: Dataset) -> Result<Self, errors::MissingImageIdError> {
         let mut anns: HashMap<u32, Annotation> = HashMap::new();
         let mut cats: HashMap<u32, Category> = HashMap::new();
         let mut imgs: HashMap<u32, Image> = HashMap::new();
@@ -36,10 +42,11 @@ impl<'a> HashmapDataset {
 
             if let Segmentation::Polygon(mut counts) = annotation.segmentation {
                 annotation.segmentation = Segmentation::PolygonRS(coco_types::PolygonRS {
-                    size: vec![
-                        imgs.get(&img_id).unwrap().height,
-                        imgs.get(&img_id).unwrap().width,
-                    ],
+                    size: if let Some(img) = imgs.get(&img_id) {
+                        vec![img.height, img.width]
+                    } else {
+                        return Err(errors::MissingImageIdError { id: img_id });
+                    },
                     counts: counts.remove(0),
                 });
             };
@@ -52,12 +59,12 @@ impl<'a> HashmapDataset {
                 .push(ann_id);
         }
 
-        Self {
+        Ok(Self {
             anns,
             cats,
             imgs,
             img_to_anns,
-        }
+        })
     }
 
     /// Return a result containing the annotation struct corresponding to the given id.
@@ -129,7 +136,7 @@ impl<'a> HashmapDataset {
 
 /// # Panics
 ///
-/// Will panic if the json file does not exists or cannot be opened.
+/// Will panic if the json file does not exists, cannot be opened or if an error happens when creating a Hashmap version of it.
 #[must_use]
 pub fn load_json(annotations_path: &String) -> HashmapDataset {
     let annotations_file_content = fs::read_to_string(annotations_path).unwrap_or_else(|error| {
@@ -143,5 +150,10 @@ pub fn load_json(annotations_path: &String) -> HashmapDataset {
     let dataset: Dataset =
         serde_json::from_str(&annotations_file_content).expect("Error decoding the json file");
 
-    HashmapDataset::new(dataset)
+    HashmapDataset::new(dataset).unwrap_or_else(|error| {
+        panic!(
+            "Found an annotation for an image id not in the dataset when creating the dataset: {:?}",
+            error
+        );
+    })
 }
