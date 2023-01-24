@@ -1,3 +1,5 @@
+use image;
+use imageproc::drawing;
 use serde::Deserialize;
 
 #[derive(Deserialize, Debug)]
@@ -33,16 +35,25 @@ pub struct Annotation {
     pub iscrowd: u32,
 }
 
-type Polygon = Vec<Vec<f64>>;
+pub type Polygon = Vec<Vec<f64>>;
+
+/// Internal type used to represent a polygon. It contains the width and height of the image for easier handling, notably when using traits.
+#[derive(Deserialize, Debug)]
+pub struct PolygonRS {
+    pub size: Vec<u32>,
+    pub counts: Vec<f64>,
+}
 
 #[derive(Deserialize, Debug)]
 #[serde(untagged)]
 pub enum Segmentation {
     Polygon(Polygon),
+    PolygonRS(PolygonRS),
     Rle(Rle),
     EncodedRle(EncodedRle),
 }
 
+/// TODO: Describe what size is.
 #[derive(Deserialize, Debug)]
 pub struct Rle {
     pub size: Vec<u32>,
@@ -70,7 +81,7 @@ pub struct Category {
     pub supercategory: String,
 }
 
-/// """Decode encoded rle segmentation information into a rle.
+/// Decode encoded rle segmentation information into a rle.
 
 /// See the (hard to read) implementation:
 /// <https://github.com/cocodataset/cocoapi/blob/master/common/maskApi.c#L218>
