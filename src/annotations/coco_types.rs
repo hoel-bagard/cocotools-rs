@@ -92,7 +92,7 @@ pub struct Category {
 /// 6 bits per byte instead of 8. (no idea why, I guess it's more efficient for the COCO dataset?)
 #[allow(clippy::cast_sign_loss, clippy::cast_possible_wrap)]
 impl From<&EncodedRle> for Rle {
-    /// Converts a RLE to its uncompressed mask.
+    /// Converts a compressed RLE to its uncompressed version.
     fn from(encoded_rle: &EncodedRle) -> Self {
         assert!(
             encoded_rle.counts.is_ascii(),
@@ -139,6 +139,34 @@ impl From<&EncodedRle> for Rle {
 
         Self {
             size: encoded_rle.size.clone(),
+            counts,
+        }
+    }
+}
+
+/// Convert a mask into its RLE form.
+///
+/// ## Args:
+/// - mask: A binary mask indicating for each pixel whether it belongs to the object or not.
+///
+/// ## Returns:
+/// - The RLE corresponding to the mask.
+impl From<&image::GrayImage> for Rle {
+    fn from(mask: &image::GrayImage) -> Self {
+        let mut previous_value = 0;
+        let mut count = 0;
+        let mut counts = Vec::new();
+        for pixel in mask.pixels() {
+            if pixel[0] != previous_value {
+                counts.push(count);
+                previous_value = pixel[0];
+            }
+            count += 1;
+        }
+        counts.push(count);
+
+        Rle {
+            size: vec![mask.width(), mask.height()],
             counts,
         }
     }
