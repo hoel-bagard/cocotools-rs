@@ -1,4 +1,4 @@
-use crate::annotations::coco_types::{Annotation, Category, Dataset, Image};
+use crate::annotations::coco_types::{self, Annotation, Category, Dataset, Image, Segmentation};
 use crate::errors;
 use std::collections::HashMap;
 use std::fs;
@@ -22,23 +22,34 @@ impl<'a> HashmapDataset {
         let mut imgs: HashMap<u32, Image> = HashMap::new();
         let mut img_to_anns: HashMap<u32, Vec<u32>> = HashMap::new();
 
-        for annotation in dataset.annotations {
-            let ann_id = annotation.id;
-            let img_id = annotation.image_id;
-            anns.insert(annotation.id, annotation);
-            img_to_anns.entry(img_id).or_insert_with(Vec::new);
-            img_to_anns
-                .get_mut(&img_id)
-                .expect("Image id not in the hashmap, eventhough it should have been initialized on the previous line.")
-                .push(ann_id);
-        }
-
         for category in dataset.categories {
             cats.insert(category.id, category);
         }
 
         for image in dataset.images {
             imgs.insert(image.id, image);
+        }
+
+        for mut annotation in dataset.annotations {
+            let ann_id = annotation.id;
+            let img_id = annotation.image_id;
+
+            if let Segmentation::Polygon(mut counts) = annotation.segmentation {
+                annotation.segmentation = Segmentation::PolygonRS(coco_types::PolygonRS {
+                    size: vec![
+                        imgs.get(&img_id).unwrap().height,
+                        imgs.get(&img_id).unwrap().width,
+                    ],
+                    counts: counts.remove(0),
+                });
+            };
+
+            anns.insert(annotation.id, annotation);
+            img_to_anns.entry(img_id).or_insert_with(Vec::new);
+            img_to_anns
+                .get_mut(&img_id)
+                .expect("Image id not in the hashmap, eventhough it should have been initialized on the previous line.")
+                .push(ann_id);
         }
 
         Self {
