@@ -17,6 +17,7 @@ pub enum CommandType {
 
     /// Split a COCO dataset in two.
     Split(DatasetPathsArgs),
+    // TODO: convert to/from PascalVOC, solo. Convert segmentation format.
 }
 
 #[derive(Debug, Args)]

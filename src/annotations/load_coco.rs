@@ -12,8 +12,6 @@ pub struct HashmapDataset {
     imgs: HashMap<u32, Image>,
     /// Hashmap that links an image id to the image's annotations
     img_to_anns: HashMap<u32, Vec<u32>>,
-    // TODO: Is it possible to have img_to_anns map directly to a Vec of Annotations.
-    // pub img_to_anns: HashMap<u32, Vec<&'a Annotation>>,
 }
 
 impl<'a> HashmapDataset {

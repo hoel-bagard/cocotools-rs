@@ -81,26 +81,6 @@ pub fn mask_from_poly(poly: &coco_types::Polygon, width: u32, height: u32) -> Ma
 
     mask
 }
-// impl From<&coco_types::Polygon> for Mask {
-//     /// Converts a polygon representation of a mask to an RLE one.
-//     fn from(poly: &coco_types::Polygon) -> Self {
-//         let mut points_poly: Vec<imageproc::point::Point<i32>> = Vec::new();
-//         let mut max_x = 0u32;
-//         let mut max_y = 0u32;
-//         for i in (0..poly.0[0].len()).step_by(2) {
-//             points_poly.push(imageproc::point::Point::new(
-//                 poly.0[0][i] as i32,
-//                 poly.0[0][i + 1] as i32,
-//             ));
-//             max_x = std::cmp::max(max_x, poly.0[0][i] as u32);
-//             max_y = std::cmp::max(max_y, poly.0[0][i + 1] as u32);
-//         }
-//         let mut mask = image::GrayImage::new(max_x, max_y);
-//         drawing::draw_polygon_mut(&mut mask, &points_poly, image::Luma([1u8]));
-
-//         mask
-//     }
-// }
 
 #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
 pub fn draw_mask(img: &mut image::RgbImage, mask: &Mask, color: image::Rgb<u8>) {
