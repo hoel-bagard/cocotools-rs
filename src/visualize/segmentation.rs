@@ -1,9 +1,25 @@
 use crate::annotations::coco_types;
 use image::{Luma, Rgb};
+use imageproc::drawing;
 use std::iter::zip;
 
 /// A boolean mask indicating for each pixel whether it belongs to the object or not.
 pub type Mask = image::GrayImage;
+
+impl From<&coco_types::Segmentation> for Mask {
+    fn from(coco_segmentation: &coco_types::Segmentation) -> Self {
+        match coco_segmentation {
+            coco_types::Segmentation::Rle(rle) => Self::from(rle),
+            coco_types::Segmentation::EncodedRle(encoded_rle) => {
+                Self::from(&coco_types::Rle::from(encoded_rle))
+            }
+            coco_types::Segmentation::PolygonRS(poly) => Self::from(poly),
+            coco_types::Segmentation::Polygon(_) => {
+                unimplemented!("Use the 'mask_from_poly' function.")
+            }
+        }
+    }
+}
 
 impl From<&coco_types::Rle> for Mask {
     /// Converts a RLE to its uncompressed mask.
@@ -27,17 +43,64 @@ impl From<&coco_types::Rle> for Mask {
     }
 }
 
-impl From<&coco_types::Segmentation> for Mask {
-    fn from(coco_segmentation: &coco_types::Segmentation) -> Self {
-        match coco_segmentation {
-            coco_types::Segmentation::Rle(rle) => Self::from(rle),
-            coco_types::Segmentation::EncodedRle(encoded_rle) => {
-                Self::from(&coco_types::Rle::from(encoded_rle))
-            }
-            coco_types::Segmentation::Polygon(_) => Self::new(10, 10),
+#[allow(clippy::cast_possible_truncation)]
+impl From<&coco_types::PolygonRS> for Mask {
+    /// Converts a polygon representation of a mask to an RLE one.
+    fn from(poly: &coco_types::PolygonRS) -> Self {
+        let mut points_poly: Vec<imageproc::point::Point<i32>> = Vec::new();
+        for i in (0..poly.counts.len()).step_by(2) {
+            points_poly.push(imageproc::point::Point::new(
+                poly.counts[i] as i32,
+                poly.counts[i + 1] as i32,
+            ));
         }
+        if let Some(last_point) = points_poly.last() {
+            if points_poly[0].x == last_point.x && points_poly[0].y == last_point.y {
+                points_poly.pop();
+            }
+        }
+
+        let mut mask = Self::new(poly.size[1], poly.size[0]);
+        drawing::draw_polygon_mut(&mut mask, &points_poly, image::Luma([1u8]));
+
+        mask
     }
 }
+
+#[allow(clippy::cast_possible_truncation)]
+pub fn mask_from_poly(poly: &coco_types::Polygon, width: u32, height: u32) -> Mask {
+    let mut points_poly: Vec<imageproc::point::Point<i32>> = Vec::new();
+    for i in (0..poly[0].len()).step_by(2) {
+        points_poly.push(imageproc::point::Point::new(
+            poly[0][i] as i32,
+            poly[0][i + 1] as i32,
+        ));
+    }
+    let mut mask = image::GrayImage::new(width, height);
+    drawing::draw_polygon_mut(&mut mask, &points_poly, image::Luma([1u8]));
+
+    mask
+}
+// impl From<&coco_types::Polygon> for Mask {
+//     /// Converts a polygon representation of a mask to an RLE one.
+//     fn from(poly: &coco_types::Polygon) -> Self {
+//         let mut points_poly: Vec<imageproc::point::Point<i32>> = Vec::new();
+//         let mut max_x = 0u32;
+//         let mut max_y = 0u32;
+//         for i in (0..poly.0[0].len()).step_by(2) {
+//             points_poly.push(imageproc::point::Point::new(
+//                 poly.0[0][i] as i32,
+//                 poly.0[0][i + 1] as i32,
+//             ));
+//             max_x = std::cmp::max(max_x, poly.0[0][i] as u32);
+//             max_y = std::cmp::max(max_y, poly.0[0][i + 1] as u32);
+//         }
+//         let mut mask = image::GrayImage::new(max_x, max_y);
+//         drawing::draw_polygon_mut(&mut mask, &points_poly, image::Luma([1u8]));
+
+//         mask
+//     }
+// }
 
 #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
 pub fn draw_mask(img: &mut image::RgbImage, mask: &Mask, color: image::Rgb<u8>) {

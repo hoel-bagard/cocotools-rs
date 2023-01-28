@@ -1,3 +1,5 @@
+use image;
+
 use serde::Deserialize;
 
 #[derive(Deserialize, Debug)]
@@ -33,16 +35,25 @@ pub struct Annotation {
     pub iscrowd: u32,
 }
 
-type Polygon = Vec<Vec<f64>>;
+pub type Polygon = Vec<Vec<f64>>;
+
+/// Internal type used to represent a polygon. It contains the width and height of the image for easier handling, notably when using traits.
+#[derive(Deserialize, Debug)]
+pub struct PolygonRS {
+    pub size: Vec<u32>,
+    pub counts: Vec<f64>,
+}
 
 #[derive(Deserialize, Debug)]
 #[serde(untagged)]
 pub enum Segmentation {
     Polygon(Polygon),
+    PolygonRS(PolygonRS),
     Rle(Rle),
     EncodedRle(EncodedRle),
 }
 
+/// TODO: Describe what size is.
 #[derive(Deserialize, Debug)]
 pub struct Rle {
     pub size: Vec<u32>,
@@ -70,7 +81,7 @@ pub struct Category {
     pub supercategory: String,
 }
 
-/// """Decode encoded rle segmentation information into a rle.
+/// Decode encoded rle segmentation information into a rle.
 
 /// See the (hard to read) implementation:
 /// <https://github.com/cocodataset/cocoapi/blob/master/common/maskApi.c#L218>
@@ -81,7 +92,7 @@ pub struct Category {
 /// 6 bits per byte instead of 8. (no idea why, I guess it's more efficient for the COCO dataset?)
 #[allow(clippy::cast_sign_loss, clippy::cast_possible_wrap)]
 impl From<&EncodedRle> for Rle {
-    /// Converts a RLE to its uncompressed mask.
+    /// Converts a compressed RLE to its uncompressed version.
     fn from(encoded_rle: &EncodedRle) -> Self {
         assert!(
             encoded_rle.counts.is_ascii(),
@@ -128,6 +139,34 @@ impl From<&EncodedRle> for Rle {
 
         Self {
             size: encoded_rle.size.clone(),
+            counts,
+        }
+    }
+}
+
+/// Convert a mask into its RLE form.
+///
+/// ## Args:
+/// - mask: A binary mask indicating for each pixel whether it belongs to the object or not.
+///
+/// ## Returns:
+/// - The RLE corresponding to the mask.
+impl From<&image::GrayImage> for Rle {
+    fn from(mask: &image::GrayImage) -> Self {
+        let mut previous_value = 0;
+        let mut count = 0;
+        let mut counts = Vec::new();
+        for pixel in mask.pixels() {
+            if pixel[0] != previous_value {
+                counts.push(count);
+                previous_value = pixel[0];
+            }
+            count += 1;
+        }
+        counts.push(count);
+
+        Self {
+            size: vec![mask.width(), mask.height()],
             counts,
         }
     }
