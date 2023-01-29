@@ -25,8 +25,6 @@ impl PyCategory {
     fn name(&self) -> String {
         self.0.name.clone()
     }
-    // TODO: https://pyo3.rs/main/faq.html#pyo3get-clones-my-field
-    // Here, the category object sent to Python is changed, but not the one in the hashmap.
     #[setter(name)]
     fn set_name(&mut self, new_name: String) -> PyResult<()> {
         self.0.name = new_name;
@@ -49,7 +47,7 @@ impl PyCategory {
 pub struct COCO {
     anns: HashMap<u32, Annotation>,
     #[pyo3(get)]
-    cats: HashMap<u32, PyCategory>,
+    cats: HashMap<u32, Py<PyCategory>>,
     imgs: HashMap<u32, Image>,
     /// Hashmap that links an image id to the image's annotations
     img_to_anns: HashMap<u32, Vec<u32>>,
@@ -58,7 +56,7 @@ pub struct COCO {
 #[pymethods]
 impl COCO {
     #[new]
-    fn new(annotations_path: &PyUnicode) -> PyResult<Self> {
+    fn new(py: Python<'_>, annotations_path: &PyUnicode) -> PyResult<Self> {
         let annotations_path = annotations_path.to_str().unwrap().to_owned();
 
         let annotations_file_content =
@@ -74,12 +72,12 @@ impl COCO {
             serde_json::from_str(&annotations_file_content).expect("Error decoding the json file");
 
         let mut anns: HashMap<u32, Annotation> = HashMap::new();
-        let mut cats: HashMap<u32, PyCategory> = HashMap::new();
+        let mut cats: HashMap<u32, Py<PyCategory>> = HashMap::new();
         let mut imgs: HashMap<u32, Image> = HashMap::new();
         let mut img_to_anns: HashMap<u32, Vec<u32>> = HashMap::new();
 
         for category in dataset.categories {
-            cats.insert(category.id, PyCategory(category));
+            cats.insert(category.id, Py::new(py, PyCategory(category))?);
         }
 
         for image in dataset.images {
