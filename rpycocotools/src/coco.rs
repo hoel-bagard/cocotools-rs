@@ -26,20 +26,21 @@ impl PyCategory {
         self.0.name.clone()
     }
     // TODO: https://pyo3.rs/main/faq.html#pyo3get-clones-my-field
-    // #[setter(name)]
-    // fn set_name(&mut self, new_name: String) -> PyResult<()> {
-    //     self.0.name = new_name;
-    //     Ok(())
-    // }
+    // Here, the category object sent to Python is changed, but not the one in the hashmap.
+    #[setter(name)]
+    fn set_name(&mut self, new_name: String) -> PyResult<()> {
+        self.0.name = new_name;
+        Ok(())
+    }
     #[getter]
     fn supercategory(&self) -> String {
         self.0.supercategory.clone()
     }
-    fn __repr__(&self) -> PyResult<String> {
-        Ok(format!(
+    fn __repr__(&self) -> String {
+        format!(
             "Category(id={}, name='{}', supercategory='{}')",
             self.0.id, self.0.name, self.0.supercategory
-        ))
+        )
     }
 }
 
