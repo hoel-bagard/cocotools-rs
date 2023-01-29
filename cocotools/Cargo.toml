@@ -4,7 +4,6 @@ version = "0.1.0"
 edition = "2021"
 authors = ["Hoel Bagard"]
 
-
 [dependencies]
 clap = { version = "4.0.29", features = ["derive"] }
 serde = { version = "1.0.151", features = ["derive"] }
