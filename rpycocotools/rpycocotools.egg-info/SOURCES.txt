@@ -1,6 +1,0 @@
-pyproject.toml
-rpycocotools.egg-info/PKG-INFO
-rpycocotools.egg-info/SOURCES.txt
-rpycocotools.egg-info/dependency_links.txt
-rpycocotools.egg-info/requires.txt
-rpycocotools.egg-info/top_level.txt
