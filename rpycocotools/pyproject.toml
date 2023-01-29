@@ -23,13 +23,25 @@ addopts = [
 [project.optional-dependencies]
 build = ["maturin"]
 test = ["pytest"]
-dev = ["pip-tools", "pre-commit", "flake8", "flake8-docstrings", "pep8-naming", "flake8-import-order", "flake8-bugbear", "flake8-quotes", "flake8-comprehensions"]
+dev = [
+    "pip-tools",
+    "pre-commit",
+
+    # Lint
+    "flake8",
+    "flake8-docstrings",
+    "pep8-naming",
+    "flake8-import-order",
+    "flake8-bugbear",
+    "flake8-quotes",
+    "flake8-comprehensions",
+]
 
 [tool.isort]
 line_length = 120
 case_sensitive = false
 order_by_type = false
 
-# [build-system]
-# requires = ["maturin>=0.13,<0.14"]
-# build-backend = "maturin"
+[build-system]
+requires = ["maturin>=0.13,<0.14"]
+build-backend = "maturin"

@@ -1,5 +1,5 @@
 [package]
-name = "rust_coco_tools"
+name = "cocotools"
 version = "0.1.0"
 edition = "2021"
 authors = ["Hoel Bagard"]

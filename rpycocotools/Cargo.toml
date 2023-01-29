@@ -1,0 +1,13 @@
+[package]
+name = "rpycocotools"
+version = "0.1.0"
+edition = "2021"
+authors = ["Hoel Bagard"]
+
+[lib]
+name = "rpycocotools"
+crate-type = ["cdylib"]
+
+[dependencies]
+cocotools = { path = "../cocotools"}
+pyo3 = { version = "0.18", features = ["extension-module"] }
