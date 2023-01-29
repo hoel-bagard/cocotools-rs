@@ -12,10 +12,43 @@ use pyo3::prelude::*;
 use pyo3::types::PyUnicode;
 
 #[pyclass]
+#[derive(Debug, Clone)]
+struct PyCategory(Category);
+
+#[pymethods]
+impl PyCategory {
+    #[getter]
+    fn id(&self) -> u32 {
+        self.0.id
+    }
+    #[getter(name)]
+    fn name(&self) -> String {
+        self.0.name.clone()
+    }
+    // TODO: https://pyo3.rs/main/faq.html#pyo3get-clones-my-field
+    // #[setter(name)]
+    // fn set_name(&mut self, new_name: String) -> PyResult<()> {
+    //     self.0.name = new_name;
+    //     Ok(())
+    // }
+    #[getter]
+    fn supercategory(&self) -> String {
+        self.0.supercategory.clone()
+    }
+    fn __repr__(&self) -> PyResult<String> {
+        Ok(format!(
+            "Category(id={}, name='{}', supercategory='{}')",
+            self.0.id, self.0.name, self.0.supercategory
+        ))
+    }
+}
+
+#[pyclass]
 #[derive(Debug)]
 pub struct COCO {
     anns: HashMap<u32, Annotation>,
-    cats: HashMap<u32, Category>,
+    #[pyo3(get)]
+    cats: HashMap<u32, PyCategory>,
     imgs: HashMap<u32, Image>,
     /// Hashmap that links an image id to the image's annotations
     img_to_anns: HashMap<u32, Vec<u32>>,
@@ -40,12 +73,12 @@ impl COCO {
             serde_json::from_str(&annotations_file_content).expect("Error decoding the json file");
 
         let mut anns: HashMap<u32, Annotation> = HashMap::new();
-        let mut cats: HashMap<u32, Category> = HashMap::new();
+        let mut cats: HashMap<u32, PyCategory> = HashMap::new();
         let mut imgs: HashMap<u32, Image> = HashMap::new();
         let mut img_to_anns: HashMap<u32, Vec<u32>> = HashMap::new();
 
         for category in dataset.categories {
-            cats.insert(category.id, category);
+            cats.insert(category.id, PyCategory(category));
         }
 
         for image in dataset.images {
@@ -86,8 +119,8 @@ impl COCO {
         })
     }
 
-    #[getter]
-    fn anns(&self) -> HashMap<u32, Annotation> {
-        self.anns
-    }
+    // #[getter]
+    // fn anns(&self) -> HashMap<u32, Annotation> {
+    //     self.anns
+    // }
 }

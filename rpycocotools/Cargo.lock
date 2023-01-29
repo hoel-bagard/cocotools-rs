@@ -1204,6 +1204,8 @@ version = "0.1.0"
 dependencies = [
  "cocotools",
  "pyo3",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
