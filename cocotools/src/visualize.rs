@@ -1,11 +1,12 @@
 pub mod bbox;
 pub mod segmentation;
 
+use crate::annotations::coco_types::Annotation;
 use crate::annotations::load_coco::HashmapDataset;
 use crate::errors;
 use image::io::Reader as ImageReader;
 use rand::Rng;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 extern crate image;
 extern crate minifb;
@@ -31,6 +32,27 @@ fn draw_rgb_to_buffer(img: &image::RgbImage, dst: &mut [u32]) {
     }
 }
 
+pub fn visualize_img(
+    dataset: &HashmapDataset,
+    image_folder: &String,
+    img_id: u32,
+) -> Result<(), errors::MissingIdError> {
+    let anns = dataset.get_img_anns(img_id)?;
+    let img_name = &dataset.get_img(img_id)?.file_name;
+    let img_path = Path::new(image_folder).join(img_name);
+
+    show_anns(img_path, anns, true)
+}
+
+/// Visualize the given image and annotations.
+/// TODO: Put the drawing part in its own function.
+///
+/// # Arguments
+///
+/// * `img_path` - The path to the image corresponding to the annotations.
+/// * `anns` - The annotations to draw on the image.
+/// * `draw_bbox` - If true, draw the bounding boxes.
+///
 /// # Panics
 ///
 /// Will panic if it cannot read the image file corresponding to the `img_id`.
@@ -38,19 +60,16 @@ fn draw_rgb_to_buffer(img: &image::RgbImage, dst: &mut [u32]) {
 /// # Errors
 ///
 /// Will return `Err` if `img_id` is not present in the dataset.
-pub fn visualize_img(
-    dataset: &HashmapDataset,
-    image_folder: &String,
-    img_id: u32,
+pub fn show_anns(
+    img_path: PathBuf,
+    anns: Vec<&Annotation>,
+    draw_bbox: bool,
 ) -> Result<(), errors::MissingIdError> {
-    let img_name = &dataset.get_img(img_id)?.file_name;
-    let sample_path = Path::new(image_folder).join(img_name);
-
-    let mut img = ImageReader::open(&sample_path)
+    let mut img = ImageReader::open(&img_path)
         .unwrap_or_else(|error| {
             panic!(
                 "Could not open the image {}: {:?}",
-                sample_path.display(),
+                img_path.display(),
                 error
             );
         })
@@ -58,16 +77,18 @@ pub fn visualize_img(
         .unwrap_or_else(|error| {
             panic!(
                 "Could not decode the image {}: {:?}",
-                sample_path.display(),
+                img_path.display(),
                 error
             );
         })
         .into_rgb8();
 
     let mut rng = rand::thread_rng();
-    for ann in dataset.get_img_anns(img_id)? {
+    for ann in anns {
         let color = image::Rgb([rng.gen::<u8>(), rng.gen::<u8>(), rng.gen::<u8>()]);
-        bbox::draw_bbox(&mut img, &ann.bbox, color);
+        if draw_bbox {
+            bbox::draw_bbox(&mut img, &ann.bbox, color);
+        }
         let mask = segmentation::Mask::from(&ann.segmentation);
         segmentation::draw_mask(&mut img, &mask, color);
     }
@@ -78,7 +99,11 @@ pub fn visualize_img(
     draw_rgb_to_buffer(&img, &mut buffer);
 
     let mut window = Window::new(
-        format!("{img_name} - Press Q or ESC to exit",).as_str(),
+        format!(
+            "{} - Press Q or ESC to exit",
+            img_path.file_name().unwrap().to_str().unwrap()
+        )
+        .as_str(),
         img_width,
         img_height,
         WindowOptions::default(),
