@@ -21,19 +21,23 @@ impl PyCategory {
     fn id(&self) -> u32 {
         self.0.id
     }
+
     #[getter(name)]
     fn name(&self) -> String {
         self.0.name.clone()
     }
+
     #[setter(name)]
     fn set_name(&mut self, new_name: String) -> PyResult<()> {
         self.0.name = new_name;
         Ok(())
     }
+
     #[getter]
     fn supercategory(&self) -> String {
         self.0.supercategory.clone()
     }
+
     fn __repr__(&self) -> String {
         format!(
             "Category(id={}, name='{}', supercategory='{}')",
@@ -117,9 +121,4 @@ impl COCO {
             img_to_anns,
         })
     }
-
-    // #[getter]
-    // fn anns(&self) -> HashMap<u32, Annotation> {
-    //     self.anns
-    // }
 }
