@@ -4,6 +4,7 @@ use pyo3::exceptions::PyKeyError;
 use crate::cocotools::annotations::coco_types::{
     self, Annotation, Category, Dataset, Image, Segmentation,
 };
+use crate::cocotools::annotations::load_coco::HashmapDataset;
 use std::collections::HashMap;
 use std::fs;
 use std::io::ErrorKind;
@@ -46,21 +47,26 @@ impl PyCategory {
     }
 }
 
+impl From<Category> for PyCategory {
+    fn from(cat: Category) -> Self {
+        Self(cat)
+    }
+}
+
 #[pyclass]
 #[derive(Debug)]
 pub struct COCO {
-    anns: HashMap<u32, Annotation>,
-    #[pyo3(get)]
-    cats: HashMap<u32, Py<PyCategory>>,
-    imgs: HashMap<u32, Image>,
-    /// Hashmap that links an image id to the image's annotations
-    img_to_anns: HashMap<u32, Vec<u32>>,
+    // TODO: Redo COCO the same way PyCategory is done, as a wrapper around the rust crate version.
+    //       Otherwise it's missing things like get_img_anns, etc...
+    pub dataset: HashmapDataset,
+    // #[pyo3(get)]
+    // cats: HashMap<u32, Py<PyCategory>>,
 }
 
 #[pymethods]
 impl COCO {
     #[new]
-    fn new(py: Python<'_>, annotations_path: &PyUnicode) -> PyResult<Self> {
+    fn new(_py: Python<'_>, annotations_path: &PyUnicode) -> PyResult<Self> {
         let annotations_path = annotations_path.to_str().unwrap().to_owned();
 
         let annotations_file_content =
@@ -75,50 +81,24 @@ impl COCO {
         let dataset: Dataset =
             serde_json::from_str(&annotations_file_content).expect("Error decoding the json file");
 
-        let mut anns: HashMap<u32, Annotation> = HashMap::new();
-        let mut cats: HashMap<u32, Py<PyCategory>> = HashMap::new();
-        let mut imgs: HashMap<u32, Image> = HashMap::new();
-        let mut img_to_anns: HashMap<u32, Vec<u32>> = HashMap::new();
+        let dataset = HashmapDataset::new(dataset).unwrap_or_else(|error| {
+            panic!(
+                "Found an annotation for an image id not in the dataset when creating the dataset: {:?}",
+                error
+            );
+        });
 
-        for category in dataset.categories {
-            cats.insert(category.id, Py::new(py, PyCategory(category))?);
-        }
+        Ok(Self { dataset })
+    }
 
-        for image in dataset.images {
-            imgs.insert(image.id, image);
-        }
-
-        for mut annotation in dataset.annotations {
-            let ann_id = annotation.id;
-            let img_id = annotation.image_id;
-
-            if let Segmentation::Polygon(mut counts) = annotation.segmentation {
-                annotation.segmentation = Segmentation::PolygonRS(coco_types::PolygonRS {
-                    size: if let Some(img) = imgs.get(&img_id) {
-                        vec![img.height, img.width]
-                    } else {
-                        return Err(PyKeyError::new_err(format!(
-                            "The following image id was not found in the dataset: {}",
-                            img_id
-                        )));
-                    },
-                    counts: counts.remove(0),
-                });
-            };
-
-            anns.insert(annotation.id, annotation);
-            img_to_anns.entry(img_id).or_insert_with(Vec::new);
-            img_to_anns
-                .get_mut(&img_id)
-                .expect("Image id not in the hashmap, eventhough it should have been initialized on the previous line.")
-                .push(ann_id);
-        }
-
-        Ok(Self {
-            anns,
-            cats,
-            imgs,
-            img_to_anns,
-        })
+    #[getter]
+    fn cats(&self) -> PyResult<HashMap<u32, Py<PyCategory>>> {
+        let mut py_cats: HashMap<u32, Py<PyCategory>> = HashMap::new();
+        Python::with_gil(|py| {
+            for (id, cat) in self.dataset.cats.clone().into_iter() {
+                py_cats.insert(id, Py::new(py, PyCategory(cat)).unwrap());
+            }
+        });
+        Ok(py_cats)
     }
 }

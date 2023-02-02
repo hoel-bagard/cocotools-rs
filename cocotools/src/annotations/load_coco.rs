@@ -8,9 +8,10 @@ use std::io::ErrorKind;
 #[derive(Debug)]
 pub struct HashmapDataset {
     anns: HashMap<u32, Annotation>,
-    cats: HashMap<u32, Category>,
+    pub cats: HashMap<u32, Category>,
     imgs: HashMap<u32, Image>,
     /// Hashmap that links an image id to the image's annotations
+    // Use Rc to reference the annotations directly ?
     img_to_anns: HashMap<u32, Vec<u32>>,
 }
 

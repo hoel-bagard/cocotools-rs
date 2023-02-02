@@ -1,25 +1,34 @@
 extern crate cocotools;
+use crate::cocotools::errors::MissingIdError;
 use pyo3::exceptions::PyKeyError;
 use std::path::{Path, PathBuf};
 pub mod coco;
+pub mod errors;
+use errors::PyMissingIdError;
 use pyo3::prelude::*;
 use pyo3::types::PyUnicode;
 
 #[pyfunction]
-pub fn visualize_img(dataset: &coco::COCO, image_folder: &PyUnicode, img_id: u32) -> PyResult<()> {
+pub fn visualize_img(
+    dataset: &coco::COCO,
+    image_folder: &PyUnicode,
+    img_id: u32,
+) -> Result<(), PyMissingIdError> {
     let image_folder = image_folder.to_str().unwrap().to_owned();
 
-    let anns = dataset.get_img_anns(img_id)?;
-    let img_name = &dataset.get_img(img_id)?.file_name;
-    let img_path = Path::new(image_folder).join(img_name);
+    let anns = dataset
+        .dataset
+        .get_img_anns(img_id)
+        .map_err(|err| MissingIdError::from(err))?;
+    let img_name = &dataset
+        .dataset
+        .get_img(img_id)
+        .map_err(|err| MissingIdError::from(err))?
+        .file_name;
+    let img_path = Path::new(&image_folder).join(img_name);
 
-    match cocotools::visualize::show_anns(img_path, anns, true) {
-        Ok(_) => Ok(()),
-        Err(e) => Err(PyKeyError::new_err(format!(
-            "The following image id was not found in the dataset: {}",
-            img_id
-        ))),
-    }
+    cocotools::visualize::show_anns(img_path, anns, true)?;
+    Ok(())
 }
 
 #[pymodule]
