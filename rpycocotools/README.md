@@ -2,6 +2,10 @@
 
 Tool to handle COCO-like data in python. This repo is very much a wip.
 
+### Build
+
+Build and install into local virtualenv with `maturin develop`.
+
 ### Usage example
 
 ```python
