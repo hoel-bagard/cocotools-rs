@@ -1,12 +1,11 @@
-extern crate cocotools;
-use crate::cocotools::errors::MissingIdError;
-use pyo3::exceptions::PyKeyError;
-use std::path::{Path, PathBuf};
 pub mod coco;
 pub mod errors;
+extern crate cocotools;
+use crate::cocotools::errors::MissingIdError;
 use errors::PyMissingIdError;
 use pyo3::prelude::*;
 use pyo3::types::PyUnicode;
+use std::path::Path;
 
 #[pyfunction]
 pub fn visualize_img(
@@ -34,6 +33,7 @@ pub fn visualize_img(
 #[pymodule]
 fn rpycocotools(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
     m.add_class::<coco::COCO>()?;
+    m.add_class::<coco::PyCategory>()?;
     m.add_function(wrap_pyfunction!(visualize_img, m)?)?;
     Ok(())
 }
