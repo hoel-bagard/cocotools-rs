@@ -1,0 +1,47 @@
+[project]
+name = "rpycocotools"
+version = "0.1.0"
+requires-python = ">=3.7"
+dependencies = []
+classifiers = [
+    "Programming Language :: Rust",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+]
+
+[project.urls]
+"Source Code" = "https://github.com/hoel-bagard/rust_coco_tools"
+
+[tool.maturin]
+sdist-include = ["LICENSE", "README.md"]
+
+[tool.pytest.ini_options]
+addopts = [
+    "--import-mode=importlib",
+]
+
+[project.optional-dependencies]
+build = ["maturin"]
+test = ["pytest"]
+dev = [
+    "pip-tools",
+    "pre-commit",
+
+    # Lint
+    "flake8",
+    "flake8-docstrings",
+    "pep8-naming",
+    "flake8-import-order",
+    "flake8-bugbear",
+    "flake8-quotes",
+    "flake8-comprehensions",
+]
+
+[tool.isort]
+line_length = 120
+case_sensitive = false
+order_by_type = false
+
+[build-system]
+requires = ["maturin>=0.13,<0.14"]
+build-backend = "maturin"

@@ -74,7 +74,7 @@ pub struct Bbox {
     pub height: f64,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 pub struct Category {
     pub id: u32,
     pub name: String,

@@ -8,13 +8,14 @@ use std::io::ErrorKind;
 #[derive(Debug)]
 pub struct HashmapDataset {
     anns: HashMap<u32, Annotation>,
-    cats: HashMap<u32, Category>,
+    pub cats: HashMap<u32, Category>,
     imgs: HashMap<u32, Image>,
     /// Hashmap that links an image id to the image's annotations
+    // Use Rc to reference the annotations directly ?
     img_to_anns: HashMap<u32, Vec<u32>>,
 }
 
-impl<'a> HashmapDataset {
+impl HashmapDataset {
     /// Creates a `HashmapDataset` from a standard COCO one.
     ///
     /// # Errors
@@ -70,7 +71,7 @@ impl<'a> HashmapDataset {
     /// # Errors
     ///
     /// Will return `Err` if there is no entry in the dataset corresponding to `ann_id`.
-    pub fn get_ann(
+    pub fn get_ann<'a>(
         &'a self,
         ann_id: u32,
     ) -> Result<&'a Annotation, errors::MissingAnnotationIdError> {
@@ -87,7 +88,10 @@ impl<'a> HashmapDataset {
     /// # Errors
     ///
     /// Will return `Err` if there is no entry corresponding to `cat_id`.
-    pub fn get_cat(&'a self, cat_id: u32) -> Result<&'a Category, errors::MissingCategoryIdError> {
+    pub fn get_cat<'a>(
+        &'a self,
+        cat_id: u32,
+    ) -> Result<&'a Category, errors::MissingCategoryIdError> {
         let cat = match self.cats.get(&cat_id) {
             None => return Err(errors::MissingCategoryIdError { id: cat_id }),
             Some(cat) => cat,
@@ -101,7 +105,7 @@ impl<'a> HashmapDataset {
     /// # Errors
     ///
     /// Will return `Err` if there is no entry corresponding to `img_id`.
-    pub fn get_img(&'a self, img_id: u32) -> Result<&'a Image, errors::MissingImageIdError> {
+    pub fn get_img<'a>(&'a self, img_id: u32) -> Result<&'a Image, errors::MissingImageIdError> {
         let img = match self.imgs.get(&img_id) {
             None => return Err(errors::MissingImageIdError { id: img_id }),
             Some(img) => img,
@@ -115,7 +119,7 @@ impl<'a> HashmapDataset {
     /// # Errors
     ///
     /// Will return `Err` if there is no entry corresponding to `img_id`.
-    pub fn get_img_anns(
+    pub fn get_img_anns<'a>(
         &'a self,
         img_id: u32,
     ) -> Result<Vec<&'a Annotation>, errors::MissingImageIdError> {
