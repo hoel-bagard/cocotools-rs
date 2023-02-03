@@ -1,17 +1,14 @@
+# Rpycocotools
 
+Tool to handle COCO-like data in python. This repo is very much a wip.
 
-
-```python
-import rpycocotools
-coco_dataset = rpycocotools.COCO("../data_samples/coco_25k/annotations.json")
-for cat_id, cat in coco_dataset.cats.items():
-     print(f"Category id: {cat_id: >2}, category name: {cat.name}")
-```
+### Usage example
 
 ```python
 import rpycocotools
 coco_dataset = rpycocotools.COCO("../data_samples/coco_25k/annotations.json")
-print(coco_dataset.cats[1].name)
-coco_dataset.cats[1].name = "elf"
-print(coco_dataset.cats[1].name)
+rpycocotools.visualize_img(coco_dataset, "../data_samples/coco_25k/images/", 174482)
 ```
+
+## TODO
+- Try to use `hypothesis` for testing.
