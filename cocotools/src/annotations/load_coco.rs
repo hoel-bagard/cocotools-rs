@@ -51,10 +51,9 @@ impl HashmapDataset {
             };
 
             anns.insert(annotation.id, annotation);
-            img_to_anns.entry(img_id).or_insert_with(Vec::new);
             img_to_anns
-                .get_mut(&img_id)
-                .expect("Image id not in the hashmap, eventhough it should have been initialized on the previous line.")
+                .entry(img_id)
+                .or_insert_with(Vec::new)
                 .push(ann_id);
         }
 
