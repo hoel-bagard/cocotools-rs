@@ -70,10 +70,7 @@ impl HashmapDataset {
     /// # Errors
     ///
     /// Will return `Err` if there is no entry in the dataset corresponding to `ann_id`.
-    pub fn get_ann<'a>(
-        &'a self,
-        ann_id: u32,
-    ) -> Result<&'a Annotation, errors::MissingAnnotationIdError> {
+    pub fn get_ann(&self, ann_id: u32) -> Result<&Annotation, errors::MissingAnnotationIdError> {
         let ann = match self.anns.get(&ann_id) {
             None => return Err(errors::MissingAnnotationIdError { id: ann_id }),
             Some(ann) => ann,
@@ -87,10 +84,7 @@ impl HashmapDataset {
     /// # Errors
     ///
     /// Will return `Err` if there is no entry corresponding to `cat_id`.
-    pub fn get_cat<'a>(
-        &'a self,
-        cat_id: u32,
-    ) -> Result<&'a Category, errors::MissingCategoryIdError> {
+    pub fn get_cat(&self, cat_id: u32) -> Result<&Category, errors::MissingCategoryIdError> {
         let cat = match self.cats.get(&cat_id) {
             None => return Err(errors::MissingCategoryIdError { id: cat_id }),
             Some(cat) => cat,
@@ -104,7 +98,7 @@ impl HashmapDataset {
     /// # Errors
     ///
     /// Will return `Err` if there is no entry corresponding to `img_id`.
-    pub fn get_img<'a>(&'a self, img_id: u32) -> Result<&'a Image, errors::MissingImageIdError> {
+    pub fn get_img(&self, img_id: u32) -> Result<&Image, errors::MissingImageIdError> {
         let img = match self.imgs.get(&img_id) {
             None => return Err(errors::MissingImageIdError { id: img_id }),
             Some(img) => img,
@@ -118,10 +112,10 @@ impl HashmapDataset {
     /// # Errors
     ///
     /// Will return `Err` if there is no entry corresponding to `img_id`.
-    pub fn get_img_anns<'a>(
-        &'a self,
+    pub fn get_img_anns(
+        &self,
         img_id: u32,
-    ) -> Result<Vec<&'a Annotation>, errors::MissingImageIdError> {
+    ) -> Result<Vec<&Annotation>, errors::MissingImageIdError> {
         let mut anns: Vec<&Annotation> = Vec::new();
         match self.img_to_anns.get(&img_id) {
             None => return Err(errors::MissingImageIdError { id: img_id }),
