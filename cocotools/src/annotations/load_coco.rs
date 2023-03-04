@@ -1,5 +1,5 @@
 use crate::annotations::coco_types::{self, Annotation, Category, Dataset, Image, Segmentation};
-use crate::errors;
+use crate::errors::MissingIdError;
 use std::collections::HashMap;
 use std::fs;
 use std::io::ErrorKind;
@@ -21,30 +21,34 @@ impl HashmapDataset {
     /// # Errors
     ///
     /// Will return `Err` if there is an annotation with an image id X, but no image entry has this id.
-    pub fn new(dataset: Dataset) -> Result<Self, errors::MissingImageIdError> {
+    pub fn new(dataset: Dataset) -> Result<Self, MissingIdError> {
         let mut anns: HashMap<u32, Annotation> = HashMap::new();
-        let mut cats: HashMap<u32, Category> = HashMap::new();
-        let mut imgs: HashMap<u32, Image> = HashMap::new();
         let mut img_to_anns: HashMap<u32, Vec<u32>> = HashMap::new();
 
-        for category in dataset.categories {
-            cats.insert(category.id, category);
-        }
+        let cats = dataset
+            .categories
+            .into_iter()
+            .map(|category| (category.id, category))
+            .collect();
 
-        for image in dataset.images {
-            imgs.insert(image.id, image);
-        }
+        let imgs: HashMap<u32, Image> = dataset
+            .images
+            .into_iter()
+            .map(|image| (image.id, image))
+            .collect();
 
         for mut annotation in dataset.annotations {
             let ann_id = annotation.id;
             let img_id = annotation.image_id;
 
+            // The polygon format from COCO is annoying to deal with as it does not contain the size of the image,
+            // it is therefore transformed into a more complete format.
             if let Segmentation::Polygon(mut counts) = annotation.segmentation {
                 annotation.segmentation = Segmentation::PolygonRS(coco_types::PolygonRS {
                     size: if let Some(img) = imgs.get(&img_id) {
                         vec![img.height, img.width]
                     } else {
-                        return Err(errors::MissingImageIdError { id: img_id });
+                        return Err(MissingIdError::Image(img_id));
                     },
                     counts: counts.remove(0),
                 });
@@ -70,13 +74,10 @@ impl HashmapDataset {
     /// # Errors
     ///
     /// Will return `Err` if there is no entry in the dataset corresponding to `ann_id`.
-    pub fn get_ann(&self, ann_id: u32) -> Result<&Annotation, errors::MissingAnnotationIdError> {
-        let ann = match self.anns.get(&ann_id) {
-            None => return Err(errors::MissingAnnotationIdError { id: ann_id }),
-            Some(ann) => ann,
-        };
-
-        Ok(ann)
+    pub fn get_ann(&self, ann_id: u32) -> Result<&Annotation, MissingIdError> {
+        self.anns
+            .get(&ann_id)
+            .ok_or(MissingIdError::Annotation(ann_id))
     }
 
     /// Return a result containing the category struct corresponding to the given id.
@@ -84,13 +85,10 @@ impl HashmapDataset {
     /// # Errors
     ///
     /// Will return `Err` if there is no entry corresponding to `cat_id`.
-    pub fn get_cat(&self, cat_id: u32) -> Result<&Category, errors::MissingCategoryIdError> {
-        let cat = match self.cats.get(&cat_id) {
-            None => return Err(errors::MissingCategoryIdError { id: cat_id }),
-            Some(cat) => cat,
-        };
-
-        Ok(cat)
+    pub fn get_cat(&self, cat_id: u32) -> Result<&Category, MissingIdError> {
+        self.cats
+            .get(&cat_id)
+            .ok_or(MissingIdError::Category(cat_id))
     }
 
     /// Return a result containing the image struct corresponding to the given image id.
@@ -98,13 +96,8 @@ impl HashmapDataset {
     /// # Errors
     ///
     /// Will return `Err` if there is no entry corresponding to `img_id`.
-    pub fn get_img(&self, img_id: u32) -> Result<&Image, errors::MissingImageIdError> {
-        let img = match self.imgs.get(&img_id) {
-            None => return Err(errors::MissingImageIdError { id: img_id }),
-            Some(img) => img,
-        };
-
-        Ok(img)
+    pub fn get_img(&self, img_id: u32) -> Result<&Image, MissingIdError> {
+        self.imgs.get(&img_id).ok_or(MissingIdError::Image(img_id))
     }
 
     /// Return a result containing the annotations for the given image id.
@@ -112,20 +105,12 @@ impl HashmapDataset {
     /// # Errors
     ///
     /// Will return `Err` if there is no entry corresponding to `img_id`.
-    pub fn get_img_anns(
-        &self,
-        img_id: u32,
-    ) -> Result<Vec<&Annotation>, errors::MissingImageIdError> {
-        let mut anns: Vec<&Annotation> = Vec::new();
-        match self.img_to_anns.get(&img_id) {
-            None => return Err(errors::MissingImageIdError { id: img_id }),
-            Some(ann_ids) => {
-                for ann_id in ann_ids {
-                    anns.push(self.get_ann(*ann_id).expect("The img_to_anns should not contain annotation ids that are not present in the anns hashmap."));
-                }
-            }
-        }
-        Ok(anns)
+    pub fn get_img_anns(&self, img_id: u32) -> Result<Vec<&Annotation>, MissingIdError> {
+        self.img_to_anns
+            .get(&img_id)
+            .map_or(Err(MissingIdError::Image(img_id)), |ann_ids| {
+                ann_ids.iter().map(|ann_id| self.get_ann(*ann_id)).collect()
+            })
     }
 }
 

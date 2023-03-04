@@ -1,63 +1,32 @@
-use std::error::Error;
-use std::fmt;
-
-#[derive(Debug)]
+#[derive(thiserror::Error)]
 pub enum MissingIdError {
-    Annotation(MissingAnnotationIdError),
-    Category(MissingCategoryIdError),
-    Image(MissingImageIdError),
+    #[error("The following annotation id was not found in the dataset: `{0}`.")]
+    Annotation(u32),
+    #[error("The following category id was not found in the dataset: `{0}`.")]
+    Category(u32),
+    #[error("The following image id was not found in the dataset: `{0}`.")]
+    Image(u32),
+    // #[error(transparent)]
+    // InvalidValue(#[from] anyhow::Error),
 }
 
-#[derive(Debug)]
-pub struct MissingAnnotationIdError {
-    pub id: u32,
-}
-#[derive(Debug)]
-pub struct MissingCategoryIdError {
-    pub id: u32,
-}
-#[derive(Debug)]
-pub struct MissingImageIdError {
-    pub id: u32,
-}
-
-impl fmt::Display for MissingIdError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Annotation(ann_error) => write!(
-                f,
-                "The following annotation id was not found in the dataset: {}",
-                ann_error.id
-            ),
-            Self::Category(cat_error) => write!(
-                f,
-                "The following category id was not found in the dataset: {}",
-                cat_error.id
-            ),
-            Self::Image(img_error) => write!(
-                f,
-                "The following image id was not found in the dataset: {}",
-                img_error.id
-            ),
-        }
+// From https://www.lpalmieri.com/posts/error-handling-rust/
+//      https://github.com/LukeMathWalker/zero-to-production/blob/main/src/routes/subscriptions.rs#L199
+impl std::fmt::Debug for MissingIdError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        error_chain_fmt(self, f)
     }
 }
 
-impl From<MissingAnnotationIdError> for MissingIdError {
-    fn from(err: MissingAnnotationIdError) -> Self {
-        Self::Annotation(err)
+fn error_chain_fmt(
+    e: &impl std::error::Error,
+    f: &mut std::fmt::Formatter<'_>,
+) -> std::fmt::Result {
+    writeln!(f, "{}\n", e)?;
+    let mut current = e.source();
+    while let Some(cause) = current {
+        writeln!(f, "Caused by:\n\t{}", cause)?;
+        current = cause.source();
     }
+    Ok(())
 }
-
-impl From<MissingCategoryIdError> for MissingIdError {
-    fn from(err: MissingCategoryIdError) -> Self {
-        Self::Category(err)
-    }
-}
-
-impl From<MissingImageIdError> for MissingIdError {
-    fn from(err: MissingImageIdError) -> Self {
-        Self::Image(err)
-    }
-}
-impl Error for MissingIdError {}

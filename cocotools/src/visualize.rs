@@ -41,7 +41,9 @@ pub fn visualize_img(
     let img_name = &dataset.get_img(img_id)?.file_name;
     let img_path = Path::new(image_folder).join(img_name);
 
-    show_anns(img_path, anns, true)
+    show_anns(&img_path, anns, true);
+
+    Ok(())
 }
 
 /// Visualize the given image and annotations.
@@ -60,12 +62,8 @@ pub fn visualize_img(
 /// # Errors
 ///
 /// Will return `Err` if `img_id` is not present in the dataset.
-pub fn show_anns(
-    img_path: PathBuf,
-    anns: Vec<&Annotation>,
-    draw_bbox: bool,
-) -> Result<(), errors::MissingIdError> {
-    let mut img = ImageReader::open(&img_path)
+pub fn show_anns(img_path: &PathBuf, anns: Vec<&Annotation>, draw_bbox: bool) {
+    let mut img = ImageReader::open(img_path)
         .unwrap_or_else(|error| {
             panic!(
                 "Could not open the image {}: {:?}",
@@ -119,6 +117,4 @@ pub fn show_anns(
                 panic!("Could not update buffer, got the following error: {}", e);
             });
     }
-
-    Ok(())
 }
