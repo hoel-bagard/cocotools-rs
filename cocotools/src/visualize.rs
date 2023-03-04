@@ -6,7 +6,7 @@ use crate::annotations::load_coco::HashmapDataset;
 use crate::errors;
 use image::io::Reader as ImageReader;
 use rand::Rng;
-use std::path::{PathBuf};
+use std::path::{Path, PathBuf};
 
 extern crate image;
 extern crate minifb;
@@ -32,9 +32,12 @@ fn draw_rgb_to_buffer(img: &image::RgbImage, dst: &mut [u32]) {
     }
 }
 
+/// # Errors
+///
+/// Will return `Err` if `img_id` is not present in the dataset.
 pub fn visualize_img(
     dataset: &HashmapDataset,
-    image_folder: &PathBuf,
+    image_folder: &Path,
     img_id: u32,
 ) -> Result<(), errors::MissingIdError> {
     let anns = dataset.get_img_anns(img_id)?;
@@ -58,10 +61,6 @@ pub fn visualize_img(
 /// # Panics
 ///
 /// Will panic if it cannot read the image file corresponding to the `img_id`.
-///
-/// # Errors
-///
-/// Will return `Err` if `img_id` is not present in the dataset.
 pub fn show_anns(img_path: &PathBuf, anns: Vec<&Annotation>, draw_bbox: bool) {
     let mut img = ImageReader::open(img_path)
         .unwrap_or_else(|error| {
