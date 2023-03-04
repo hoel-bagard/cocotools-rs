@@ -3,6 +3,7 @@ use crate::errors::MissingIdError;
 use std::collections::HashMap;
 use std::fs;
 use std::io::ErrorKind;
+use std::path::Path;
 
 /// Transforms the COCO dataset into a hashmap version where the ids are keys.
 #[derive(Debug)]
@@ -118,7 +119,7 @@ impl HashmapDataset {
 ///
 /// Will panic if the json file does not exists, cannot be opened or if an error happens when creating a Hashmap version of it.
 #[must_use]
-pub fn load_json(annotations_path: &String) -> HashmapDataset {
+pub fn load_json<P: AsRef<Path>>(annotations_path: P) -> HashmapDataset {
     let annotations_file_content = fs::read_to_string(annotations_path).unwrap_or_else(|error| {
         if error.kind() == ErrorKind::NotFound {
             panic!("Could not find the annotations file: {:?}", error);

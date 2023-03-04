@@ -6,7 +6,7 @@ use crate::annotations::load_coco::HashmapDataset;
 use crate::errors;
 use image::io::Reader as ImageReader;
 use rand::Rng;
-use std::path::{Path, PathBuf};
+use std::path::{PathBuf};
 
 extern crate image;
 extern crate minifb;
@@ -34,12 +34,12 @@ fn draw_rgb_to_buffer(img: &image::RgbImage, dst: &mut [u32]) {
 
 pub fn visualize_img(
     dataset: &HashmapDataset,
-    image_folder: &String,
+    image_folder: &PathBuf,
     img_id: u32,
 ) -> Result<(), errors::MissingIdError> {
     let anns = dataset.get_img_anns(img_id)?;
     let img_name = &dataset.get_img(img_id)?.file_name;
-    let img_path = Path::new(image_folder).join(img_name);
+    let img_path = image_folder.join(img_name);
 
     show_anns(&img_path, anns, true);
 

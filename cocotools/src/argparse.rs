@@ -1,56 +1,27 @@
-use clap::{Args, Parser, Subcommand};
+use clap::{Parser, Subcommand};
+use std::path::PathBuf;
 
-/// Simple program to greet a person
-#[derive(Parser, Debug)]
+#[derive(Parser)]
 #[command(author, version, about)]
-pub struct COCOtoolsArgs {
-    #[clap(subcommand)]
-    pub command_type: CommandType,
-    // #[arg(long, short = 'v', action = clap::ArgAction::Count)]
-    // verbose: i8,
+pub struct Cli {
+    #[command(subcommand)]
+    pub command: Commands,
 }
 
-#[derive(Debug, Subcommand)]
-pub enum CommandType {
+#[derive(Subcommand)]
+pub enum Commands {
     /// Visualize COCO labels.
-    Visualize(VisualizeCommand),
+    Visualize {
+        /// Path to the COCO json annotation file.
+        annotations_file: PathBuf,
 
-    /// Split a COCO dataset in two.
-    Split(DatasetPathsArgs),
+        /// Path to the folder with the images.
+        image_folder: PathBuf,
+
+        #[arg(short, long)]
+        sample_id: Option<u32>,
+    },
+    // /// Split a COCO dataset in two.
+    // Split(DatasetPathsArgs),
     // TODO: convert to/from PascalVOC, solo. Convert segmentation format.
-}
-
-#[derive(Debug, Args)]
-pub struct VisualizeCommand {
-    #[clap(subcommand)]
-    pub command: VisualizeSubcommand,
-}
-
-#[derive(Debug, Subcommand)]
-pub enum VisualizeSubcommand {
-    /// Visualize a single sample.
-    VisualizeSample(VisualizeSampleArgs),
-
-    /// Visualize all samples one by one.
-    VisualizeAll(DatasetPathsArgs),
-}
-
-#[derive(Debug, Args)]
-pub struct VisualizeSampleArgs {
-    /// Path to the COCO json annotation file.
-    pub annotations_file: String,
-
-    /// Path to the folder with the images.
-    pub image_folder: String,
-
-    pub sample_id: u32,
-}
-
-#[derive(Debug, Args)]
-pub struct DatasetPathsArgs {
-    /// Path to the COCO json annotation file.
-    pub annotations_file: String,
-
-    /// Path to the folder with the images.
-    pub image_folder: String,
 }
