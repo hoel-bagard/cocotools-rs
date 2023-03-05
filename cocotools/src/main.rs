@@ -32,7 +32,7 @@ fn main() -> Result<(), Box<dyn error::Error>> {
             output_folder,
         } => {
             let mut dataset = coco::load_anns(annotations_path);
-            converters::masks::convert_coco_segmentation(&mut dataset, *target_segmentation);
+            converters::masks::convert_coco_segmentation(&mut dataset, *target_segmentation)?;
             let output_path = output_folder.as_ref().map_or_else(
                 || annotations_path.clone(),
                 |output_folder| {

@@ -1,6 +1,5 @@
-
-
 use image;
+use thiserror::Error;
 
 use crate::annotations::coco;
 use crate::argparse::Segmentation;
@@ -8,14 +7,14 @@ use crate::argparse::Segmentation;
 pub fn convert_coco_segmentation(
     dataset: &mut coco::HashmapDataset,
     target_segmentation: Segmentation,
-) {
+) -> Result<(), MaskError> {
     let anns: Vec<coco::Annotation> = dataset.get_anns().into_iter().cloned().collect();
     for ann in anns {
         let converted_segmentation = match &ann.segmentation {
             coco::Segmentation::Rle(rle) => match target_segmentation {
                 Segmentation::Rle => coco::Segmentation::Rle(rle.clone()),
                 Segmentation::EncodedRle => {
-                    coco::Segmentation::EncodedRle(coco::EncodedRle::from(rle))
+                    coco::Segmentation::EncodedRle(coco::EncodedRle::try_from(rle)?)
                 }
                 Segmentation::Polygon => coco::Segmentation::Polygon(coco::Polygon::from(rle)),
             },
@@ -28,6 +27,7 @@ pub fn convert_coco_segmentation(
             ..ann.clone()
         })
     }
+    Ok(())
 }
 
 impl From<&coco::Rle> for coco::Polygon {
@@ -98,9 +98,13 @@ impl From<&coco::EncodedRle> for coco::Rle {
             current_count_idx += 1;
         }
 
-        // TODO: Added the while to pass the tests, but it should not be there. Something is wrong somewhere else.
-        while *counts.last().unwrap() == 0 {
-            counts.pop();
+        // TODO: Added the while loop to pass the tests, but it should not be there. Something is wrong somewhere else.
+        while let Some(last) = counts.last() {
+            if *last == 0 {
+                counts.pop();
+            } else {
+                break;
+            }
         }
 
         Self {
@@ -110,28 +114,29 @@ impl From<&coco::EncodedRle> for coco::Rle {
     }
 }
 
-impl From<&coco::Rle> for coco::EncodedRle {
+impl TryFrom<&coco::Rle> for coco::EncodedRle {
+    type Error = MaskError;
+
     // Get compressed string representation of encoded mask.
-    // TODO: Put all the mask conversion into a module. Add area, iou, etc... to that module.
-    //       https://github.com/cocodataset/cocoapi/blob/master/common/maskApi.c
-    fn from(rle: &coco::Rle) -> Self {
+    fn try_from(rle: &coco::Rle) -> Result<Self, Self::Error> {
         let mut high_order_bit: bool;
         let mut byte: u8;
         let mut encoded_counts: Vec<u8> = Vec::new();
 
         for i in 0..rle.counts.len() {
-            let mut continuous_pixels = i32::try_from(rle.counts[i]).unwrap();
+            let mut continuous_pixels = i64::from(rle.counts[i]);
             if i > 2 {
-                continuous_pixels -= i32::try_from(rle.counts[i - 2]).unwrap();
+                continuous_pixels -= i64::from(rle.counts[i - 2]);
             }
             high_order_bit = true;
             while high_order_bit {
-                byte = u8::try_from(continuous_pixels & 0x1f).unwrap();
+                byte = u8::try_from(continuous_pixels & 0x1f)
+                    .map_err(|err| MaskError::IntConversion(err, continuous_pixels & 0x1f))?;
                 continuous_pixels >>= 5;
-                high_order_bit = if byte & 0x10 != 0 {
-                    continuous_pixels != -1
-                } else {
+                high_order_bit = if byte & 0x10 == 0 {
                     continuous_pixels != 0
+                } else {
+                    continuous_pixels != -1
                 };
                 if high_order_bit {
                     byte |= 0x20;
@@ -140,10 +145,12 @@ impl From<&coco::Rle> for coco::EncodedRle {
                 encoded_counts.push(byte);
             }
         }
-        Self {
+        Ok(Self {
             size: rle.size.clone(),
-            counts: std::str::from_utf8(&encoded_counts).unwrap().to_string(),
-        }
+            counts: std::str::from_utf8(&encoded_counts)
+                .map_err(|err| MaskError::StrConversion(err, encoded_counts.clone()))?
+                .to_string(),
+        })
     }
 }
 
@@ -175,6 +182,14 @@ impl From<&image::GrayImage> for coco::Rle {
     }
 }
 
+#[derive(Debug, Error)]
+pub enum MaskError {
+    #[error("Failed to convert RLE to its compressed version due to a type conversion error. Tried to convert '{1:?}' to u8 and failed.")]
+    IntConversion(#[source] std::num::TryFromIntError, i64),
+    #[error("Failed to convert RLE to its compressed version due to a type conversion error. Tried to convert '{1:?}' to u8 and failed.")]
+    StrConversion(#[source] std::str::Utf8Error, Vec<u8>),
+}
+
 #[cfg(test)]
 #[allow(clippy::unwrap_used)]
 mod tests {
@@ -199,19 +214,19 @@ mod tests {
     proptest! {
         #[test]
         fn rle_decode_inverts_encode(rle in generate_rle(50, 20)){
-            let encoded_rle = EncodedRle::from(&rle);
+            let encoded_rle = EncodedRle::try_from(&rle).unwrap();
             let decoded_rle = Rle::from(&encoded_rle);
             prop_assert_eq!(decoded_rle, rle);
         }
     }
 
     #[rstest]
-    #[case::square(Rle {counts: vec![6, 1, 40, 4, 5, 4, 5, 4, 21], size: vec![9, 10]},
-                     EncodedRle {size: vec![9, 10], counts: "61X13mN000`0".to_string()})]
-    #[case::test1(Rle {counts: vec![245, 5, 35, 5, 35, 5, 35, 5, 35, 5, 1190], size: vec![40, 40]},
-                  EncodedRle {size: vec![40, 40], counts: "e75S10000000ST1".to_string()})]
-    fn encode_rle(#[case] rle: Rle, #[case] expected_encoded_rle: EncodedRle) {
-        let encoded_rle = EncodedRle::from(&rle);
-        assert_eq!(encoded_rle, expected_encoded_rle);
+    #[case::square(&Rle {counts: vec![6, 1, 40, 4, 5, 4, 5, 4, 21], size: vec![9, 10]},
+                     &EncodedRle {size: vec![9, 10], counts: "61X13mN000`0".to_string()})]
+    #[case::test1(&Rle {counts: vec![245, 5, 35, 5, 35, 5, 35, 5, 35, 5, 1190], size: vec![40, 40]},
+                  &EncodedRle {size: vec![40, 40], counts: "e75S10000000ST1".to_string()})]
+    fn encode_rle(#[case] rle: &Rle, #[case] expected_encoded_rle: &EncodedRle) {
+        let encoded_rle = EncodedRle::try_from(rle).unwrap();
+        assert_eq!(&encoded_rle, expected_encoded_rle);
     }
 }
