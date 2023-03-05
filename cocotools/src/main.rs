@@ -7,7 +7,7 @@ mod argparse;
 mod errors;
 mod visualize;
 use crate::annotations::load_coco::load_json;
-use crate::argparse::{Cli, Commands};
+use crate::argparse::{Cli, Commands, Segmentation};
 
 fn main() -> Result<(), Box<dyn error::Error>> {
     let cli = Cli::parse();
@@ -24,6 +24,13 @@ fn main() -> Result<(), Box<dyn error::Error>> {
             } else {
                 todo!()
             }
+        }
+        Commands::ConvertSegmentation {
+            annotations_file,
+            target_segmentation,
+            output_folder,
+        } => {
+            println!("AAAAAAAAAAAAAAAAAAAAAAA");
         }
     }
     Ok(())

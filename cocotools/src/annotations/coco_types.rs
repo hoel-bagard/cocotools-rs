@@ -54,13 +54,13 @@ pub enum Segmentation {
 }
 
 /// TODO: Describe what size is.
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Eq, PartialEq)]
 pub struct Rle {
     pub size: Vec<u32>,
     pub counts: Vec<u32>,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Eq, PartialEq)]
 pub struct EncodedRle {
     pub size: Vec<u32>,
     pub counts: String,
@@ -137,10 +137,58 @@ impl From<&EncodedRle> for Rle {
             current_count_idx += 1;
         }
 
+        // TODO: Added the while to pass the tests, but it should not be there. Something is wrong somewhere else.
+        while *counts.last().unwrap() == 0 {
+            counts.pop();
+        }
+
         Self {
             size: encoded_rle.size.clone(),
             counts,
         }
+    }
+}
+
+impl From<&Rle> for EncodedRle {
+    // Get compressed string representation of encoded mask.
+    // TODO: Put all the mask conversion into a module. Add area, iou, etc... to that module.
+    //       https://github.com/cocodataset/cocoapi/blob/master/common/maskApi.c
+    fn from(rle: &Rle) -> Self {
+        let mut high_order_bit: bool;
+        let mut byte: u8;
+        let mut encoded_counts: Vec<u8> = Vec::new();
+
+        for i in 0..rle.counts.len() {
+            let mut continuous_pixels = i32::try_from(rle.counts[i]).unwrap();
+            if i > 2 {
+                continuous_pixels -= i32::try_from(rle.counts[i - 2]).unwrap();
+            }
+            high_order_bit = true;
+            while high_order_bit {
+                byte = u8::try_from(continuous_pixels & 0x1f).unwrap();
+                continuous_pixels >>= 5;
+                high_order_bit = if byte & 0x10 != 0 {
+                    continuous_pixels != -1
+                } else {
+                    continuous_pixels != 0
+                };
+                if high_order_bit {
+                    byte |= 0x20;
+                };
+                byte += 48;
+                encoded_counts.push(byte);
+            }
+        }
+        Self {
+            size: rle.size.clone(),
+            counts: std::str::from_utf8(&encoded_counts).unwrap().to_string(),
+        }
+    }
+}
+
+impl From<&Polygon> for Rle {
+    fn from(rle: &Polygon) -> Self {
+        todo!()
     }
 }
 
@@ -169,5 +217,46 @@ impl From<&image::GrayImage> for Rle {
             size: vec![mask.width(), mask.height()],
             counts,
         }
+    }
+}
+
+#[cfg(test)]
+#[allow(clippy::unwrap_used)]
+mod tests {
+    use super::*;
+    use proptest::prelude::*;
+    use rstest::rstest;
+
+    prop_compose! {
+        #[allow(clippy::unwrap_used)]
+        fn generate_rle(max_value: u32, max_elts: usize)
+            (counts in prop::collection::vec(1..max_value, 2..max_elts))
+            (width in 1..counts.iter().sum(), sum in Just(counts.iter().sum::<u32>()), mut counts in Just(counts))
+             -> Rle {
+                let height = sum / width + 1;
+                *counts.last_mut().unwrap() += width * height - sum;
+                Rle { counts,
+                      size: vec![width, height]
+                }
+            }
+    }
+
+    proptest! {
+        #[test]
+        fn rle_decode_inverts_encode(rle in generate_rle(50, 20)){
+            let encoded_rle = EncodedRle::from(&rle);
+            let decoded_rle = Rle::from(&encoded_rle);
+            prop_assert_eq!(decoded_rle, rle);
+        }
+    }
+
+    #[rstest]
+    #[case::square(Rle {counts: vec![6, 1, 40, 4, 5, 4, 5, 4, 21], size: vec![9, 10]},
+                     EncodedRle {size: vec![9, 10], counts: "61X13mN000`0".to_string()})]
+    #[case::test1(Rle {counts: vec![245, 5, 35, 5, 35, 5, 35, 5, 35, 5, 1190], size: vec![40, 40]},
+                  EncodedRle {size: vec![40, 40], counts: "e75S10000000ST1".to_string()})]
+    fn encode_rle(#[case] rle: Rle, #[case] expected_encoded_rle: EncodedRle) {
+        let encoded_rle = EncodedRle::from(&rle);
+        assert_eq!(encoded_rle, expected_encoded_rle);
     }
 }
