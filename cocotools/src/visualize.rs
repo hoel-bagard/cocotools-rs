@@ -1,8 +1,7 @@
 pub mod bbox;
 pub mod segmentation;
 
-use crate::annotations::coco_types::Annotation;
-use crate::annotations::load_coco::HashmapDataset;
+use crate::annotations::coco::{Annotation, HashmapDataset};
 use crate::errors;
 use image::io::Reader as ImageReader;
 use rand::Rng;

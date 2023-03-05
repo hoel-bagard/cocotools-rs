@@ -1,9 +1,90 @@
-use crate::annotations::coco_types::{self, Annotation, Category, Dataset, Image, Segmentation};
-use crate::errors::MissingIdError;
 use std::collections::HashMap;
 use std::fs;
 use std::io::ErrorKind;
 use std::path::Path;
+
+use serde::Deserialize;
+
+use crate::errors::MissingIdError;
+
+#[derive(Deserialize, Debug)]
+pub struct Dataset {
+    pub images: Vec<Image>,
+    pub annotations: Vec<Annotation>,
+    pub categories: Vec<Category>,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct Image {
+    pub id: u32,
+    pub width: u32,
+    pub height: u32,
+    pub file_name: String,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct Annotation {
+    pub id: u32,
+    pub image_id: u32,
+    pub category_id: u32,
+    /// Segmentation can be a polygon, RLE or encoded RLE.
+    /// Exemple of polygon: "segmentation": [[510.66,423.01,511.72,420.03,...,510.45,423.01]]
+    /// Exemple of RLE: "segmentation": {"size": [40, 40], "counts": [245, 5, 35, 5, 35, 5, 35, 5, 35, 5, 1190]}
+    /// Exemple of encoded RLE: "segmentation": {"size": [480, 640], "counts": "aUh2b0X...BgRU4"}
+    pub segmentation: Segmentation,
+    pub area: f64,
+    /// The COCO bounding box format is [top left x position, top left y position, width, height].
+    /// bbox exemple:  "bbox": [473.07,395.93,38.65,28.67]
+    pub bbox: Bbox,
+    /// Either 1 or 0
+    pub iscrowd: u32,
+}
+
+pub type Polygon = Vec<Vec<f64>>;
+
+/// Internal type used to represent a polygon. It contains the width and height of the image for easier handling, notably when using traits.
+#[derive(Deserialize, Debug)]
+pub struct PolygonRS {
+    pub size: Vec<u32>,
+    pub counts: Vec<f64>,
+}
+
+#[derive(Deserialize, Debug)]
+#[serde(untagged)]
+pub enum Segmentation {
+    Polygon(Polygon),
+    PolygonRS(PolygonRS),
+    Rle(Rle),
+    EncodedRle(EncodedRle),
+}
+
+/// TODO: Describe what size is.
+#[derive(Deserialize, Debug, Eq, PartialEq)]
+pub struct Rle {
+    pub size: Vec<u32>,
+    pub counts: Vec<u32>,
+}
+
+#[derive(Deserialize, Debug, Eq, PartialEq)]
+pub struct EncodedRle {
+    pub size: Vec<u32>,
+    pub counts: String,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct Bbox {
+    pub left: f64,
+    pub top: f64,
+    pub width: f64,
+    pub height: f64,
+}
+
+#[derive(Deserialize, Debug, Clone)]
+pub struct Category {
+    pub id: u32,
+    pub name: String,
+    pub supercategory: String,
+}
 
 /// Transforms the COCO dataset into a hashmap version where the ids are keys.
 #[derive(Debug)]
@@ -45,7 +126,7 @@ impl HashmapDataset {
             // The polygon format from COCO is annoying to deal with as it does not contain the size of the image,
             // it is therefore transformed into a more complete format.
             if let Segmentation::Polygon(mut counts) = annotation.segmentation {
-                annotation.segmentation = Segmentation::PolygonRS(coco_types::PolygonRS {
+                annotation.segmentation = Segmentation::PolygonRS(PolygonRS {
                     size: if let Some(img) = imgs.get(&img_id) {
                         vec![img.height, img.width]
                     } else {

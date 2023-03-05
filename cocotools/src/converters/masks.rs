@@ -1,84 +1,11 @@
+use crate::annotations::coco;
+
 use image;
 
-use serde::Deserialize;
-
-#[derive(Deserialize, Debug)]
-pub struct Dataset {
-    pub images: Vec<Image>,
-    pub annotations: Vec<Annotation>,
-    pub categories: Vec<Category>,
-}
-
-#[derive(Deserialize, Debug)]
-pub struct Image {
-    pub id: u32,
-    pub width: u32,
-    pub height: u32,
-    pub file_name: String,
-}
-
-#[derive(Deserialize, Debug)]
-pub struct Annotation {
-    pub id: u32,
-    pub image_id: u32,
-    pub category_id: u32,
-    /// Segmentation can be a polygon, RLE or encoded RLE.
-    /// Exemple of polygon: "segmentation": [[510.66,423.01,511.72,420.03,...,510.45,423.01]]
-    /// Exemple of RLE: "segmentation": {"size": [40, 40], "counts": [245, 5, 35, 5, 35, 5, 35, 5, 35, 5, 1190]}
-    /// Exemple of encoded RLE: "segmentation": {"size": [480, 640], "counts": "aUh2b0X...BgRU4"}
-    pub segmentation: Segmentation,
-    pub area: f64,
-    /// The COCO bounding box format is [top left x position, top left y position, width, height].
-    /// bbox exemple:  "bbox": [473.07,395.93,38.65,28.67]
-    pub bbox: Bbox,
-    /// Either 1 or 0
-    pub iscrowd: u32,
-}
-
-pub type Polygon = Vec<Vec<f64>>;
-
-/// Internal type used to represent a polygon. It contains the width and height of the image for easier handling, notably when using traits.
-#[derive(Deserialize, Debug)]
-pub struct PolygonRS {
-    pub size: Vec<u32>,
-    pub counts: Vec<f64>,
-}
-
-#[derive(Deserialize, Debug)]
-#[serde(untagged)]
-pub enum Segmentation {
-    Polygon(Polygon),
-    PolygonRS(PolygonRS),
-    Rle(Rle),
-    EncodedRle(EncodedRle),
-}
-
-/// TODO: Describe what size is.
-#[derive(Deserialize, Debug, Eq, PartialEq)]
-pub struct Rle {
-    pub size: Vec<u32>,
-    pub counts: Vec<u32>,
-}
-
-#[derive(Deserialize, Debug, Eq, PartialEq)]
-pub struct EncodedRle {
-    pub size: Vec<u32>,
-    pub counts: String,
-}
-
-#[derive(Deserialize, Debug)]
-pub struct Bbox {
-    pub left: f64,
-    pub top: f64,
-    pub width: f64,
-    pub height: f64,
-}
-
-#[derive(Deserialize, Debug, Clone)]
-pub struct Category {
-    pub id: u32,
-    pub name: String,
-    pub supercategory: String,
+impl From<&coco::Polygon> for coco::Rle {
+    fn from(rle: &coco::Polygon) -> Self {
+        todo!()
+    }
 }
 
 /// Decode encoded rle segmentation information into a rle.
@@ -91,9 +18,9 @@ pub struct Category {
 /// It is similar to LEB128, but here shift is incremented by 5 instead of 7 because the implementation uses
 /// 6 bits per byte instead of 8. (no idea why, I guess it's more efficient for the COCO dataset?)
 #[allow(clippy::cast_sign_loss, clippy::cast_possible_wrap)]
-impl From<&EncodedRle> for Rle {
+impl From<&coco::EncodedRle> for coco::Rle {
     /// Converts a compressed RLE to its uncompressed version.
-    fn from(encoded_rle: &EncodedRle) -> Self {
+    fn from(encoded_rle: &coco::EncodedRle) -> Self {
         assert!(
             encoded_rle.counts.is_ascii(),
             "Encoded RLE is not in valid ascii."
@@ -149,11 +76,11 @@ impl From<&EncodedRle> for Rle {
     }
 }
 
-impl From<&Rle> for EncodedRle {
+impl From<&coco::Rle> for coco::EncodedRle {
     // Get compressed string representation of encoded mask.
     // TODO: Put all the mask conversion into a module. Add area, iou, etc... to that module.
     //       https://github.com/cocodataset/cocoapi/blob/master/common/maskApi.c
-    fn from(rle: &Rle) -> Self {
+    fn from(rle: &coco::Rle) -> Self {
         let mut high_order_bit: bool;
         let mut byte: u8;
         let mut encoded_counts: Vec<u8> = Vec::new();
@@ -186,12 +113,6 @@ impl From<&Rle> for EncodedRle {
     }
 }
 
-impl From<&Polygon> for Rle {
-    fn from(rle: &Polygon) -> Self {
-        todo!()
-    }
-}
-
 /// Convert a mask into its RLE form.
 ///
 /// ## Args:
@@ -199,7 +120,7 @@ impl From<&Polygon> for Rle {
 ///
 /// ## Returns:
 /// - The RLE corresponding to the mask.
-impl From<&image::GrayImage> for Rle {
+impl From<&image::GrayImage> for coco::Rle {
     fn from(mask: &image::GrayImage) -> Self {
         let mut previous_value = 0;
         let mut count = 0;
@@ -223,7 +144,7 @@ impl From<&image::GrayImage> for Rle {
 #[cfg(test)]
 #[allow(clippy::unwrap_used)]
 mod tests {
-    use super::*;
+    use super::coco::*;
     use proptest::prelude::*;
     use rstest::rstest;
 

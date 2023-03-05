@@ -4,9 +4,10 @@ use clap::Parser;
 
 mod annotations;
 mod argparse;
+mod converters;
 mod errors;
 mod visualize;
-use crate::annotations::load_coco::load_json;
+use crate::annotations::coco::load_json;
 use crate::argparse::{Cli, Commands, Segmentation};
 
 fn main() -> Result<(), Box<dyn error::Error>> {
