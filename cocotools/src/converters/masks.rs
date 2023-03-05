@@ -1,4 +1,4 @@
-use std::path::Path;
+
 
 use image;
 
@@ -31,13 +31,13 @@ pub fn convert_coco_segmentation(
 }
 
 impl From<&coco::Rle> for coco::Polygon {
-    fn from(rle: &coco::Rle) -> Self {
+    fn from(_rle: &coco::Rle) -> Self {
         todo!()
     }
 }
 
 impl From<&coco::PolygonRS> for coco::Rle {
-    fn from(poly: &coco::PolygonRS) -> Self {
+    fn from(_poly: &coco::PolygonRS) -> Self {
         todo!()
     }
 }
@@ -178,7 +178,7 @@ impl From<&image::GrayImage> for coco::Rle {
 #[cfg(test)]
 #[allow(clippy::unwrap_used)]
 mod tests {
-    use super::coco::*;
+    use super::coco::{EncodedRle, Rle};
     use proptest::prelude::*;
     use rstest::rstest;
 

@@ -233,4 +233,4 @@ pub fn load_anns<P: AsRef<Path>>(annotations_path: P) -> HashmapDataset {
     })
 }
 
-pub fn save_anns<P: AsRef<Path>>(output_path: P, dataset: HashmapDataset) {}
+pub fn save_anns<P: AsRef<Path>>(_output_path: P, _dataset: HashmapDataset) {}

@@ -34,10 +34,11 @@ fn main() -> Result<(), Box<dyn error::Error>> {
             let mut dataset = coco::load_anns(annotations_path);
             converters::masks::convert_coco_segmentation(&mut dataset, *target_segmentation);
             let output_path = output_folder.as_ref().map_or_else(
-                || annotations_path.to_owned(),
+                || annotations_path.clone(),
                 |output_folder| {
-                    output_folder.to_owned().push("annotations.json");
-                    output_folder.to_path_buf()
+                    let mut output_folder = output_folder.clone();
+                    output_folder.push("annotations.json");
+                    output_folder
                 },
             );
             coco::save_anns(output_path, dataset);
