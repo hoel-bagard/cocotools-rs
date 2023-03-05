@@ -24,7 +24,7 @@ pub enum Commands {
 
     ConvertSegmentation {
         /// Path to the COCO json annotation file.
-        annotations_file: PathBuf,
+        annotations_path: PathBuf,
         target_segmentation: Segmentation,
         /// TODO
         #[arg(short, long)]

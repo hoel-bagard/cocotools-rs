@@ -1,9 +1,43 @@
-use crate::annotations::coco;
+use std::path::Path;
 
 use image;
 
-impl From<&coco::Polygon> for coco::Rle {
-    fn from(rle: &coco::Polygon) -> Self {
+use crate::annotations::coco;
+use crate::argparse::Segmentation;
+
+pub fn convert_coco_segmentation(
+    dataset: &mut coco::HashmapDataset,
+    target_segmentation: Segmentation,
+) {
+    let anns: Vec<coco::Annotation> = dataset.get_anns().into_iter().cloned().collect();
+    for ann in anns {
+        let converted_segmentation = match &ann.segmentation {
+            coco::Segmentation::Rle(rle) => match target_segmentation {
+                Segmentation::Rle => coco::Segmentation::Rle(rle.clone()),
+                Segmentation::EncodedRle => {
+                    coco::Segmentation::EncodedRle(coco::EncodedRle::from(rle))
+                }
+                Segmentation::Polygon => coco::Segmentation::Polygon(coco::Polygon::from(rle)),
+            },
+            coco::Segmentation::EncodedRle(_encoded_rle) => todo!(),
+            coco::Segmentation::PolygonRS(_poly) => todo!(),
+            coco::Segmentation::Polygon(_) => unimplemented!(),
+        };
+        dataset.add_ann(&coco::Annotation {
+            segmentation: converted_segmentation,
+            ..ann.clone()
+        })
+    }
+}
+
+impl From<&coco::Rle> for coco::Polygon {
+    fn from(rle: &coco::Rle) -> Self {
+        todo!()
+    }
+}
+
+impl From<&coco::PolygonRS> for coco::Rle {
+    fn from(poly: &coco::PolygonRS) -> Self {
         todo!()
     }
 }

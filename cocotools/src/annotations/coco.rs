@@ -22,7 +22,7 @@ pub struct Image {
     pub file_name: String,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Clone, Deserialize, Debug)]
 pub struct Annotation {
     pub id: u32,
     pub image_id: u32,
@@ -43,13 +43,13 @@ pub struct Annotation {
 pub type Polygon = Vec<Vec<f64>>;
 
 /// Internal type used to represent a polygon. It contains the width and height of the image for easier handling, notably when using traits.
-#[derive(Deserialize, Debug)]
+#[derive(Clone, Deserialize, Debug)]
 pub struct PolygonRS {
     pub size: Vec<u32>,
     pub counts: Vec<f64>,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Clone, Deserialize, Debug)]
 #[serde(untagged)]
 pub enum Segmentation {
     Polygon(Polygon),
@@ -59,19 +59,19 @@ pub enum Segmentation {
 }
 
 /// TODO: Describe what size is.
-#[derive(Deserialize, Debug, Eq, PartialEq)]
+#[derive(Clone, Deserialize, Debug, Eq, PartialEq)]
 pub struct Rle {
     pub size: Vec<u32>,
     pub counts: Vec<u32>,
 }
 
-#[derive(Deserialize, Debug, Eq, PartialEq)]
+#[derive(Clone, Deserialize, Debug, Eq, PartialEq)]
 pub struct EncodedRle {
     pub size: Vec<u32>,
     pub counts: String,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Clone, Deserialize, Debug)]
 pub struct Bbox {
     pub left: f64,
     pub top: f64,
@@ -89,7 +89,7 @@ pub struct Category {
 /// Transforms the COCO dataset into a hashmap version where the ids are keys.
 #[derive(Debug)]
 pub struct HashmapDataset {
-    anns: HashMap<u32, Annotation>,
+    pub anns: HashMap<u32, Annotation>,
     pub cats: HashMap<u32, Category>,
     imgs: HashMap<u32, Image>,
     /// Hashmap that links an image id to the image's annotations
@@ -162,6 +162,19 @@ impl HashmapDataset {
             .ok_or(MissingIdError::Annotation(ann_id))
     }
 
+    /// Overwrite if already present.
+    pub fn add_ann(&mut self, ann: &Annotation) {
+        self.anns.insert(ann.id, ann.clone());
+        self.img_to_anns
+            .entry(ann.image_id)
+            .or_insert_with(Vec::new)
+            .push(ann.id);
+    }
+
+    pub fn get_anns(&self) -> Vec<&Annotation> {
+        self.anns.values().collect()
+    }
+
     /// Return a result containing the category struct corresponding to the given id.
     ///
     /// # Errors
@@ -200,7 +213,7 @@ impl HashmapDataset {
 ///
 /// Will panic if the json file does not exists, cannot be opened or if an error happens when creating a Hashmap version of it.
 #[must_use]
-pub fn load_json<P: AsRef<Path>>(annotations_path: P) -> HashmapDataset {
+pub fn load_anns<P: AsRef<Path>>(annotations_path: P) -> HashmapDataset {
     let annotations_file_content = fs::read_to_string(annotations_path).unwrap_or_else(|error| {
         if error.kind() == ErrorKind::NotFound {
             panic!("Could not find the annotations file: {:?}", error);
@@ -219,3 +232,5 @@ pub fn load_json<P: AsRef<Path>>(annotations_path: P) -> HashmapDataset {
         );
     })
 }
+
+pub fn save_anns<P: AsRef<Path>>(output_path: P, dataset: HashmapDataset) {}
