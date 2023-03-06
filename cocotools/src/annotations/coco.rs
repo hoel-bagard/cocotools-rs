@@ -1,19 +1,20 @@
 use std::collections::HashMap;
+use std::error::Error;
 use std::fs;
 use std::path::Path;
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::errors::{LoadingError, MissingIdError};
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Serialize, Debug)]
 pub struct Dataset {
     pub images: Vec<Image>,
     pub annotations: Vec<Annotation>,
     pub categories: Vec<Category>,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct Image {
     pub id: u32,
     pub width: u32,
@@ -21,7 +22,7 @@ pub struct Image {
     pub file_name: String,
 }
 
-#[derive(Clone, Deserialize, Debug)]
+#[derive(Clone, Deserialize, Serialize, Debug)]
 pub struct Annotation {
     pub id: u32,
     pub image_id: u32,
@@ -42,13 +43,13 @@ pub struct Annotation {
 pub type Polygon = Vec<Vec<f64>>;
 
 /// Internal type used to represent a polygon. It contains the width and height of the image for easier handling, notably when using traits.
-#[derive(Clone, Deserialize, Debug)]
+#[derive(Clone, Deserialize, Serialize, Debug)]
 pub struct PolygonRS {
     pub size: Vec<u32>,
     pub counts: Vec<f64>,
 }
 
-#[derive(Clone, Deserialize, Debug)]
+#[derive(Clone, Deserialize, Serialize, Debug)]
 #[serde(untagged)]
 pub enum Segmentation {
     Polygon(Polygon),
@@ -58,19 +59,19 @@ pub enum Segmentation {
 }
 
 /// TODO: Describe what size is.
-#[derive(Clone, Deserialize, Debug, Eq, PartialEq)]
+#[derive(Clone, Deserialize, Serialize, Debug, Eq, PartialEq)]
 pub struct Rle {
     pub size: Vec<u32>,
     pub counts: Vec<u32>,
 }
 
-#[derive(Clone, Deserialize, Debug, Eq, PartialEq)]
+#[derive(Clone, Deserialize, Serialize, Debug, Eq, PartialEq)]
 pub struct EncodedRle {
     pub size: Vec<u32>,
     pub counts: String,
 }
 
-#[derive(Clone, Deserialize, Debug)]
+#[derive(Clone, Deserialize, Serialize, Debug)]
 pub struct Bbox {
     pub left: f64,
     pub top: f64,
@@ -78,7 +79,7 @@ pub struct Bbox {
     pub height: f64,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct Category {
     pub id: u32,
     pub name: String,
@@ -184,6 +185,12 @@ impl HashmapDataset {
             .get(&cat_id)
             .ok_or(MissingIdError::Category(cat_id))
     }
+    pub fn get_cats(&self) -> Vec<&Category> {
+        self.cats.values().collect()
+    }
+
+    /// Return a result containing the annotations for the given image id.
+    ///
 
     /// Return a result containing the image struct corresponding to the given image id.
     ///
@@ -194,6 +201,9 @@ impl HashmapDataset {
         self.imgs.get(&img_id).ok_or(MissingIdError::Image(img_id))
     }
 
+    pub fn get_imgs(&self) -> Vec<&Image> {
+        self.imgs.values().collect()
+    }
     /// Return a result containing the annotations for the given image id.
     ///
     /// # Errors
@@ -205,6 +215,16 @@ impl HashmapDataset {
             .map_or(Err(MissingIdError::Image(img_id)), |ann_ids| {
                 ann_ids.iter().map(|ann_id| self.get_ann(*ann_id)).collect()
             })
+    }
+}
+
+impl From<HashmapDataset> for Dataset {
+    fn from(dataset: HashmapDataset) -> Self {
+        Self {
+            images: dataset.get_imgs().into_iter().cloned().collect(),
+            annotations: dataset.get_anns().into_iter().cloned().collect(),
+            categories: dataset.get_cats().into_iter().cloned().collect(),
+        }
     }
 }
 
@@ -222,4 +242,14 @@ pub fn load_anns<P: AsRef<Path>>(annotations_path: P) -> Result<HashmapDataset, 
         .map_err(|err| LoadingError::Parsing(err, annotations_path.as_ref().to_path_buf()))
 }
 
-pub fn save_anns<P: AsRef<Path>>(_output_path: P, _dataset: HashmapDataset) {}
+pub fn save_anns<P: AsRef<Path>>(
+    _output_path: P,
+    dataset: HashmapDataset,
+) -> Result<(), Box<dyn Error>> {
+    let dataset = Dataset::from(dataset);
+    // let j = serde_json::to_string(&dataset);
+    let f = fs::File::create("foo.json")?;
+    serde_json::to_writer_pretty(&f, &dataset)?;
+
+    Ok(())
+}

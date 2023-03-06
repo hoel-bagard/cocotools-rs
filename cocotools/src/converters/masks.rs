@@ -24,7 +24,11 @@ pub fn convert_coco_segmentation(
                 Segmentation::Polygon => coco::Segmentation::Polygon(coco::Polygon::from(rle)),
             },
             coco::Segmentation::EncodedRle(_encoded_rle) => todo!(),
-            coco::Segmentation::PolygonRS(_poly) => todo!(),
+            coco::Segmentation::PolygonRS(poly) => match target_segmentation {
+                Segmentation::Rle => coco::Segmentation::Rle(coco::Rle::from(poly)),
+                Segmentation::EncodedRle => todo!(),
+                Segmentation::Polygon => coco::Segmentation::Polygon(vec![poly.counts.clone()]),
+            },
             coco::Segmentation::Polygon(_) => unimplemented!(),
         };
         dataset.add_ann(&coco::Annotation {
@@ -42,8 +46,10 @@ impl From<&coco::Rle> for coco::Polygon {
 }
 
 impl From<&coco::PolygonRS> for coco::Rle {
-    fn from(_poly: &coco::PolygonRS) -> Self {
-        todo!()
+    // It might be more efficient to do it like this: https://github.com/cocodataset/cocoapi/blob/master/common/maskApi.c#L162
+    // It would also avoid having slightly different results from the reference implementation.
+    fn from(poly: &coco::PolygonRS) -> Self {
+        coco::Rle::from(&Mask::from(poly))
     }
 }
 
@@ -166,8 +172,8 @@ impl TryFrom<&coco::Rle> for coco::EncodedRle {
 ///
 /// ## Returns:
 /// - The RLE corresponding to the mask.
-impl From<&image::GrayImage> for coco::Rle {
-    fn from(mask: &image::GrayImage) -> Self {
+impl From<&Mask> for coco::Rle {
+    fn from(mask: &Mask) -> Self {
         let mut previous_value = 0;
         let mut count = 0;
         let mut counts = Vec::new();
@@ -189,6 +195,7 @@ impl From<&image::GrayImage> for coco::Rle {
 
 /// A boolean mask indicating for each pixel whether it belongs to the object or not.
 pub type Mask = image::GrayImage;
+// pub type Mask = ImageBuffer<Luma<u8>, Vec<u8>>;
 
 impl From<&coco::Segmentation> for Mask {
     fn from(coco_segmentation: &coco::Segmentation) -> Self {
@@ -229,7 +236,7 @@ impl From<&coco::Rle> for Mask {
 
 #[allow(clippy::cast_possible_truncation)]
 impl From<&coco::PolygonRS> for Mask {
-    /// Converts a polygon representation of a mask to an RLE one.
+    /// Create a mask from a compressed polygon representation.
     fn from(poly: &coco::PolygonRS) -> Self {
         let mut points_poly: Vec<imageproc::point::Point<i32>> = Vec::new();
         for i in (0..poly.counts.len()).step_by(2) {
