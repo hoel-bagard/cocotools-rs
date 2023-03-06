@@ -1,3 +1,7 @@
+use std::path::{Path, PathBuf};
+
+use thiserror::Error;
+
 #[derive(thiserror::Error)]
 pub enum MissingIdError {
     #[error("The following annotation id was not found in the dataset: `{0}`.")]
@@ -10,9 +14,24 @@ pub enum MissingIdError {
     // InvalidValue(#[from] anyhow::Error),
 }
 
+#[derive(Error)]
+pub enum LoadingError {
+    #[error("Failed to read the annotation file {1:?}.")]
+    Read(#[source] std::io::Error, PathBuf),
+    #[error("Failed to deserialize the annotation file {1:?}.")]
+    Deserialize(#[source] serde_json::Error, PathBuf),
+    #[error("Failed to parse the annotation file {1:?}. Found an annotation for an image id not in the dataset.")]
+    Parsing(#[source] MissingIdError, PathBuf),
+}
+
 // From https://www.lpalmieri.com/posts/error-handling-rust/
 //      https://github.com/LukeMathWalker/zero-to-production/blob/main/src/routes/subscriptions.rs#L199
 impl std::fmt::Debug for MissingIdError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        error_chain_fmt(self, f)
+    }
+}
+impl std::fmt::Debug for LoadingError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         error_chain_fmt(self, f)
     }

@@ -1,11 +1,10 @@
 use std::collections::HashMap;
 use std::fs;
-use std::io::ErrorKind;
 use std::path::Path;
 
 use serde::Deserialize;
 
-use crate::errors::MissingIdError;
+use crate::errors::{LoadingError, MissingIdError};
 
 #[derive(Deserialize, Debug)]
 pub struct Dataset {
@@ -213,24 +212,15 @@ impl HashmapDataset {
 ///
 /// Will panic if the json file does not exists, cannot be opened or if an error happens when creating a Hashmap version of it.
 #[must_use]
-pub fn load_anns<P: AsRef<Path>>(annotations_path: P) -> HashmapDataset {
-    let annotations_file_content = fs::read_to_string(annotations_path).unwrap_or_else(|error| {
-        if error.kind() == ErrorKind::NotFound {
-            panic!("Could not find the annotations file: {:?}", error);
-        } else {
-            panic!("Problem opening the annotations file: {:?}", error);
-        }
-    });
+pub fn load_anns<P: AsRef<Path>>(annotations_path: P) -> Result<HashmapDataset, LoadingError> {
+    let annotations_file_content = fs::read_to_string(&annotations_path)
+        .map_err(|err| LoadingError::Read(err, annotations_path.as_ref().to_path_buf()))?;
 
-    let dataset: Dataset =
-        serde_json::from_str(&annotations_file_content).expect("Error decoding the json file");
+    let dataset: Dataset = serde_json::from_str(&annotations_file_content)
+        .map_err(|err| LoadingError::Deserialize(err, annotations_path.as_ref().to_path_buf()))?;
 
-    HashmapDataset::new(dataset).unwrap_or_else(|error| {
-        panic!(
-            "Found an annotation for an image id not in the dataset when creating the dataset: {:?}",
-            error
-        );
-    })
+    Ok(HashmapDataset::new(dataset)
+        .map_err(|err| LoadingError::Parsing(err, annotations_path.as_ref().to_path_buf()))?)
 }
 
 pub fn save_anns<P: AsRef<Path>>(_output_path: P, _dataset: HashmapDataset) {}

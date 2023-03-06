@@ -2,9 +2,11 @@ pub mod bbox;
 pub mod segmentation;
 
 use crate::annotations::coco::{Annotation, HashmapDataset};
+use crate::converters::masks::Mask;
 use crate::errors;
 use image::io::Reader as ImageReader;
 use rand::Rng;
+
 use std::path::{Path, PathBuf};
 
 extern crate image;
@@ -85,7 +87,7 @@ pub fn show_anns(img_path: &PathBuf, anns: Vec<&Annotation>, draw_bbox: bool) {
         if draw_bbox {
             bbox::draw_bbox(&mut img, &ann.bbox, color);
         }
-        let mask = segmentation::Mask::from(&ann.segmentation);
+        let mask = Mask::from(&ann.segmentation);
         segmentation::draw_mask(&mut img, &mask, color);
     }
 
@@ -97,7 +99,10 @@ pub fn show_anns(img_path: &PathBuf, anns: Vec<&Annotation>, draw_bbox: bool) {
     let mut window = Window::new(
         format!(
             "{} - Press Q or ESC to exit",
-            img_path.file_name().unwrap().to_str().unwrap()
+            match img_path.file_name() {
+                Some(file_name) => file_name.to_str().unwrap_or("Image"),
+                None => "Image",
+            }
         )
         .as_str(),
         img_width,
