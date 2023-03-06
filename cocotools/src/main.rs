@@ -41,7 +41,7 @@ fn main() -> Result<(), Box<dyn error::Error>> {
                     output_folder
                 },
             );
-            coco::save_anns(output_path, dataset);
+            coco::save_anns(output_path, dataset)?;
         }
     }
     Ok(())

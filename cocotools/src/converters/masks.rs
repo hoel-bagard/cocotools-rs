@@ -181,6 +181,7 @@ impl From<&Mask> for coco::Rle {
             if pixel[0] != previous_value {
                 counts.push(count);
                 previous_value = pixel[0];
+                count = 0;
             }
             count += 1;
         }
