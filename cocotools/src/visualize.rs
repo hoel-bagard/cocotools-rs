@@ -99,10 +99,9 @@ pub fn show_anns(img_path: &PathBuf, anns: Vec<&Annotation>, draw_bbox: bool) {
     let mut window = Window::new(
         format!(
             "{} - Press Q or ESC to exit",
-            match img_path.file_name() {
-                Some(file_name) => file_name.to_str().unwrap_or("Image"),
-                None => "Image",
-            }
+            img_path
+                .file_name()
+                .map_or("Image", |file_name| file_name.to_str().unwrap_or("Image"))
         )
         .as_str(),
         img_width,
