@@ -3,7 +3,7 @@ pub mod segmentation;
 
 use crate::annotations::coco::{Annotation, HashmapDataset};
 use crate::converters::masks::Mask;
-use crate::errors;
+
 use image::io::Reader as ImageReader;
 use rand::Rng;
 
@@ -40,12 +40,12 @@ pub fn visualize_img(
     dataset: &HashmapDataset,
     image_folder: &Path,
     img_id: u32,
-) -> Result<(), errors::MissingIdError> {
+) -> Result<(), Box<dyn std::error::Error>> {
     let anns = dataset.get_img_anns(img_id)?;
     let img_name = &dataset.get_img(img_id)?.file_name;
     let img_path = image_folder.join(img_name);
 
-    show_anns(&img_path, anns, true);
+    show_anns(&img_path, anns, true)?;
 
     Ok(())
 }
@@ -62,7 +62,15 @@ pub fn visualize_img(
 /// # Panics
 ///
 /// Will panic if it cannot read the image file corresponding to the `img_id`.
-pub fn show_anns(img_path: &PathBuf, anns: Vec<&Annotation>, draw_bbox: bool) {
+///
+/// # Errors
+///
+/// Will return `Err` if the COCO segmentation mask decompression fails.
+pub fn show_anns(
+    img_path: &PathBuf,
+    anns: Vec<&Annotation>,
+    draw_bbox: bool,
+) -> Result<(), Box<dyn std::error::Error>> {
     let mut img = ImageReader::open(img_path)
         .unwrap_or_else(|error| {
             panic!(
@@ -87,7 +95,7 @@ pub fn show_anns(img_path: &PathBuf, anns: Vec<&Annotation>, draw_bbox: bool) {
         if draw_bbox {
             bbox::draw_bbox(&mut img, &ann.bbox, color);
         }
-        let mask = Mask::from(&ann.segmentation);
+        let mask = Mask::try_from(&ann.segmentation)?;
         segmentation::draw_mask(&mut img, &mask, color);
     }
 
@@ -119,4 +127,5 @@ pub fn show_anns(img_path: &PathBuf, anns: Vec<&Annotation>, draw_bbox: bool) {
                 panic!("Could not update buffer, got the following error: {}", e);
             });
     }
+    Ok(())
 }

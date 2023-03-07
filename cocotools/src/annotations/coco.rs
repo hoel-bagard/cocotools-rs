@@ -242,6 +242,11 @@ pub fn load_anns<P: AsRef<Path>>(annotations_path: P) -> Result<HashmapDataset, 
         .map_err(|err| LoadingError::Parsing(err, annotations_path.as_ref().to_path_buf()))
 }
 
+/// # Errors
+///
+/// Will return `Err` if:
+///   - The file cannot be created (if the full directory path does not exist for example).
+///   - The implementation of `Serialize` fails or the dataset contains non-string keys.
 pub fn save_anns<P: AsRef<Path>>(
     _output_path: P,
     dataset: HashmapDataset,

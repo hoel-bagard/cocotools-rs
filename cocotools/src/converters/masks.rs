@@ -6,6 +6,17 @@ use thiserror::Error;
 use crate::annotations::coco;
 use crate::argparse::Segmentation;
 
+#[allow(clippy::enum_variant_names)]
+#[derive(Debug, Error)]
+pub enum MaskError {
+    #[error("Failed to convert RLE to its compressed version due to a type conversion error. Tried to convert '{1:?}' to u8 and failed.")]
+    IntConversion(#[source] std::num::TryFromIntError, i64),
+    #[error("Failed to convert RLE to its compressed version due to a type conversion error. Tried to convert '{1:?}' to u8 and failed.")]
+    StrConversion(#[source] std::str::Utf8Error, Vec<u8>),
+    #[error("Failed to convert an image mask to an ndarray version of it.")]
+    ImageToNDArrayConversion(#[source] ndarray::ShapeError),
+}
+
 /// A boolean mask indicating for each pixel whether it belongs to the object or not.
 pub type Mask = Array2<u8>;
 
@@ -28,7 +39,7 @@ pub fn convert_coco_segmentation(
             },
             coco::Segmentation::EncodedRle(_encoded_rle) => todo!(),
             coco::Segmentation::PolygonRS(poly) => match target_segmentation {
-                Segmentation::Rle => coco::Segmentation::Rle(coco::Rle::from(poly)),
+                Segmentation::Rle => coco::Segmentation::Rle(coco::Rle::try_from(poly)?),
                 Segmentation::EncodedRle => todo!(),
                 Segmentation::Polygon => coco::Segmentation::Polygon(vec![poly.counts.clone()]),
             },
@@ -48,11 +59,12 @@ impl From<&coco::Rle> for coco::Polygon {
     }
 }
 
-impl From<&coco::PolygonRS> for coco::Rle {
+impl TryFrom<&coco::PolygonRS> for coco::Rle {
+    type Error = MaskError;
     // It might be more efficient to do it like this: https://github.com/cocodataset/cocoapi/blob/master/common/maskApi.c#L162
     // It would also avoid having slightly different results from the reference implementation.
-    fn from(poly: &coco::PolygonRS) -> Self {
-        coco::Rle::from(&Mask::from(poly))
+    fn try_from(poly: &coco::PolygonRS) -> Result<Self, Self::Error> {
+        Ok(Self::from(&Mask::try_from(poly)?))
     }
 }
 
@@ -168,29 +180,29 @@ impl TryFrom<&coco::Rle> for coco::EncodedRle {
     }
 }
 
+#[allow(clippy::expect_used)]
 impl From<&coco::Rle> for Mask {
     /// Converts a RLE to its uncompressed mask.
+    #[allow(clippy::cast_possible_truncation)]
     fn from(rle: &coco::Rle) -> Self {
-        let height = usize::try_from(rle.size[0]).unwrap();
-        let width = usize::try_from(rle.size[1]).unwrap();
+        let height = rle.size[0] as usize;
+        let width = rle.size[1] as usize;
 
-        let mut mask: Array2<u8> = Array2::zeros((height, width).f());
+        let mut mask: Self = Self::zeros((height, width).f());
         let mut mask_1d = ArrayViewMut::from_shape(
             (height * width).f(),
-            mask.as_slice_memory_order_mut().unwrap(),
+            mask.as_slice_memory_order_mut().expect("The mask array is created just above, there shouldn't be any error when creating a view of it"),
         )
-        .unwrap();
+        .expect("The mask array is created just above, there shouldn't be any error when creating a view of it");
 
         let mut current_value = 0u8;
         let mut current_position = 0usize;
         for nb_pixels in &rle.counts {
             mask_1d
-                .slice_mut(s![
-                    current_position..current_position + usize::try_from(*nb_pixels).unwrap()
-                ])
+                .slice_mut(s![current_position..current_position + *nb_pixels as usize])
                 .fill(current_value);
             current_value = u8::from(current_value == 0);
-            current_position += usize::try_from(*nb_pixels).unwrap();
+            current_position += *nb_pixels as usize;
         }
         mask
     }
@@ -205,6 +217,7 @@ impl From<&coco::Rle> for Mask {
 /// - The RLE corresponding to the mask.
 ///
 /// ## TODO: Find a way to avoid the .clone()  (if possible while still taking a reference)
+#[allow(clippy::cast_possible_truncation)]
 impl From<&Mask> for coco::Rle {
     fn from(mask: &Mask) -> Self {
         let mut previous_value = 0;
@@ -227,25 +240,30 @@ impl From<&Mask> for coco::Rle {
     }
 }
 
-impl From<&coco::Segmentation> for Mask {
-    fn from(coco_segmentation: &coco::Segmentation) -> Self {
-        match coco_segmentation {
+impl TryFrom<&coco::Segmentation> for Mask {
+    type Error = MaskError;
+
+    fn try_from(coco_segmentation: &coco::Segmentation) -> Result<Self, Self::Error> {
+        let mask = match coco_segmentation {
             coco::Segmentation::Rle(rle) => Self::from(rle),
             coco::Segmentation::EncodedRle(encoded_rle) => {
                 Self::from(&coco::Rle::from(encoded_rle))
             }
-            coco::Segmentation::PolygonRS(poly) => Self::from(poly),
+            coco::Segmentation::PolygonRS(poly) => Self::try_from(poly)?,
             coco::Segmentation::Polygon(_) => {
                 unimplemented!("Use the 'mask_from_poly' function.")
             }
-        }
+        };
+        Ok(mask)
     }
 }
 
 #[allow(clippy::cast_possible_truncation)]
-impl From<&coco::PolygonRS> for Mask {
+impl TryFrom<&coco::PolygonRS> for Mask {
+    type Error = MaskError;
+
     /// Create a mask from a compressed polygon representation.
-    fn from(poly: &coco::PolygonRS) -> Self {
+    fn try_from(poly: &coco::PolygonRS) -> Result<Self, Self::Error> {
         let mut points_poly: Vec<imageproc::point::Point<i32>> = Vec::new();
         for i in (0..poly.counts.len()).step_by(2) {
             points_poly.push(imageproc::point::Point::new(
@@ -262,16 +280,30 @@ impl From<&coco::PolygonRS> for Mask {
         let mut mask = image::GrayImage::new(poly.size[1], poly.size[0]);
         drawing::draw_polygon_mut(&mut mask, &points_poly, image::Luma([1u8]));
 
-        Mask::from_shape_vec(
+        Self::from_shape_vec(
             (poly.size[1] as usize, poly.size[0] as usize),
             mask.into_raw(),
         )
-        .unwrap()
+        .map_err(MaskError::ImageToNDArrayConversion)
     }
 }
 
+/// Decompress a polygon representation of a mask.
+///
+/// ## Args:
+/// - poly: A mask compressed as a COCO polygon.
+/// - width: The original width of the image the polygon annotation corresponds to.
+/// - height: The original height of the image the polygon annotation corresponds to.
+///
+/// ## Errors
+/// Will return `Err` if the internal conversion from `ImageBuffer` to Mask (ndarray) fails.
+///
+/// ## Returns:
+/// - The decompressed mask.
+///
+/// ## TODO: Find a way to avoid the .clone()  (if possible while still taking a reference)
 #[allow(clippy::cast_possible_truncation)]
-pub fn mask_from_poly(poly: &coco::Polygon, width: u32, height: u32) -> Mask {
+pub fn mask_from_poly(poly: &coco::Polygon, width: u32, height: u32) -> Result<Mask, MaskError> {
     let mut points_poly: Vec<imageproc::point::Point<i32>> = Vec::new();
     for i in (0..poly[0].len()).step_by(2) {
         points_poly.push(imageproc::point::Point::new(
@@ -282,15 +314,8 @@ pub fn mask_from_poly(poly: &coco::Polygon, width: u32, height: u32) -> Mask {
     let mut mask = image::GrayImage::new(width, height);
     drawing::draw_polygon_mut(&mut mask, &points_poly, image::Luma([1u8]));
 
-    Mask::from_shape_vec((height as usize, width as usize), mask.into_raw()).unwrap()
-}
-
-#[derive(Debug, Error)]
-pub enum MaskError {
-    #[error("Failed to convert RLE to its compressed version due to a type conversion error. Tried to convert '{1:?}' to u8 and failed.")]
-    IntConversion(#[source] std::num::TryFromIntError, i64),
-    #[error("Failed to convert RLE to its compressed version due to a type conversion error. Tried to convert '{1:?}' to u8 and failed.")]
-    StrConversion(#[source] std::str::Utf8Error, Vec<u8>),
+    Mask::from_shape_vec((height as usize, width as usize), mask.into_raw())
+        .map_err(MaskError::ImageToNDArrayConversion)
 }
 
 #[cfg(test)]
