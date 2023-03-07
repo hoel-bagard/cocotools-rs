@@ -40,6 +40,16 @@ pub struct Annotation {
     pub iscrowd: u32,
 }
 
+#[derive(Clone, Deserialize, Serialize, Debug)]
+#[serde(untagged)]
+pub enum Segmentation {
+    Polygon(Polygon),
+    #[serde(skip)]
+    PolygonRS(PolygonRS),
+    Rle(Rle),
+    EncodedRle(EncodedRle),
+}
+
 pub type Polygon = Vec<Vec<f64>>;
 
 /// Internal type used to represent a polygon. It contains the width and height of the image for easier handling, notably when using traits.
@@ -47,15 +57,6 @@ pub type Polygon = Vec<Vec<f64>>;
 pub struct PolygonRS {
     pub size: Vec<u32>,
     pub counts: Vec<f64>,
-}
-
-#[derive(Clone, Deserialize, Serialize, Debug)]
-#[serde(untagged)]
-pub enum Segmentation {
-    Polygon(Polygon),
-    PolygonRS(PolygonRS),
-    Rle(Rle),
-    EncodedRle(EncodedRle),
 }
 
 /// Size is [height, width]
