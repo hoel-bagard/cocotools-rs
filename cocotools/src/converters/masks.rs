@@ -1,10 +1,13 @@
 use image;
-use image::Luma;
 use imageproc::drawing;
+use ndarray::{s, Array2, ArrayViewMut, ShapeBuilder};
 use thiserror::Error;
 
 use crate::annotations::coco;
 use crate::argparse::Segmentation;
+
+/// A boolean mask indicating for each pixel whether it belongs to the object or not.
+pub type Mask = Array2<u8>;
 
 /// # Errors
 ///
@@ -165,6 +168,34 @@ impl TryFrom<&coco::Rle> for coco::EncodedRle {
     }
 }
 
+impl From<&coco::Rle> for Mask {
+    /// Converts a RLE to its uncompressed mask.
+    fn from(rle: &coco::Rle) -> Self {
+        let height = usize::try_from(rle.size[0]).unwrap();
+        let width = usize::try_from(rle.size[1]).unwrap();
+
+        let mut mask: Array2<u8> = Array2::zeros((height, width).f());
+        let mut mask_1d = ArrayViewMut::from_shape(
+            (height * width).f(),
+            mask.as_slice_memory_order_mut().unwrap(),
+        )
+        .unwrap();
+
+        let mut current_value = 0u8;
+        let mut current_position = 0usize;
+        for nb_pixels in &rle.counts {
+            mask_1d
+                .slice_mut(s![
+                    current_position..current_position + usize::try_from(*nb_pixels).unwrap()
+                ])
+                .fill(current_value);
+            current_value = u8::from(current_value == 0);
+            current_position += usize::try_from(*nb_pixels).unwrap();
+        }
+        mask
+    }
+}
+
 /// Convert a mask into its RLE form.
 ///
 /// ## Args:
@@ -172,15 +203,17 @@ impl TryFrom<&coco::Rle> for coco::EncodedRle {
 ///
 /// ## Returns:
 /// - The RLE corresponding to the mask.
+///
+/// ## TODO: Find a way to avoid the .clone()  (if possible while still taking a reference)
 impl From<&Mask> for coco::Rle {
     fn from(mask: &Mask) -> Self {
         let mut previous_value = 0;
         let mut count = 0;
         let mut counts = Vec::new();
-        for pixel in mask.pixels() {
-            if pixel[0] != previous_value {
+        for value in mask.clone().reversed_axes().iter() {
+            if *value != previous_value {
                 counts.push(count);
-                previous_value = pixel[0];
+                previous_value = *value;
                 count = 0;
             }
             count += 1;
@@ -188,15 +221,11 @@ impl From<&Mask> for coco::Rle {
         counts.push(count);
 
         Self {
-            size: vec![mask.width(), mask.height()],
+            size: vec![mask.nrows() as u32, mask.ncols() as u32],
             counts,
         }
     }
 }
-
-/// A boolean mask indicating for each pixel whether it belongs to the object or not.
-pub type Mask = image::GrayImage;
-// pub type Mask = ImageBuffer<Luma<u8>, Vec<u8>>;
 
 impl From<&coco::Segmentation> for Mask {
     fn from(coco_segmentation: &coco::Segmentation) -> Self {
@@ -210,28 +239,6 @@ impl From<&coco::Segmentation> for Mask {
                 unimplemented!("Use the 'mask_from_poly' function.")
             }
         }
-    }
-}
-
-impl From<&coco::Rle> for Mask {
-    /// Converts a RLE to its uncompressed mask.
-    fn from(rle: &coco::Rle) -> Self {
-        let mut mask = Self::new(rle.size[1], rle.size[0]);
-        let mut current_value = 0u8;
-        let mut x = 0u32;
-        let mut y = 0u32;
-        for nb_pixels in &rle.counts {
-            for _ in 0..*nb_pixels {
-                mask.put_pixel(x, y, Luma([current_value * 255]));
-                y += 1;
-                if y == rle.size[0] {
-                    y = 0;
-                    x += 1;
-                }
-            }
-            current_value = u8::from(current_value == 0);
-        }
-        mask
     }
 }
 
@@ -252,10 +259,14 @@ impl From<&coco::PolygonRS> for Mask {
             }
         }
 
-        let mut mask = Self::new(poly.size[1], poly.size[0]);
+        let mut mask = image::GrayImage::new(poly.size[1], poly.size[0]);
         drawing::draw_polygon_mut(&mut mask, &points_poly, image::Luma([1u8]));
 
-        mask
+        Mask::from_shape_vec(
+            (poly.size[1] as usize, poly.size[0] as usize),
+            mask.into_raw(),
+        )
+        .unwrap()
     }
 }
 
@@ -271,7 +282,7 @@ pub fn mask_from_poly(poly: &coco::Polygon, width: u32, height: u32) -> Mask {
     let mut mask = image::GrayImage::new(width, height);
     drawing::draw_polygon_mut(&mut mask, &points_poly, image::Luma([1u8]));
 
-    mask
+    Mask::from_shape_vec((height as usize, width as usize), mask.into_raw()).unwrap()
 }
 
 #[derive(Debug, Error)]
@@ -286,6 +297,8 @@ pub enum MaskError {
 #[allow(clippy::unwrap_used)]
 mod tests {
     use super::coco::{EncodedRle, Rle};
+    use super::*;
+    use ndarray::array;
     use proptest::prelude::*;
     use rstest::rstest;
 
@@ -303,6 +316,17 @@ mod tests {
             }
     }
 
+    prop_compose! {
+        fn generate_mask(max_ncols: usize, max_nrows: usize)
+            (ncols in 2..max_ncols, nrows in 2..max_nrows)
+            (ncols in Just(ncols),
+             nrows in Just(nrows),
+             mask_data in prop::collection::vec(0..=1u8, (ncols * nrows) as usize),
+            ) -> Mask {
+                Mask::from_shape_vec((nrows, ncols), mask_data).unwrap()
+            }
+    }
+
     proptest! {
         #[test]
         fn rle_decode_inverts_encode(rle in generate_rle(50, 20)){
@@ -310,6 +334,63 @@ mod tests {
             let decoded_rle = Rle::from(&encoded_rle);
             prop_assert_eq!(decoded_rle, rle);
         }
+    }
+
+    proptest! {
+        #[test]
+        fn mask_to_rle_to_mask(mask in generate_mask(100, 100)){
+            let rle = Rle::from(&mask);
+            let decoded_mask = Mask::from(&rle);
+            prop_assert_eq!(decoded_mask, mask);
+        }
+    }
+
+    #[rstest]
+    #[case::square(
+        &array![[0, 0, 0, 0],
+                [0, 1, 1, 0],
+                [0, 1, 1, 0],
+                [0, 0, 0, 0]],
+        &Rle {size: vec![4, 4], counts: vec![5, 2, 2, 2, 5]})]
+    #[case::horizontal_line(
+        &array![[0, 0, 0, 0, 0],
+                [1, 1, 1, 1, 1],
+                [0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0]],
+        &Rle {size: vec![4, 5], counts: vec![1, 1, 3, 1, 3, 1, 3, 1, 3, 1, 2]})]
+    #[case::vertical_line(
+        &array![[0, 0, 1, 0, 0],
+                [0, 0, 1, 0, 0],
+                [0, 0, 1, 0, 0],
+                [0, 0, 1, 0, 0]],
+        &Rle {size: vec![4, 5], counts: vec![8, 4, 8]})]
+    fn mask_to_rle(#[case] mask: &Mask, #[case] expected_rle: &Rle) {
+        let rle = Rle::from(mask);
+        assert_eq!(&rle, expected_rle);
+    }
+
+    #[rstest]
+    #[case::square(
+        &array![[0, 0, 0, 0],
+                [0, 1, 1, 0],
+                [0, 1, 1, 0],
+                [0, 0, 0, 0]],
+        &Rle {size: vec![4, 4], counts: vec![5, 2, 2, 2, 5]})]
+    #[case::horizontal_line(
+        &array![[0, 0, 0, 0, 0],
+                [1, 1, 1, 1, 1],
+                [0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0]],
+        &Rle {size: vec![4, 5], counts: vec![1, 1, 3, 1, 3, 1, 3, 1, 3, 1, 2]})]
+    #[case::vertical_line(
+        &array![[0, 0, 1, 0, 0],
+                [0, 0, 1, 0, 0],
+                [0, 0, 1, 0, 0],
+                [0, 0, 1, 0, 0]],
+        &Rle {size: vec![4, 5], counts: vec![8, 4, 8]})]
+    fn rle_to_mask(#[case] expected_mask: &Mask, #[case] rle: &Rle) {
+        let mask = Mask::from(rle);
+        assert_eq!(&mask, expected_mask);
     }
 
     #[rstest]

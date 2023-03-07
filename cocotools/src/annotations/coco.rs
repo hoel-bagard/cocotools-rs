@@ -58,7 +58,7 @@ pub enum Segmentation {
     EncodedRle(EncodedRle),
 }
 
-/// TODO: Describe what size is.
+/// Size is [height, width]
 #[derive(Clone, Deserialize, Serialize, Debug, Eq, PartialEq)]
 pub struct Rle {
     pub size: Vec<u32>,

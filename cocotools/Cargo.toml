@@ -19,13 +19,14 @@ rand = "0.8.5"
 minifb = "0.23"
 anyhow = "1.0.69"
 thiserror = "1.0.38"
+ndarray = "0.15.6"
 
 [dev-dependencies]
 rstest = "0.16.0"
 proptest = "1.1.0"
 rand = "0.8.5"
+# ndarray-rand = "0.14.0"
 criterion = {version = "0.4.0", features = ["html_reports"] }
-
 
 [profile.dev]
 opt-level = 1
