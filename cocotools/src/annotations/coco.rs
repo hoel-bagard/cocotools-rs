@@ -249,12 +249,11 @@ pub fn load_anns<P: AsRef<Path>>(annotations_path: P) -> Result<HashmapDataset, 
 ///   - The file cannot be created (if the full directory path does not exist for example).
 ///   - The implementation of `Serialize` fails or the dataset contains non-string keys.
 pub fn save_anns<P: AsRef<Path>>(
-    _output_path: P,
+    output_path: P,
     dataset: HashmapDataset,
 ) -> Result<(), Box<dyn Error>> {
     let dataset = Dataset::from(dataset);
-    // let j = serde_json::to_string(&dataset);
-    let f = fs::File::create("foo.json")?;
+    let f = fs::File::create(output_path)?;
     serde_json::to_writer_pretty(&f, &dataset)?;
 
     Ok(())

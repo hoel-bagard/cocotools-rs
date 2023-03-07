@@ -29,18 +29,13 @@ fn main() -> Result<(), Box<dyn error::Error>> {
         Commands::ConvertSegmentation {
             annotations_path,
             target_segmentation,
-            output_folder,
+            output_path,
         } => {
             let mut dataset = coco::load_anns(annotations_path)?;
             converters::masks::convert_coco_segmentation(&mut dataset, *target_segmentation)?;
-            let output_path = output_folder.as_ref().map_or_else(
-                || annotations_path.clone(),
-                |output_folder| {
-                    let mut output_folder = output_folder.clone();
-                    output_folder.push("annotations.json");
-                    output_folder
-                },
-            );
+            let output_path = output_path
+                .as_ref()
+                .map_or_else(|| annotations_path, |output_path| output_path);
             coco::save_anns(output_path, dataset)?;
         }
     }
