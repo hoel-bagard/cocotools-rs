@@ -37,10 +37,18 @@ pub fn convert_coco_segmentation(
                 }
                 Segmentation::Polygon => coco::Segmentation::Polygon(coco::Polygon::from(rle)),
             },
-            coco::Segmentation::EncodedRle(_encoded_rle) => todo!(),
+            coco::Segmentation::EncodedRle(encoded_rle) => match target_segmentation {
+                Segmentation::Rle => coco::Segmentation::Rle(coco::Rle::from(encoded_rle)),
+                Segmentation::EncodedRle => coco::Segmentation::EncodedRle(encoded_rle.clone()),
+                Segmentation::Polygon => {
+                    coco::Segmentation::Polygon(coco::Polygon::from(&coco::Rle::from(encoded_rle)))
+                }
+            },
             coco::Segmentation::PolygonRS(poly) => match target_segmentation {
                 Segmentation::Rle => coco::Segmentation::Rle(coco::Rle::try_from(poly)?),
-                Segmentation::EncodedRle => todo!(),
+                Segmentation::EncodedRle => coco::Segmentation::EncodedRle(
+                    coco::EncodedRle::try_from(&coco::Rle::from(&Mask::try_from(poly)?))?,
+                ),
                 Segmentation::Polygon => coco::Segmentation::Polygon(vec![poly.counts.clone()]),
             },
             coco::Segmentation::Polygon(_) => unimplemented!(),
