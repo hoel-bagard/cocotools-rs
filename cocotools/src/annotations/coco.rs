@@ -173,6 +173,7 @@ impl HashmapDataset {
             .push(ann.id);
     }
 
+    #[must_use]
     pub fn get_anns(&self) -> Vec<&Annotation> {
         self.anns.values().collect()
     }
@@ -187,6 +188,8 @@ impl HashmapDataset {
             .get(&cat_id)
             .ok_or(MissingIdError::Category(cat_id))
     }
+
+    #[must_use]
     pub fn get_cats(&self) -> Vec<&Category> {
         self.cats.values().collect()
     }
@@ -203,6 +206,7 @@ impl HashmapDataset {
         self.imgs.get(&img_id).ok_or(MissingIdError::Image(img_id))
     }
 
+    #[must_use]
     pub fn get_imgs(&self) -> Vec<&Image> {
         self.imgs.values().collect()
     }

@@ -6,3 +6,7 @@ The COCO dataset describes [6 formats](https://cocodataset.org/#format-data) for
 
 ## Planned features
 - [ ] Finish python bindings and upload them as a package to pypi.
+
+
+## TODO:
+- [ ] Github action to release python version (see [here](https://github.com/pola-rs/polars/blob/master/.github/workflows/create-python-release.yml))

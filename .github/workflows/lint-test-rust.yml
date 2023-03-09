@@ -1,0 +1,97 @@
+name: Rust continuous integration
+
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - cocotools/**
+      - .github/workflows/lint-test-rust.yml
+  pull_request:
+    paths:
+      - cocotools/**
+      - .github/workflows/lint-test-rust.yml
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # examples:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v3
+
+  #     - name: Set up Rust
+  #       uses: dtolnay/rust-toolchain@stable
+
+  #     - name: Cache Rust
+  #       uses: Swatinem/rust-cache@v2
+
+  #     - name: Run cargo check
+  #       working-directory: examples
+  #       run: cargo check
+
+  lint:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: cocotools
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy  #, miri
+
+      - name: Cache Rust
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: cocotools
+
+      - name: Run rustfmt
+        run: cargo fmt --all -- --check
+
+      - name: Run clippy
+        env:
+          RUSTFLAGS: -C debuginfo=0  # Do not produce debug symbols to keep memory usage down
+        run : |
+          cargo clippy -- -D warnings \
+          -W clippy::pedantic \
+          -W clippy::nursery \
+          -W clippy::unwrap_used \
+          -W clippy::expect_used  \
+          -A clippy::module_name_repetitions \
+          -A dead_code
+      # - name: Run miri
+      #   run: |
+      #     cargo miri setup
+      #     cargo clean
+      #     make miri
+
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      # fail-fast: true
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    defaults:
+      run:
+        working-directory: cocotools
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: cocotools
+
+      - name: Run tests
+        env:
+          RUSTFLAGS: -C debuginfo=0
+        run: cargo test -- --test-threads 3
