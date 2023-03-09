@@ -1,7 +1,7 @@
-use std::collections::HashMap;
 use std::error::Error;
 use std::fs;
 use std::path::Path;
+use std::{collections::HashMap, path::PathBuf};
 
 use serde::{Deserialize, Serialize};
 
@@ -27,14 +27,15 @@ pub struct Annotation {
     pub id: u32,
     pub image_id: u32,
     pub category_id: u32,
-    /// Segmentation can be a polygon, RLE or encoded RLE.
-    /// Exemple of polygon: "segmentation": [[510.66,423.01,511.72,420.03,...,510.45,423.01]]
-    /// Exemple of RLE: "segmentation": {"size": [40, 40], "counts": [245, 5, 35, 5, 35, 5, 35, 5, 35, 5, 1190]}
-    /// Exemple of encoded RLE: "segmentation": {"size": [480, 640], "counts": "aUh2b0X...BgRU4"}
+    /// Segmentation can be a polygon, RLE or encoded RLE.\
+    /// Examples of what each segmentation should look like in the JSON file:
+    /// - [`Polygon`]: `"segmentation": [[510.66, 423.01, 511.72, 420.03, ..., 510.45, 423.01]]`
+    /// - [`Rle`]: `"segmentation": {"size": [40, 40], "counts": [245, 5, 35, 5, ..., 5, 35, 5, 1190]}`
+    /// - [`EncodedRle`]: `"segmentation": {"size": [480, 640], "counts": "aUh2b0X...BgRU4"}`
     pub segmentation: Segmentation,
     pub area: f64,
-    /// The COCO bounding box format is [top left x position, top left y position, width, height].
-    /// bbox exemple:  "bbox": [473.07,395.93,38.65,28.67]
+    /// The COCO bounding box format is `[top left x position, top left y position, width, height]`.\
+    /// Example: "bbox": `[473.07, 395.93, 38.65, 28.67]`
     pub bbox: Bbox,
     /// Either 1 or 0
     pub iscrowd: u32,
@@ -43,11 +44,11 @@ pub struct Annotation {
 #[derive(Clone, Deserialize, Serialize, Debug)]
 #[serde(untagged)]
 pub enum Segmentation {
+    Rle(Rle),
+    EncodedRle(EncodedRle),
     Polygon(Polygon),
     #[serde(skip)]
     PolygonRS(PolygonRS),
-    Rle(Rle),
-    EncodedRle(EncodedRle),
 }
 
 pub type Polygon = Vec<Vec<f64>>;
@@ -229,6 +230,23 @@ impl From<HashmapDataset> for Dataset {
     }
 }
 
+impl TryFrom<&PathBuf> for HashmapDataset {
+    type Error = LoadingError;
+
+    /// # Errors
+    ///
+    /// Will return `Err` if the json file does not exist/cannot be read or if an error happens when deserializing and parsing it.
+    fn try_from(annotations_path: &PathBuf) -> Result<Self, Self::Error> {
+        let annotations_file_content = fs::read_to_string(annotations_path)
+            .map_err(|err| LoadingError::Read(err, annotations_path.clone()))?;
+
+        let dataset: Dataset = serde_json::from_str(&annotations_file_content)
+            .map_err(|err| LoadingError::Deserialize(err, annotations_path.clone()))?;
+
+        Self::new(dataset).map_err(|err| LoadingError::Parsing(err, annotations_path.clone()))
+    }
+}
+
 /// # Errors
 ///
 /// Will return `Err` if the json file does not exist/cannot be read or if an error happens when deserializing and parsing it.
@@ -248,6 +266,7 @@ pub fn load_anns<P: AsRef<Path>>(annotations_path: P) -> Result<HashmapDataset, 
 /// Will return `Err` if:
 ///   - The file cannot be created (if the full directory path does not exist for example).
 ///   - The implementation of `Serialize` fails or the dataset contains non-string keys.
+// TODO: Have this as an impl.
 pub fn save_anns<P: AsRef<Path>>(
     output_path: P,
     dataset: HashmapDataset,
