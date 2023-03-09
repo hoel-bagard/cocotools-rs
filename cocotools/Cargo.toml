@@ -7,6 +7,7 @@ description = "Package providing functionalities to work with COCO format datase
 readme = "README.md"
 categories = ["command-line-utilities"]
 authors = ["Hoel Bagard"]
+license = "MIT OR Apache-2.0"
 
 [dependencies]
 clap = { version = "4.0.29", features = ["derive"] }
