@@ -243,8 +243,7 @@ impl TryFrom<&PathBuf> for HashmapDataset {
         let dataset: Dataset = serde_json::from_str(&annotations_file_content)
             .map_err(|err| LoadingError::Deserialize(err, annotations_path.clone()))?;
 
-        Self::new(dataset)
-            .map_err(|err| LoadingError::Parsing(err, annotations_path.clone()))
+        Self::new(dataset).map_err(|err| LoadingError::Parsing(err, annotations_path.clone()))
     }
 }
 
@@ -267,6 +266,7 @@ pub fn load_anns<P: AsRef<Path>>(annotations_path: P) -> Result<HashmapDataset, 
 /// Will return `Err` if:
 ///   - The file cannot be created (if the full directory path does not exist for example).
 ///   - The implementation of `Serialize` fails or the dataset contains non-string keys.
+// TODO: Have this as an impl.
 pub fn save_anns<P: AsRef<Path>>(
     output_path: P,
     dataset: HashmapDataset,
