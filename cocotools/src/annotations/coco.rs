@@ -236,15 +236,15 @@ impl TryFrom<&PathBuf> for HashmapDataset {
     /// # Errors
     ///
     /// Will return `Err` if the json file does not exist/cannot be read or if an error happens when deserializing and parsing it.
-    fn try_from(annotations_path: &PathBuf) -> Result<HashmapDataset, Self::Error> {
-        let annotations_file_content = fs::read_to_string(&annotations_path)
-            .map_err(|err| LoadingError::Read(err, annotations_path.to_path_buf()))?;
+    fn try_from(annotations_path: &PathBuf) -> Result<Self, Self::Error> {
+        let annotations_file_content = fs::read_to_string(annotations_path)
+            .map_err(|err| LoadingError::Read(err, annotations_path.clone()))?;
 
         let dataset: Dataset = serde_json::from_str(&annotations_file_content)
-            .map_err(|err| LoadingError::Deserialize(err, annotations_path.to_path_buf()))?;
+            .map_err(|err| LoadingError::Deserialize(err, annotations_path.clone()))?;
 
-        HashmapDataset::new(dataset)
-            .map_err(|err| LoadingError::Parsing(err, annotations_path.to_path_buf()))
+        Self::new(dataset)
+            .map_err(|err| LoadingError::Parsing(err, annotations_path.clone()))
     }
 }
 
