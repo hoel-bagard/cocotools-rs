@@ -7,8 +7,13 @@
 //! ## Usage example
 //!
 //! ```
+//! # use std::path::PathBuf;
+//! use cocotools::COCO;
 //!
-//! let dataset = coco::load_anns(annotations_file)?;
+//! let annotations_file_path = PathBuf::from("../data_samples/coco_25k/annotations.json");
+//! let dataset = COCO::try_from(&annotations_file_path)?;
+//! assert_eq!(dataset.get_img(17627)?.file_name, "000000017627.jpg");
+//! # Ok::<(), Box<dyn std::error::Error>>(())
 //! ```
 //!
 //!
@@ -22,4 +27,5 @@ pub mod converters;
 pub mod errors;
 pub mod visualize;
 
-pub use crate::annotations::coco::HashmapDataset as COCO;
+#[doc(hidden)]
+pub use crate::annotations::COCO;
