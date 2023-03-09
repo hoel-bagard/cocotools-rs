@@ -1,9 +1,27 @@
-For arguments (advanced): In public interfaces, you usually don't want to use Path or PathBuf directly, but rather a generic P: AsRef<Path> or P: Into<PathBuf>. That way the caller can pass in Path, PathBuf, &str or String.
+# Cocotools
+The `cocotools` crate provides tools to load, manipulate, convert and visualize COCO format datasets.
 
+This crate aims to provide similar functionalities to the [python pycocotools package](https://pypi.org/project/pycocotools/) / [cocoapi](https://github.com/cocodataset/cocoapi) with additionnal utilities such as conversion between dataset formats. It also aims to have a better documentation and a more readable implementation.
 
-## Usage
+## API Usage example
+```
+use std::path::PathBuf;
+use cocotools::COCO;
+
+let annotations_file_path = PathBuf::from("../data_samples/coco_25k/annotations.json");
+let dataset = COCO::try_from(&annotations_file_path)?;
+let file_name = dataset.get_img(17627)?.file_name;
+```
+
+## Program Usage
 
 ```
 cargo run -- visualize  ../data_samples/coco_25k/annotations.json ../data_samples/coco_25k/images -s 000000017627
+cargo run -- convert-segmentation ../data_samples/coco_25k/annotations.json rle -o annotations_rle.json
 ```
 
+## Planned features
+- [ ] Add support for keypoint detection format.
+- [ ] Add conversion from/to PascalVOC format.
+- [ ] Add conversion from/to SOLO format.
+- [ ] Use rayon when loading/converting the data ?

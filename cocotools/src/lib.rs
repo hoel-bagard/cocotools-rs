@@ -1,6 +1,6 @@
 //! The `cocotools` crate provides tools to load, manipulate, convert and visualize COCO format datasets.
 
-//! The base classe is the **[`COCO`]** struct, usually load from a COCO json annotation file.
+//! The base class is the **[`COCO`]** struct, usually load from a COCO json annotation file.
 //!
 //! This crate aims to provide similar functionalities to the [python pycocotools package](https://pypi.org/project/pycocotools/) / [cocoapi](https://github.com/cocodataset/cocoapi) with additionnal utilities such as conversion between dataset formats. It also aims to have a better documentation and a more readable implementation.
 //!
@@ -15,11 +15,6 @@
 //! assert_eq!(dataset.get_img(17627)?.file_name, "000000017627.jpg");
 //! # Ok::<(), Box<dyn std::error::Error>>(())
 //! ```
-//!
-//!
-//!
-//!
-//!
 
 pub mod annotations;
 pub mod argparse;
