@@ -24,4 +24,5 @@ cargo run -- convert-segmentation ../data_samples/coco_25k/annotations.json rle 
 - [ ] Add support for keypoint detection format.
 - [ ] Add conversion from/to PascalVOC format.
 - [ ] Add conversion from/to SOLO format.
+- [ ] Add validation of the data when loading it, for example check that sum(rle) == nb pixels in the image (behind a crate feature flags ?)
 - [ ] Use rayon when loading/converting the data ?
