@@ -17,7 +17,7 @@ pub enum Commands {
         annotations_file: PathBuf,
         /// Path to the folder with the images.
         image_folder: PathBuf,
-        /// TODO
+        /// The id of the image to visualize. It is often the same as the filename, but not necessarily.
         #[arg(short, long)]
         sample_id: Option<u32>,
     },
