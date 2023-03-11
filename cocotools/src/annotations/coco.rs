@@ -54,10 +54,10 @@ pub enum Segmentation {
 pub type Polygon = Vec<Vec<f64>>;
 
 /// Internal type used to represent a polygon. It contains the width and height of the image for easier handling, notably when using traits.
-#[derive(Clone, Deserialize, Serialize, Debug)]
+#[derive(Clone, Deserialize, Serialize, Debug, PartialEq)]
 pub struct PolygonRS {
     pub size: Vec<u32>,
-    pub counts: Vec<f64>,
+    pub counts: Vec<Vec<f64>>, // TODO: This should be a Vec<Vec<f64>>, as multiple polygons can be necessary to segment an object (see documentation). Add a test for this.
 }
 
 /// Size is [height, width]
@@ -134,7 +134,7 @@ impl HashmapDataset {
                     } else {
                         return Err(MissingIdError::Image(img_id));
                     },
-                    counts: counts.remove(0),
+                    counts,
                 });
             };
 
