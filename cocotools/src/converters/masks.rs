@@ -93,9 +93,10 @@ impl From<&coco::Rle> for coco::Polygon {
 
                 counts[i].push(contour.points[0].y as f64);
                 counts[i].push(contour.points[0].x as f64);
+
+                // TODO: write this in a cleaner way.
                 prev_prev_x = contour.points[0].x;
                 prev_prev_y = contour.points[0].y;
-
                 prev_x = contour.points[1].x;
                 prev_y = contour.points[1].y;
                 for point in contour.points.iter() {
@@ -389,7 +390,7 @@ pub fn mask_from_poly(poly: &coco::Polygon, width: u32, height: u32) -> Result<M
 #[cfg(test)]
 #[allow(clippy::unwrap_used)]
 mod tests {
-    use super::coco::{EncodedRle, Polygon, Rle};
+    use super::coco::{EncodedRle, Polygon, PolygonRS, Rle};
     use super::*;
     use ndarray::array;
     use proptest::prelude::*;
@@ -438,29 +439,36 @@ mod tests {
         }
     }
 
-    // #[rstest]
-    // #[case::square(&Rle {size: vec![4, 4], counts: vec![5, 2, 2, 2, 5]})]
-    // #[case::horizontal_line(&Rle {size: vec![4, 5], counts: vec![5, 1, 3, 1, 3, 1, 6]})]
-    // #[case::vertical_line(&Rle {size: vec![6, 5], counts: vec![12, 6, 12]})]
-    // fn rle_to_poly_to_rle(#[case] rle: &Rle) {
-    //     let poly = Polygon::from(rle);
-    //     let mask = mask_from_poly(&poly, rle.size[1], rle.size[0]).unwrap();
-    //     let result_rle = Rle::try_from(&mask).unwrap();
-    //     assert_eq!(&result_rle, rle)
-    // }
+    #[rstest]
+    #[case::square(&Rle {size: vec![4, 4], counts: vec![5, 2, 2, 2, 5]})]
+    #[case::thick_horizontal_line(&Rle { size: vec![7, 7], counts: vec![9, 3, 4, 3, 4, 3, 4, 3, 4, 3, 9] })]
+    #[case::vertical_line(&Rle { size: vec![7, 7], counts: vec![15, 5, 2, 5, 2, 5, 15] })]
+    fn rle_to_poly_to_rle(#[case] rle: &Rle) {
+        let poly = Polygon::from(rle);
+        let mask = mask_from_poly(&poly, rle.size[1], rle.size[0]).unwrap();
+        let result_rle = Rle::try_from(&mask).unwrap();
+        assert_eq!(&result_rle, rle)
+    }
 
     #[rstest]
     #[case::square(
         &Rle {size: vec![4, 4], counts: vec![5, 2, 2, 2, 5]},
-        &vec![vec![1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 2.0, 1.0]])]
-    // #[case::horizontal_thick_line(
-    //     &Rle {size: vec![7, 7], counts: vec![9, 3, 4, 3, 4, 3, 4, 3, 4, 3, 9]},
-    //           &vec![vec![1.0, 2.0, 1.0, 4.0, 5.0, 4.0, 5.0, 2.0]])]
+        &PolygonRS {size: vec![4, 4], counts: vec![vec![1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 2.0, 1.0]] }
+    )]
+    #[case::horizontal_thick_line(
+        &Rle {size: vec![7, 7], counts: vec![9, 3, 4, 3, 4, 3, 4, 3, 4, 3, 9]},
+        &PolygonRS {size: vec![7, 7], counts: vec![vec![1.0, 2.0, 1.0, 4.0, 5.0, 4.0, 5.0, 2.0]]}
+    )]
     #[case::vertical_thick_line(
         &Rle {size: vec![7, 7], counts: vec![15, 5, 2, 5, 2, 5, 15]},
-        &vec![vec![2.0, 1.0, 2.0, 5.0, 4.0, 5.0, 4.0, 1.0]])]
-    fn rle_to_poly(#[case] rle: &Rle, #[case] expected_polygon: &Polygon) {
-        let poly = Polygon::from(rle);
+        &PolygonRS {size: vec![7, 7], counts: vec![vec![2.0, 1.0, 2.0, 5.0, 4.0, 5.0, 4.0, 1.0]]}
+    )]
+    // There is no method defined for testing the equality of two polygons, the assert_eq is therefore done between PolygonRS.
+    fn rle_to_poly(#[case] rle: &Rle, #[case] expected_polygon: &PolygonRS) {
+        let poly = PolygonRS {
+            size: rle.size.clone(),
+            counts: Polygon::from(rle),
+        };
         assert_eq!(&poly, expected_polygon)
     }
 
