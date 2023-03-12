@@ -68,43 +68,39 @@ impl From<&coco::Rle> for coco::Polygon {
         let mask_img = mask
             .as_slice_memory_order()
             .map(|slice| {
-                image::GrayImage::from_raw(rle.size[1] as u32, rle.size[0], slice.to_owned())
-                    .unwrap()
+                image::GrayImage::from_raw(rle.size[1], rle.size[0], slice.to_owned()).unwrap()
             })
             .unwrap();
 
-        dbg!(&mask);
-
         let contours = contours::find_contours::<u32>(&mask_img);
         // let mut counts: Vec<Vec<f64>> = vec![Vec::new(); contours.len()];
-        let mut counts: Vec<Vec<f64>> = Vec::new();
+        let mut counts: Self = Self::new();
         let mut prev_x: u32;
         let mut prev_y: u32;
 
         let mut prev_prev_x: u32;
         let mut prev_prev_y: u32;
 
-        dbg!(&contours);
         for (i, contour) in contours.iter().enumerate() {
             // Valid polygons must have at least 3 points.
             // TODO: Return an error if a polygon as less than 3 points, do not fail silently ?
             if contour.points.len() > 3 {
                 counts.push(Vec::with_capacity(2 * contour.points.len()));
 
-                counts[i].push(contour.points[0].y as f64);
-                counts[i].push(contour.points[0].x as f64);
+                counts[i].push(f64::from(contour.points[0].y));
+                counts[i].push(f64::from(contour.points[0].x));
 
                 // TODO: write this in a cleaner way.
                 prev_prev_x = contour.points[0].x;
                 prev_prev_y = contour.points[0].y;
                 prev_x = contour.points[1].x;
                 prev_y = contour.points[1].y;
-                for point in contour.points.iter() {
+                for point in &contour.points {
                     if !((prev_prev_x == prev_x && prev_x == point.x)
                         || (prev_prev_y == prev_y && prev_y == point.y))
                     {
-                        counts[i].push(prev_y as f64);
-                        counts[i].push(prev_x as f64);
+                        counts[i].push(f64::from(prev_y));
+                        counts[i].push(f64::from(prev_x));
                     }
                     prev_prev_x = prev_x;
                     prev_prev_y = prev_y;
@@ -116,8 +112,8 @@ impl From<&coco::Rle> for coco::Polygon {
                 if !((prev_prev_x == prev_x && prev_x == first_point.x)
                     || (prev_prev_y == prev_y && prev_y == first_point.y))
                 {
-                    counts[i].push(prev_y as f64);
-                    counts[i].push(prev_x as f64);
+                    counts[i].push(f64::from(prev_y));
+                    counts[i].push(f64::from(prev_x));
                 }
             }
         }
@@ -332,7 +328,7 @@ impl TryFrom<&coco::PolygonRS> for Mask {
     fn try_from(poly_ann: &coco::PolygonRS) -> Result<Self, Self::Error> {
         let mut mask = image::GrayImage::new(poly_ann.size[1], poly_ann.size[0]);
 
-        for poly in poly_ann.counts.iter() {
+        for poly in &poly_ann.counts {
             let mut points_poly: Vec<imageproc::point::Point<i32>> = Vec::new();
             for i in (0..poly.len()).step_by(2) {
                 points_poly.push(imageproc::point::Point::new(
@@ -415,7 +411,7 @@ mod tests {
             (ncols in 2..max_ncols, nrows in 2..max_nrows)
             (ncols in Just(ncols),
              nrows in Just(nrows),
-             mask_data in prop::collection::vec(0..=1u8, (ncols * nrows) as usize),
+             mask_data in prop::collection::vec(0..=1u8, ncols * nrows),
             ) -> Mask {
                 Mask::from_shape_vec((nrows, ncols), mask_data).unwrap()
             }
@@ -447,7 +443,7 @@ mod tests {
         let poly = Polygon::from(rle);
         let mask = mask_from_poly(&poly, rle.size[1], rle.size[0]).unwrap();
         let result_rle = Rle::try_from(&mask).unwrap();
-        assert_eq!(&result_rle, rle)
+        assert_eq!(&result_rle, rle);
     }
 
     #[rstest]
@@ -469,7 +465,7 @@ mod tests {
             size: rle.size.clone(),
             counts: Polygon::from(rle),
         };
-        assert_eq!(&poly, expected_polygon)
+        assert_eq!(&poly, expected_polygon);
     }
 
     #[rstest]

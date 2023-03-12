@@ -127,7 +127,7 @@ impl HashmapDataset {
 
             // The polygon format from COCO is annoying to deal with as it does not contain the size of the image,
             // it is therefore transformed into a more complete format.
-            if let Segmentation::Polygon(mut counts) = annotation.segmentation {
+            if let Segmentation::Polygon(counts) = annotation.segmentation {
                 annotation.segmentation = Segmentation::PolygonRS(PolygonRS {
                     size: if let Some(img) = imgs.get(&img_id) {
                         vec![img.height, img.width]
@@ -260,41 +260,40 @@ impl PartialEq for PolygonRS {
         // Assume that there are no duplicated polygons within an annotation.
         if self.size != other.size || self.counts.len() != other.counts.len() {
             return false;
-        } else {
-            let other_polygons = other.counts.clone();
-            for self_poly in self.counts.iter() {
-                let mut found_match = false;
-                'outer: for other_poly in other_polygons.iter() {
-                    let mut other_poly = other_poly.clone();
-                    if self_poly.len() != other_poly.len() {
-                        continue;
-                    }
-                    for _ in 0..other_poly.len() {
-                        if &other_poly == self_poly {
-                            found_match = true;
-                            break 'outer;
-                        }
-                        other_poly.rotate_right(1);
-                    }
-
-                    other_poly.reverse();
-
-                    let mut reversed_other_poly: Vec<f64> = Vec::new();
-                    for i in (0..other_poly.len()).step_by(2) {
-                        reversed_other_poly.push(other_poly[i + 1]);
-                        reversed_other_poly.push(other_poly[i]);
-                    }
-                    for _ in 0..reversed_other_poly.len() {
-                        if &reversed_other_poly == self_poly {
-                            found_match = true;
-                            break 'outer;
-                        }
-                        reversed_other_poly.rotate_right(1);
-                    }
+        }
+        let other_polygons = other.counts.clone();
+        for self_poly in &self.counts {
+            let mut found_match = false;
+            'outer: for other_poly in &other_polygons {
+                let mut other_poly = other_poly.clone();
+                if self_poly.len() != other_poly.len() {
+                    continue;
                 }
-                if !found_match {
-                    return false;
+                for _ in 0..other_poly.len() {
+                    if &other_poly == self_poly {
+                        found_match = true;
+                        break 'outer;
+                    }
+                    other_poly.rotate_right(1);
                 }
+
+                other_poly.reverse();
+
+                let mut reversed_other_poly: Vec<f64> = Vec::new();
+                for i in (0..other_poly.len()).step_by(2) {
+                    reversed_other_poly.push(other_poly[i + 1]);
+                    reversed_other_poly.push(other_poly[i]);
+                }
+                for _ in 0..reversed_other_poly.len() {
+                    if &reversed_other_poly == self_poly {
+                        found_match = true;
+                        break 'outer;
+                    }
+                    reversed_other_poly.rotate_right(1);
+                }
+            }
+            if !found_match {
+                return false;
             }
         }
         true
