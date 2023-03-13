@@ -23,7 +23,11 @@ fn main() -> Result<(), Box<dyn error::Error>> {
             if let Some(sample_id) = sample_id {
                 visualize::visualize_img(&dataset, image_folder, *sample_id)?;
             } else {
-                todo!()
+                for img_entry in dataset.get_imgs() {
+                    let anns = dataset.get_img_anns(img_entry.id)?;
+                    let img_path = image_folder.join(&img_entry.file_name);
+                    visualize::show_anns(&img_path, anns, true)?;
+                }
             }
         }
         Commands::ConvertSegmentation {
