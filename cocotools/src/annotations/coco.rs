@@ -239,16 +239,6 @@ impl HashmapDataset {
     }
 }
 
-impl From<&HashmapDataset> for Dataset {
-    fn from(dataset: &HashmapDataset) -> Self {
-        Self {
-            images: dataset.get_imgs().into_iter().cloned().collect(),
-            annotations: dataset.get_anns().into_iter().cloned().collect(),
-            categories: dataset.get_cats().into_iter().cloned().collect(),
-        }
-    }
-}
-
 impl TryFrom<&PathBuf> for HashmapDataset {
     type Error = LoadingError;
 
@@ -263,6 +253,16 @@ impl TryFrom<&PathBuf> for HashmapDataset {
             .map_err(|err| LoadingError::Deserialize(err, annotations_path.clone()))?;
 
         Self::new(dataset).map_err(|err| LoadingError::Parsing(err, annotations_path.clone()))
+    }
+}
+
+impl From<&HashmapDataset> for Dataset {
+    fn from(dataset: &HashmapDataset) -> Self {
+        Self {
+            images: dataset.get_imgs().into_iter().cloned().collect(),
+            annotations: dataset.get_anns().into_iter().cloned().collect(),
+            categories: dataset.get_cats().into_iter().cloned().collect(),
+        }
     }
 }
 
@@ -313,20 +313,6 @@ impl PartialEq for PolygonRS {
         }
         true
     }
-}
-
-/// # Errors
-///
-/// Will return `Err` if the json file does not exist/cannot be read or if an error happens when deserializing and parsing it.
-pub fn load_anns<P: AsRef<Path>>(annotations_path: P) -> Result<HashmapDataset, LoadingError> {
-    let annotations_file_content = fs::read_to_string(&annotations_path)
-        .map_err(|err| LoadingError::Read(err, annotations_path.as_ref().to_path_buf()))?;
-
-    let dataset: Dataset = serde_json::from_str(&annotations_file_content)
-        .map_err(|err| LoadingError::Deserialize(err, annotations_path.as_ref().to_path_buf()))?;
-
-    HashmapDataset::new(dataset)
-        .map_err(|err| LoadingError::Parsing(err, annotations_path.as_ref().to_path_buf()))
 }
 
 #[cfg(test)]

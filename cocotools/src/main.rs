@@ -7,7 +7,7 @@ mod argparse;
 mod converters;
 mod errors;
 mod visualize;
-use crate::annotations::coco;
+use crate::annotations::COCO;
 use crate::argparse::{Cli, Commands};
 
 fn main() -> Result<(), Box<dyn error::Error>> {
@@ -19,7 +19,7 @@ fn main() -> Result<(), Box<dyn error::Error>> {
             image_folder,
             sample_id,
         } => {
-            let dataset = coco::load_anns(annotations_file)?;
+            let dataset = COCO::try_from(annotations_file)?;
             if let Some(sample_id) = sample_id {
                 visualize::visualize_img(&dataset, image_folder, *sample_id)?;
             } else {
@@ -35,7 +35,7 @@ fn main() -> Result<(), Box<dyn error::Error>> {
             target_segmentation,
             output_path,
         } => {
-            let mut dataset = coco::load_anns(annotations_path)?;
+            let mut dataset = COCO::try_from(annotations_path)?;
             converters::masks::convert_coco_segmentation(&mut dataset, *target_segmentation)?;
             let output_path = output_path
                 .as_ref()
