@@ -33,6 +33,8 @@ fn draw_rgb_to_buffer(img: &image::RgbImage, dst: &mut [u32]) {
     }
 }
 
+/// Visualize the labels for the given image id.
+///
 /// # Errors
 ///
 /// Will return `Err` if `img_id` is not present in the dataset.

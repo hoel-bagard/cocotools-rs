@@ -54,7 +54,7 @@ pub enum Segmentation {
 pub type Polygon = Vec<Vec<f64>>;
 
 /// Internal type used to represent a polygon. It contains the width and height of the image for easier handling, notably when using traits.
-#[derive(Clone, Deserialize, Serialize, Debug, PartialEq)]
+#[derive(Clone, Deserialize, Serialize, Debug)]
 pub struct PolygonRS {
     pub size: Vec<u32>,
     pub counts: Vec<Vec<f64>>, // TODO: This should be a Vec<Vec<f64>>, as multiple polygons can be necessary to segment an object (see documentation). Add a test for this.
@@ -127,7 +127,7 @@ impl HashmapDataset {
 
             // The polygon format from COCO is annoying to deal with as it does not contain the size of the image,
             // it is therefore transformed into a more complete format.
-            if let Segmentation::Polygon(mut counts) = annotation.segmentation {
+            if let Segmentation::Polygon(counts) = annotation.segmentation {
                 annotation.segmentation = Segmentation::PolygonRS(PolygonRS {
                     size: if let Some(img) = imgs.get(&img_id) {
                         vec![img.height, img.width]
@@ -251,6 +251,55 @@ impl TryFrom<&PathBuf> for HashmapDataset {
     }
 }
 
+impl PartialEq for PolygonRS {
+    // Redo this function in a clearer way:
+    // - Search for the first point of self in other. If it's not there, then return false.
+    // - Look left an right of other for the second point of self to know in which direction to rotate (if not there return false).
+    // - Match elements one by one.
+    fn eq(&self, other: &Self) -> bool {
+        // Assume that there are no duplicated polygons within an annotation.
+        if self.size != other.size || self.counts.len() != other.counts.len() {
+            return false;
+        }
+        let other_polygons = other.counts.clone();
+        for self_poly in &self.counts {
+            let mut found_match = false;
+            'outer: for other_poly in &other_polygons {
+                let mut other_poly = other_poly.clone();
+                if self_poly.len() != other_poly.len() {
+                    continue;
+                }
+                for _ in 0..other_poly.len() {
+                    if &other_poly == self_poly {
+                        found_match = true;
+                        break 'outer;
+                    }
+                    other_poly.rotate_right(1);
+                }
+
+                other_poly.reverse();
+
+                let mut reversed_other_poly: Vec<f64> = Vec::new();
+                for i in (0..other_poly.len()).step_by(2) {
+                    reversed_other_poly.push(other_poly[i + 1]);
+                    reversed_other_poly.push(other_poly[i]);
+                }
+                for _ in 0..reversed_other_poly.len() {
+                    if &reversed_other_poly == self_poly {
+                        found_match = true;
+                        break 'outer;
+                    }
+                    reversed_other_poly.rotate_right(1);
+                }
+            }
+            if !found_match {
+                return false;
+            }
+        }
+        true
+    }
+}
+
 /// # Errors
 ///
 /// Will return `Err` if the json file does not exist/cannot be read or if an error happens when deserializing and parsing it.
@@ -280,4 +329,57 @@ pub fn save_anns<P: AsRef<Path>>(
     serde_json::to_writer_pretty(&f, &dataset)?;
 
     Ok(())
+}
+
+#[cfg(test)]
+#[allow(clippy::unwrap_used)]
+mod tests {
+    use super::PolygonRS;
+    use rstest::rstest;
+
+    #[rstest]
+    #[case::single_polygon(
+        &PolygonRS {size: vec![20, 20], counts: vec![vec![1.1, 2.1, 3.2, 4.2, 5.3, 6.3]] },
+        &PolygonRS {size: vec![20, 20], counts: vec![vec![1.1, 2.1, 3.2, 4.2, 5.3, 6.3]] },
+    )]
+    #[case::two_polygons(
+        &PolygonRS {size: vec![20, 20], counts: vec![vec![1.1, 2.1, 3.2, 4.2, 5.3, 6.3], vec![7.4, 8.4, 9.5, 10.5, 11.6, 12.6]]},
+        &PolygonRS {size: vec![20, 20], counts: vec![vec![1.1, 2.1, 3.2, 4.2, 5.3, 6.3], vec![7.4, 8.4, 9.5, 10.5, 11.6, 12.6]]},
+    )]
+    #[case::two_polygons_different_order(
+        &PolygonRS {size: vec![20, 20], counts: vec![vec![1.1, 2.1, 3.2, 4.2, 5.3, 6.3], vec![7.4, 8.4, 9.5, 10.5, 11.6, 12.6]]},
+        &PolygonRS {size: vec![20, 20], counts: vec![vec![7.4, 8.4, 9.5, 10.5, 11.6, 12.6], vec![1.1, 2.1, 3.2, 4.2, 5.3, 6.3]]},
+    )]
+    #[case::different_start_point(
+        &PolygonRS {size: vec![20, 20], counts: vec![vec![1.1, 2.1, 3.2, 4.2, 5.3, 6.3], vec![7.4, 8.4, 9.5, 10.5, 11.6, 12.6]]},
+        &PolygonRS {size: vec![20, 20], counts: vec![vec![11.6, 12.6, 7.4, 8.4, 9.5, 10.5], vec![3.2, 4.2, 5.3, 6.3, 1.1, 2.1]]},
+    )]
+    #[case::reversed_order(
+        &PolygonRS {size: vec![20, 20], counts: vec![vec![1.1, 2.1, 3.2, 4.2, 5.3, 6.3, 7.4, 8.4]]},
+        &PolygonRS {size: vec![20, 20], counts: vec![vec![7.4, 8.4, 5.3, 6.3, 3.2, 4.2, 1.1, 2.1]]},
+    )]
+    fn polygon_equality(#[case] poly1: &PolygonRS, #[case] poly2: &PolygonRS) {
+        assert_eq!(poly1, poly2);
+    }
+
+    #[rstest]
+    #[case::different_length(
+        &PolygonRS {size: vec![20, 20], counts: vec![vec![1.1, 2.1, 3.2, 4.2, 5.3, 6.3, 7.4, 8.4]]},
+        &PolygonRS {size: vec![20, 20], counts: vec![vec![1.1, 2.1, 3.2, 4.2, 5.3, 6.3]]},
+    )]
+    #[case::different_digit(
+        &PolygonRS {size: vec![20, 20], counts: vec![vec![1.1, 2.1, 3.2, 4.2, 5.3, 6.3]]},
+        &PolygonRS {size: vec![20, 20], counts: vec![vec![2.1, 2.1, 3.2, 4.2, 5.3, 6.3]]},
+    )]
+    #[case::different_number_of_polygons(
+        &PolygonRS {size: vec![20, 20], counts: vec![vec![1.1, 2.1, 3.2, 4.2, 5.3, 6.3, 7.4, 8.4]]},
+        &PolygonRS {size: vec![20, 20], counts: vec![vec![1.1, 2.1, 3.2, 4.2, 5.3, 6.3, 7.4, 8.4], vec![7.4, 8.4, 9.5, 10.5, 11.6, 12.6]]},
+    )]
+    #[case::x_y_inverted(
+        &PolygonRS {size: vec![20, 20], counts: vec![vec![1.1, 2.1, 3.2, 4.2, 5.3, 6.3]]},
+        &PolygonRS {size: vec![20, 20], counts: vec![vec![2.1, 2.1, 4.2, 3.2, 6.3, 5.3]]},
+    )]
+    fn polygon_inequality(#[case] poly1: &PolygonRS, #[case] poly2: &PolygonRS) {
+        assert_ne!(poly1, poly2);
+    }
 }

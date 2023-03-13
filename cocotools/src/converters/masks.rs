@@ -1,4 +1,5 @@
 use image;
+use imageproc::contours;
 use imageproc::drawing;
 use ndarray::{s, Array2, ArrayViewMut, ShapeBuilder};
 use thiserror::Error;
@@ -49,7 +50,7 @@ pub fn convert_coco_segmentation(
                 Segmentation::EncodedRle => coco::Segmentation::EncodedRle(
                     coco::EncodedRle::try_from(&coco::Rle::from(&Mask::try_from(poly)?))?,
                 ),
-                Segmentation::Polygon => coco::Segmentation::Polygon(vec![poly.counts.clone()]),
+                Segmentation::Polygon => coco::Segmentation::Polygon(poly.counts.clone()),
             },
             coco::Segmentation::Polygon(_) => unimplemented!(),
         };
@@ -61,9 +62,61 @@ pub fn convert_coco_segmentation(
     Ok(())
 }
 
+#[allow(clippy::expect_used)]
 impl From<&coco::Rle> for coco::Polygon {
-    fn from(_rle: &coco::Rle) -> Self {
-        todo!()
+    fn from(rle: &coco::Rle) -> Self {
+        let mask = Mask::from(rle);
+        let mask_img = mask
+            .as_slice_memory_order()
+            .map(|slice| {
+                image::GrayImage::from_raw(rle.size[1], rle.size[0], slice.to_owned()).expect(
+                    "Buffer already contains a mask created using the rle sizes and is threfore big enough."
+                )
+            })
+            .expect("The mask is created just above and should therefore be continuous in memory.");
+
+        let contours = contours::find_contours::<u32>(&mask_img);
+
+        // find_contours returns all the points defining the contours, the following for loop removes all the points formings lines as they are not needed.
+        let mut counts: Self = Self::new();
+        let mut prev_prev_x: u32;
+        let mut prev_prev_y: u32;
+        let mut prev_x: u32;
+        let mut prev_y: u32;
+        for (i, contour) in contours.iter().enumerate() {
+            // Valid polygons must have at least 3 points.
+            // The case of having less than 3 points is not expected to occur on real data, hence the silent failt if it occurs.
+            if contour.points.len() > 3 {
+                counts.push(Vec::with_capacity(2 * contour.points.len()));
+
+                counts[i].push(f64::from(contour.points[0].y));
+                counts[i].push(f64::from(contour.points[0].x));
+                prev_prev_x = contour.points[0].x;
+                prev_prev_y = contour.points[0].y;
+                prev_x = contour.points[1].x;
+                prev_y = contour.points[1].y;
+                for point in &contour.points {
+                    if !((prev_prev_x == prev_x && prev_x == point.x)
+                        || (prev_prev_y == prev_y && prev_y == point.y))
+                    {
+                        counts[i].push(f64::from(prev_y));
+                        counts[i].push(f64::from(prev_x));
+                    }
+                    prev_prev_x = prev_x;
+                    prev_prev_y = prev_y;
+                    prev_x = point.x;
+                    prev_y = point.y;
+                }
+
+                if !((prev_prev_x == prev_x && prev_x == contour.points[0].x)
+                    || (prev_prev_y == prev_y && prev_y == contour.points[0].y))
+                {
+                    counts[i].push(f64::from(prev_y));
+                    counts[i].push(f64::from(prev_x));
+                }
+            }
+        }
+        counts
     }
 }
 
@@ -271,25 +324,28 @@ impl TryFrom<&coco::PolygonRS> for Mask {
     type Error = MaskError;
 
     /// Create a mask from a compressed polygon representation.
-    fn try_from(poly: &coco::PolygonRS) -> Result<Self, Self::Error> {
-        let mut points_poly: Vec<imageproc::point::Point<i32>> = Vec::new();
-        for i in (0..poly.counts.len()).step_by(2) {
-            points_poly.push(imageproc::point::Point::new(
-                poly.counts[i] as i32,
-                poly.counts[i + 1] as i32,
-            ));
-        }
-        if let Some(last_point) = points_poly.last() {
-            if points_poly[0].x == last_point.x && points_poly[0].y == last_point.y {
-                points_poly.pop();
-            }
-        }
+    fn try_from(poly_ann: &coco::PolygonRS) -> Result<Self, Self::Error> {
+        let mut mask = image::GrayImage::new(poly_ann.size[1], poly_ann.size[0]);
 
-        let mut mask = image::GrayImage::new(poly.size[1], poly.size[0]);
-        drawing::draw_polygon_mut(&mut mask, &points_poly, image::Luma([1u8]));
+        for poly in &poly_ann.counts {
+            let mut points_poly: Vec<imageproc::point::Point<i32>> = Vec::new();
+            for i in (0..poly.len()).step_by(2) {
+                points_poly.push(imageproc::point::Point::new(
+                    poly[i] as i32,
+                    poly[i + 1] as i32,
+                ));
+            }
+            if let Some(last_point) = points_poly.last() {
+                if points_poly[0].x == last_point.x && points_poly[0].y == last_point.y {
+                    points_poly.pop();
+                }
+            }
+
+            drawing::draw_polygon_mut(&mut mask, &points_poly, image::Luma([1u8]));
+        }
 
         Self::from_shape_vec(
-            (poly.size[1] as usize, poly.size[0] as usize),
+            (poly_ann.size[1] as usize, poly_ann.size[0] as usize),
             mask.into_raw(),
         )
         .map_err(MaskError::ImageToNDArrayConversion)
@@ -329,7 +385,7 @@ pub fn mask_from_poly(poly: &coco::Polygon, width: u32, height: u32) -> Result<M
 #[cfg(test)]
 #[allow(clippy::unwrap_used)]
 mod tests {
-    use super::coco::{EncodedRle, Rle};
+    use super::coco::{EncodedRle, Polygon, PolygonRS, Rle};
     use super::*;
     use ndarray::array;
     use proptest::prelude::*;
@@ -354,7 +410,7 @@ mod tests {
             (ncols in 2..max_ncols, nrows in 2..max_nrows)
             (ncols in Just(ncols),
              nrows in Just(nrows),
-             mask_data in prop::collection::vec(0..=1u8, (ncols * nrows) as usize),
+             mask_data in prop::collection::vec(0..=1u8, ncols * nrows),
             ) -> Mask {
                 Mask::from_shape_vec((nrows, ncols), mask_data).unwrap()
             }
@@ -379,6 +435,39 @@ mod tests {
     }
 
     #[rstest]
+    #[case::square(&Rle {size: vec![4, 4], counts: vec![5, 2, 2, 2, 5]})]
+    #[case::thick_horizontal_line(&Rle { size: vec![7, 7], counts: vec![9, 3, 4, 3, 4, 3, 4, 3, 4, 3, 9] })]
+    #[case::vertical_line(&Rle { size: vec![7, 7], counts: vec![15, 5, 2, 5, 2, 5, 15] })]
+    fn rle_to_poly_to_rle(#[case] rle: &Rle) {
+        let poly = Polygon::from(rle);
+        let mask = mask_from_poly(&poly, rle.size[1], rle.size[0]).unwrap();
+        let result_rle = Rle::try_from(&mask).unwrap();
+        assert_eq!(&result_rle, rle);
+    }
+
+    #[rstest]
+    #[case::square(
+        &Rle {size: vec![4, 4], counts: vec![5, 2, 2, 2, 5]},
+        &PolygonRS {size: vec![4, 4], counts: vec![vec![1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 2.0, 1.0]] }
+    )]
+    #[case::horizontal_thick_line(
+        &Rle {size: vec![7, 7], counts: vec![9, 3, 4, 3, 4, 3, 4, 3, 4, 3, 9]},
+        &PolygonRS {size: vec![7, 7], counts: vec![vec![1.0, 2.0, 1.0, 4.0, 5.0, 4.0, 5.0, 2.0]]}
+    )]
+    #[case::vertical_thick_line(
+        &Rle {size: vec![7, 7], counts: vec![15, 5, 2, 5, 2, 5, 15]},
+        &PolygonRS {size: vec![7, 7], counts: vec![vec![2.0, 1.0, 2.0, 5.0, 4.0, 5.0, 4.0, 1.0]]}
+    )]
+    // There is no method defined for testing the equality of two polygons, the assert_eq is therefore done between PolygonRS.
+    fn rle_to_poly(#[case] rle: &Rle, #[case] expected_polygon: &PolygonRS) {
+        let poly = PolygonRS {
+            size: rle.size.clone(),
+            counts: Polygon::from(rle),
+        };
+        assert_eq!(&poly, expected_polygon);
+    }
+
+    #[rstest]
     #[case::square(
         &array![[0, 0, 0, 0],
                 [0, 1, 1, 0],
@@ -397,6 +486,24 @@ mod tests {
                 [0, 0, 1, 0, 0],
                 [0, 0, 1, 0, 0]],
         &Rle {size: vec![4, 5], counts: vec![8, 4, 8]})]
+    #[case::thick_horizontal_line(
+        &array![[0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0],
+                [0, 1, 1, 1, 1, 1, 0],
+                [0, 1, 1, 1, 1, 1, 0],
+                [0, 1, 1, 1, 1, 1, 0],
+                [0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0]],
+        &Rle { size: vec![7, 7], counts: vec![9, 3, 4, 3, 4, 3, 4, 3, 4, 3, 9] })]
+    #[case::thick_vertical_line(
+        &array![[0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 1, 1, 1, 0, 0],
+                [0, 0, 1, 1, 1, 0, 0],
+                [0, 0, 1, 1, 1, 0, 0],
+                [0, 0, 1, 1, 1, 0, 0],
+                [0, 0, 1, 1, 1, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0]],
+        &Rle { size: vec![7, 7], counts: vec![15, 5, 2, 5, 2, 5, 15] })]
     fn mask_to_rle(#[case] mask: &Mask, #[case] expected_rle: &Rle) {
         let rle = Rle::from(mask);
         assert_eq!(&rle, expected_rle);
@@ -427,10 +534,15 @@ mod tests {
     }
 
     #[rstest]
-    #[case::square(&Rle {counts: vec![6, 1, 40, 4, 5, 4, 5, 4, 21], size: vec![9, 10]},
-                     &EncodedRle {size: vec![9, 10], counts: "61X13mN000`0".to_string()})]
-    #[case::test1(&Rle {counts: vec![245, 5, 35, 5, 35, 5, 35, 5, 35, 5, 1190], size: vec![40, 40]},
-                  &EncodedRle {size: vec![40, 40], counts: "e75S10000000ST1".to_string()})]
+    #[case::square(
+        &Rle {size: vec![4, 4], counts: vec![5, 2, 2, 2, 5]},
+        &EncodedRle { size: vec![4, 4], counts: "52203".to_string() })]
+    #[case::square2(
+        &Rle {counts: vec![6, 1, 40, 4, 5, 4, 5, 4, 21], size: vec![9, 10]},
+        &EncodedRle {size: vec![9, 10], counts: "61X13mN000`0".to_string()})]
+    #[case::test1(
+        &Rle {counts: vec![245, 5, 35, 5, 35, 5, 35, 5, 35, 5, 1190], size: vec![40, 40]},
+        &EncodedRle {size: vec![40, 40], counts: "e75S10000000ST1".to_string()})]
     fn encode_rle(#[case] rle: &Rle, #[case] expected_encoded_rle: &EncodedRle) {
         let encoded_rle = EncodedRle::try_from(rle).unwrap();
         assert_eq!(&encoded_rle, expected_encoded_rle);
