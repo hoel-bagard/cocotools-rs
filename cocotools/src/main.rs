@@ -40,7 +40,7 @@ fn main() -> Result<(), Box<dyn error::Error>> {
             let output_path = output_path
                 .as_ref()
                 .map_or_else(|| annotations_path, |output_path| output_path);
-            coco::save_anns(output_path, dataset)?;
+            dataset.save_to(output_path)?;
         }
     }
     Ok(())

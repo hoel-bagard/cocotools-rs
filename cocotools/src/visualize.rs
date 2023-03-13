@@ -2,7 +2,7 @@ pub mod bbox;
 pub mod segmentation;
 
 use crate::annotations::coco::{Annotation, HashmapDataset};
-use crate::converters::masks::Mask;
+use crate::converters::masks;
 
 use image::io::Reader as ImageReader;
 use rand::Rng;
@@ -53,7 +53,6 @@ pub fn visualize_img(
 }
 
 /// Visualize the given image and annotations.
-/// TODO: Put the drawing part in its own function.
 ///
 /// # Arguments
 ///
@@ -91,21 +90,12 @@ pub fn show_anns(
         })
         .into_rgb8();
 
-    let mut rng = rand::thread_rng();
-    for ann in anns {
-        let color = image::Rgb([rng.gen::<u8>(), rng.gen::<u8>(), rng.gen::<u8>()]);
-        if draw_bbox {
-            bbox::draw_bbox(&mut img, &ann.bbox, color);
-        }
-        let mask = Mask::try_from(&ann.segmentation)?;
-        segmentation::draw_mask(&mut img, &mask, color);
-    }
+    draw_anns(&mut img, anns, draw_bbox)?;
 
     let img_width = img.width() as usize;
     let img_height = img.height() as usize;
     let mut buffer: Vec<u32> = vec![0x00FF_FFFF; img_width * img_height];
     draw_rgb_to_buffer(&img, &mut buffer);
-
     let mut window = Window::new(
         format!(
             "{} - Press Q or ESC to exit",
@@ -129,5 +119,24 @@ pub fn show_anns(
                 panic!("Could not update buffer, got the following error: {e}");
             });
     }
+    Ok(())
+}
+
+/// Draw the segmentation masks, and optionnaly the bounding boxes of the annotations on the image.
+pub fn draw_anns(
+    mut img: &mut image::ImageBuffer<image::Rgb<u8>, Vec<u8>>,
+    anns: Vec<&Annotation>,
+    draw_bbox: bool,
+) -> Result<(), masks::MaskError> {
+    let mut rng = rand::thread_rng();
+    for ann in anns {
+        let color = image::Rgb([rng.gen::<u8>(), rng.gen::<u8>(), rng.gen::<u8>()]);
+        if draw_bbox {
+            bbox::draw_bbox(&mut img, &ann.bbox, color);
+        }
+        let mask = masks::Mask::try_from(&ann.segmentation)?;
+        segmentation::draw_mask(&mut img, &mask, color);
+    }
+
     Ok(())
 }
