@@ -62,35 +62,35 @@ pub fn convert_coco_segmentation(
     Ok(())
 }
 
+#[allow(clippy::expect_used)]
 impl From<&coco::Rle> for coco::Polygon {
     fn from(rle: &coco::Rle) -> Self {
         let mask = Mask::from(rle);
         let mask_img = mask
             .as_slice_memory_order()
             .map(|slice| {
-                image::GrayImage::from_raw(rle.size[1], rle.size[0], slice.to_owned()).unwrap()
+                image::GrayImage::from_raw(rle.size[1], rle.size[0], slice.to_owned()).expect(
+                    "Buffer already contains a mask created using the rle sizes and is threfore big enough."
+                )
             })
-            .unwrap();
+            .expect("The mask is created just above and should therefore be continuous in memory.");
 
         let contours = contours::find_contours::<u32>(&mask_img);
-        // let mut counts: Vec<Vec<f64>> = vec![Vec::new(); contours.len()];
-        let mut counts: Self = Self::new();
-        let mut prev_x: u32;
-        let mut prev_y: u32;
 
+        // find_contours returns all the points defining the contours, the following for loop removes all the points formings lines as they are not needed.
+        let mut counts: Self = Self::new();
         let mut prev_prev_x: u32;
         let mut prev_prev_y: u32;
-
+        let mut prev_x: u32;
+        let mut prev_y: u32;
         for (i, contour) in contours.iter().enumerate() {
             // Valid polygons must have at least 3 points.
-            // TODO: Return an error if a polygon as less than 3 points, do not fail silently ?
+            // The case of having less than 3 points is not expected to occur on real data, hence the silent failt if it occurs.
             if contour.points.len() > 3 {
                 counts.push(Vec::with_capacity(2 * contour.points.len()));
 
                 counts[i].push(f64::from(contour.points[0].y));
                 counts[i].push(f64::from(contour.points[0].x));
-
-                // TODO: write this in a cleaner way.
                 prev_prev_x = contour.points[0].x;
                 prev_prev_y = contour.points[0].y;
                 prev_x = contour.points[1].x;
@@ -108,9 +108,8 @@ impl From<&coco::Rle> for coco::Polygon {
                     prev_y = point.y;
                 }
 
-                let first_point = contour.points[0];
-                if !((prev_prev_x == prev_x && prev_x == first_point.x)
-                    || (prev_prev_y == prev_y && prev_y == first_point.y))
+                if !((prev_prev_x == prev_x && prev_x == contour.points[0].x)
+                    || (prev_prev_y == prev_y && prev_y == contour.points[0].y))
                 {
                     counts[i].push(f64::from(prev_y));
                     counts[i].push(f64::from(prev_x));
