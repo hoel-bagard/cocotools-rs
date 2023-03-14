@@ -21,7 +21,7 @@ fn main() -> Result<(), Box<dyn error::Error>> {
         } => {
             let dataset = COCO::try_from(annotations_file)?;
             if let Some(sample_id) = sample_id {
-                visualize::visualize_img(&dataset, image_folder, *sample_id)?;
+                visualize::display::show_img(&dataset, image_folder, *sample_id)?;
             } else {
                 for img_entry in dataset.get_imgs() {
                     let anns = dataset.get_img_anns(img_entry.id)?;
