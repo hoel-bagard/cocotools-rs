@@ -6,6 +6,8 @@ use std::{collections::HashMap, path::PathBuf};
 use serde::{Deserialize, Serialize};
 
 use crate::errors::{LoadingError, MissingIdError};
+use crate::visualize::display::load_img;
+use crate::visualize::draw::draw_anns;
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct Dataset {
@@ -97,6 +99,7 @@ pub struct HashmapDataset {
     /// Hashmap that links an image id to the image's annotations
     // Use Rc to reference the annotations directly ?
     img_to_anns: HashMap<u32, Vec<u32>>,
+    pub image_folder: PathBuf,
 }
 
 impl HashmapDataset {
@@ -104,8 +107,16 @@ impl HashmapDataset {
     ///
     /// # Errors
     ///
+    /// Will return `Err` if the json file does not exist/cannot be read or if an error happens when deserializing and parsing it.
     /// Will return `Err` if there is an annotation with an image id X, but no image entry has this id.
-    pub fn new(dataset: Dataset) -> Result<Self, MissingIdError> {
+    pub fn new<P: AsRef<Path>>(annotations_path: P, image_folder: P) -> Result<Self, LoadingError> {
+        let annotations_path = annotations_path.as_ref().to_path_buf();
+        let annotations_file_content = fs::read_to_string(&annotations_path)
+            .map_err(|err| LoadingError::Read(err, annotations_path.clone()))?;
+
+        let dataset: Dataset = serde_json::from_str(&annotations_file_content)
+            .map_err(|err| LoadingError::Deserialize(err, annotations_path.clone()))?;
+
         let mut anns: HashMap<u32, Annotation> = HashMap::new();
         let mut img_to_anns: HashMap<u32, Vec<u32>> = HashMap::new();
 
@@ -132,7 +143,8 @@ impl HashmapDataset {
                     size: if let Some(img) = imgs.get(&img_id) {
                         vec![img.height, img.width]
                     } else {
-                        return Err(MissingIdError::Image(img_id));
+                        return Err(MissingIdError::Image(img_id))
+                            .map_err(|err| LoadingError::Parsing(err, annotations_path));
                     },
                     counts,
                 });
@@ -150,6 +162,7 @@ impl HashmapDataset {
             cats,
             imgs,
             img_to_anns,
+            image_folder: image_folder.as_ref().to_path_buf(),
         })
     }
 
@@ -223,6 +236,32 @@ impl HashmapDataset {
             })
     }
 
+    /// Draw the annotations for the given image id on the image and return it.
+    pub fn draw_img_anns(
+        &self,
+        img_id: u32,
+        draw_bbox: bool,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let img_path = self.image_folder.join(&self.get_img(img_id)?.file_name);
+        let mut img = load_img(&img_path);
+        draw_anns(&mut img, &self.get_img_anns(img_id)?, draw_bbox)?;
+        Ok(())
+    }
+
+    /// Draw the annotation on the image and return it.
+    pub fn draw_ann(
+        &self,
+        ann: &Annotation,
+        draw_bbox: bool,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        let img_path = self
+            .image_folder
+            .join(&self.get_img(ann.image_id)?.file_name);
+        let mut img = load_img(&img_path);
+        draw_anns(&mut img, &vec![ann], draw_bbox)?;
+        Ok(())
+    }
+
     /// Save the dataset to the given path.
     ///
     /// # Errors
@@ -236,23 +275,6 @@ impl HashmapDataset {
         serde_json::to_writer_pretty(&f, &dataset)?;
 
         Ok(())
-    }
-}
-
-impl TryFrom<&PathBuf> for HashmapDataset {
-    type Error = LoadingError;
-
-    /// # Errors
-    ///
-    /// Will return `Err` if the json file does not exist/cannot be read or if an error happens when deserializing and parsing it.
-    fn try_from(annotations_path: &PathBuf) -> Result<Self, Self::Error> {
-        let annotations_file_content = fs::read_to_string(annotations_path)
-            .map_err(|err| LoadingError::Read(err, annotations_path.clone()))?;
-
-        let dataset: Dataset = serde_json::from_str(&annotations_file_content)
-            .map_err(|err| LoadingError::Deserialize(err, annotations_path.clone()))?;
-
-        Self::new(dataset).map_err(|err| LoadingError::Parsing(err, annotations_path.clone()))
     }
 }
 

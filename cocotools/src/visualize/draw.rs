@@ -36,7 +36,7 @@ pub fn draw_mask(img: &mut image::RgbImage, mask: &Mask, color: image::Rgb<u8>) 
 /// Will return `Err` if the segmentation annotations could not be decompressed.
 pub fn draw_anns(
     img: &mut image::ImageBuffer<image::Rgb<u8>, Vec<u8>>,
-    anns: Vec<&Annotation>,
+    anns: &Vec<&Annotation>,
     draw_bbox: bool,
 ) -> Result<(), masks::MaskError> {
     let mut rng = rand::thread_rng();
