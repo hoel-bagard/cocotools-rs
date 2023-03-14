@@ -175,8 +175,8 @@ impl From<&coco::EncodedRle> for coco::Rle {
 
             if current_count_idx > 2 {
                 // My hypothesis as to what is happening here, is that most objects are going to be somewhat
-                // 'vertically convex' (i.e. have only one continuous run per line).
-                // In which case, the next 'row' of black/white pixels is going to be similar to the one preceding it.
+                // "vertically convex" (i.e. have only one continuous run per line).
+                // In which case, the next "row" of black/white pixels is going to be similar to the one preceding it.
                 // Therefore, by having the continuous count of pixels be an offset of the one preceding it, we can have it be
                 // a smaller int and therefore use less bits to encode it.
                 continuous_pixels += counts[current_count_idx - 2] as i32;
@@ -185,7 +185,7 @@ impl From<&coco::EncodedRle> for coco::Rle {
             current_count_idx += 1;
         }
 
-        // TODO: Added the while loop to pass the tests, but it should not be there. Something is wrong somewhere else.
+        // Added the while loop to make it work, but it should not be there. Something is wrong somewhere else.
         while let Some(last) = counts.last() {
             if *last == 0 {
                 counts.pop();
@@ -277,7 +277,8 @@ impl From<&coco::Rle> for Mask {
 /// ## Returns:
 /// - The RLE corresponding to the mask.
 ///
-/// ## TODO: Find a way to avoid the .clone()  (if possible while still taking a reference)
+// The implementation makes a clone of the mask, which is expensive. This could be avoided by taking a mutable reference and reversing the axes again after the for loop.
+// However asking for a mutable reference might be confusing.
 #[allow(clippy::cast_possible_truncation)]
 impl From<&Mask> for coco::Rle {
     fn from(mask: &Mask) -> Self {
@@ -364,8 +365,6 @@ impl TryFrom<&coco::PolygonRS> for Mask {
 ///
 /// ## Returns:
 /// - The decompressed mask.
-///
-/// ## TODO: Find a way to avoid the .clone()  (if possible while still taking a reference)
 #[allow(clippy::cast_possible_truncation)]
 pub fn mask_from_poly(poly: &coco::Polygon, width: u32, height: u32) -> Result<Mask, MaskError> {
     let mut points_poly: Vec<imageproc::point::Point<i32>> = Vec::new();

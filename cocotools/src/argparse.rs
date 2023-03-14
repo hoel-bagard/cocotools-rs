@@ -31,9 +31,8 @@ pub enum Commands {
         #[arg(short, long)]
         output_path: Option<PathBuf>,
     },
-    // /// Split a COCO dataset in two.
-    // Split(DatasetPathsArgs),
-    // TODO: convert to/from PascalVOC, solo. Convert segmentation format.
+    // Split a COCO dataset in two.
+    // Convert to/from PascalVOC, SOLO.
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]

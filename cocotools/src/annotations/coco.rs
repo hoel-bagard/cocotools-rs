@@ -57,7 +57,7 @@ pub type Polygon = Vec<Vec<f64>>;
 #[derive(Clone, Deserialize, Serialize, Debug)]
 pub struct PolygonRS {
     pub size: Vec<u32>,
-    pub counts: Vec<Vec<f64>>, // TODO: This should be a Vec<Vec<f64>>, as multiple polygons can be necessary to segment an object (see documentation). Add a test for this.
+    pub counts: Vec<Vec<f64>>,
 }
 
 /// Size is [height, width]
@@ -222,15 +222,20 @@ impl HashmapDataset {
                 ann_ids.iter().map(|ann_id| self.get_ann(*ann_id)).collect()
             })
     }
-}
 
-impl From<HashmapDataset> for Dataset {
-    fn from(dataset: HashmapDataset) -> Self {
-        Self {
-            images: dataset.get_imgs().into_iter().cloned().collect(),
-            annotations: dataset.get_anns().into_iter().cloned().collect(),
-            categories: dataset.get_cats().into_iter().cloned().collect(),
-        }
+    /// Save the dataset to the given path.
+    ///
+    /// # Errors
+    ///
+    /// Will return `Err` if:
+    ///   - The file cannot be created (if the full directory path does not exist for example).
+    ///   - The implementation of `Serialize` fails or the dataset contains non-string keys.
+    pub fn save_to<P: AsRef<Path>>(&self, output_path: P) -> Result<(), Box<dyn Error>> {
+        let dataset = Dataset::from(self);
+        let f = fs::File::create(output_path)?;
+        serde_json::to_writer_pretty(&f, &dataset)?;
+
+        Ok(())
     }
 }
 
@@ -248,6 +253,16 @@ impl TryFrom<&PathBuf> for HashmapDataset {
             .map_err(|err| LoadingError::Deserialize(err, annotations_path.clone()))?;
 
         Self::new(dataset).map_err(|err| LoadingError::Parsing(err, annotations_path.clone()))
+    }
+}
+
+impl From<&HashmapDataset> for Dataset {
+    fn from(dataset: &HashmapDataset) -> Self {
+        Self {
+            images: dataset.get_imgs().into_iter().cloned().collect(),
+            annotations: dataset.get_anns().into_iter().cloned().collect(),
+            categories: dataset.get_cats().into_iter().cloned().collect(),
+        }
     }
 }
 
@@ -298,37 +313,6 @@ impl PartialEq for PolygonRS {
         }
         true
     }
-}
-
-/// # Errors
-///
-/// Will return `Err` if the json file does not exist/cannot be read or if an error happens when deserializing and parsing it.
-pub fn load_anns<P: AsRef<Path>>(annotations_path: P) -> Result<HashmapDataset, LoadingError> {
-    let annotations_file_content = fs::read_to_string(&annotations_path)
-        .map_err(|err| LoadingError::Read(err, annotations_path.as_ref().to_path_buf()))?;
-
-    let dataset: Dataset = serde_json::from_str(&annotations_file_content)
-        .map_err(|err| LoadingError::Deserialize(err, annotations_path.as_ref().to_path_buf()))?;
-
-    HashmapDataset::new(dataset)
-        .map_err(|err| LoadingError::Parsing(err, annotations_path.as_ref().to_path_buf()))
-}
-
-/// # Errors
-///
-/// Will return `Err` if:
-///   - The file cannot be created (if the full directory path does not exist for example).
-///   - The implementation of `Serialize` fails or the dataset contains non-string keys.
-// TODO: Have this as an impl.
-pub fn save_anns<P: AsRef<Path>>(
-    output_path: P,
-    dataset: HashmapDataset,
-) -> Result<(), Box<dyn Error>> {
-    let dataset = Dataset::from(dataset);
-    let f = fs::File::create(output_path)?;
-    serde_json::to_writer_pretty(&f, &dataset)?;
-
-    Ok(())
 }
 
 #[cfg(test)]
