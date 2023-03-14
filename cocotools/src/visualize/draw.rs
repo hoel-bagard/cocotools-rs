@@ -30,8 +30,12 @@ pub fn draw_mask(img: &mut image::RgbImage, mask: &Mask, color: image::Rgb<u8>) 
 }
 
 /// Draw the segmentation masks, and optionnaly the bounding boxes of the annotations on the image.
+///
+/// # Errors
+///
+/// Will return `Err` if the segmentation annotations could not be decompressed.
 pub fn draw_anns(
-    mut img: &mut image::ImageBuffer<image::Rgb<u8>, Vec<u8>>,
+    img: &mut image::ImageBuffer<image::Rgb<u8>, Vec<u8>>,
     anns: Vec<&Annotation>,
     draw_bbox: bool,
 ) -> Result<(), masks::MaskError> {
@@ -39,10 +43,10 @@ pub fn draw_anns(
     for ann in anns {
         let color = image::Rgb([rng.gen::<u8>(), rng.gen::<u8>(), rng.gen::<u8>()]);
         if draw_bbox {
-            self::draw_bbox(&mut img, &ann.bbox, color);
+            self::draw_bbox(img, &ann.bbox, color);
         }
         let mask = masks::Mask::try_from(&ann.segmentation)?;
-        draw_mask(&mut img, &mask, color);
+        draw_mask(img, &mask, color);
     }
 
     Ok(())
