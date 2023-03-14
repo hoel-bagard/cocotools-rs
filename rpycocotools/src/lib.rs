@@ -9,7 +9,7 @@ use std::path::Path;
 
 #[pyfunction]
 pub fn visualize_img(
-    dataset: &coco::COCO,
+    dataset: &cocotools::COCO,
     image_folder: &PyUnicode,
     img_id: u32,
 ) -> Result<(), PyMissingIdError> {
