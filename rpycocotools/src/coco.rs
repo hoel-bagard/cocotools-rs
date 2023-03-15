@@ -1,12 +1,11 @@
 use std::collections::HashMap;
-use std::fs;
-use std::io::ErrorKind;
 use std::path::PathBuf;
 
 use cocotools::annotations::coco;
+use cocotools::visualize::display::display_img;
 use cocotools::COCO;
 use pyo3::class::basic::CompareOp;
-use pyo3::exceptions::PyKeyError;
+// use pyo3::exceptions::{PyKeyError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::PyUnicode;
 
@@ -78,21 +77,21 @@ impl From<coco::Category> for PyCategory {
 
 #[pyclass(name = "COCO", module = "rpycocotools")]
 #[derive(Debug)]
-pub struct PyCOCO {
-    // TODO: Redo COCO the same way PyCategory is done, as a wrapper around the rust crate version.
-    //       Otherwise it's missing things like get_img_anns, etc...
-    pub dataset: COCO,
-    // #[pyo3(get)]
-    // cats: HashMap<u32, Py<PyCategory>>,
-}
+pub struct PyCOCO(COCO);
 
 #[pymethods]
 impl PyCOCO {
     #[new]
-    fn new(_py: Python<'_>, annotations_path: &PyUnicode) -> PyResult<Self> {
+    fn new(
+        _py: Python<'_>,
+        annotations_path: &PyUnicode,
+        image_folder_path: &PyUnicode,
+    ) -> PyResult<Self> {
         let annotations_path = PathBuf::from(annotations_path.to_str().unwrap());
-        let dataset = COCO::try_from(&annotations_path).map_err(|err| PyLoadingError::from(err))?;
-        Ok(Self { dataset })
+        let image_folder_path = PathBuf::from(image_folder_path.to_str().unwrap());
+        let dataset = COCO::new(annotations_path, image_folder_path)
+            .map_err(|err| PyLoadingError::from(err))?;
+        Ok(Self(dataset))
     }
 
     #[getter]
@@ -100,7 +99,7 @@ impl PyCOCO {
         // TODO: Try using a PyDict instead: https://docs.rs/pyo3/0.18.0/pyo3/types/struct.PyDict.html
         let mut py_cats: HashMap<u32, Py<PyCategory>> = HashMap::new();
         Python::with_gil(|py| {
-            for (id, cat) in self.dataset.cats.clone().into_iter() {
+            for (id, cat) in self.0.cats.clone().into_iter() {
                 py_cats.insert(id, Py::new(py, PyCategory(cat)).unwrap());
             }
         });
@@ -115,7 +114,14 @@ impl PyCOCO {
                 cats.insert(id, py_cat.extract::<PyCategory>(py).unwrap().0);
             }
         });
-        self.dataset.cats = cats;
+        self.0.cats = cats;
+        Ok(())
+    }
+
+    pub fn visualize_img(&self, img_id: u32) -> PyResult<()> {
+        let img = self.0.draw_img_anns(img_id, true).unwrap();
+        // .map_err(|err| PyValueError::new_err(err.to_string()))?;
+        display_img(&img, &self.0.get_img(img_id).unwrap().file_name).unwrap();
         Ok(())
     }
 }
