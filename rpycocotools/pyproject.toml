@@ -1,13 +1,26 @@
 [project]
 name = "rpycocotools"
-version = "0.1.0"
-requires-python = ">=3.7"
-dependencies = []
+version = "0.0.1"
+authors = [{name="Bagard Hoel"}]
+description = "Package providing utilities to load, manipulate, convert and visualize COCO format datasets."
+keywords = ["COCO", "COCO dataset"]
+readme = "README.md"
 classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Developers",
     "Programming Language :: Rust",
     "Programming Language :: Python :: Implementation :: CPython",
     "Programming Language :: Python :: Implementation :: PyPy",
 ]
+license = {text="MIT"}
+dependencies = []
+requires-python = ">=3.8"
 
 [project.urls]
 "Source Code" = "https://github.com/hoel-bagard/rust_coco_tools"
@@ -15,33 +28,34 @@ classifiers = [
 [tool.maturin]
 sdist-include = ["LICENSE", "README.md"]
 
-[tool.pytest.ini_options]
-addopts = [
-    "--import-mode=importlib",
-]
-
 [project.optional-dependencies]
 build = ["maturin"]
 test = ["pytest"]
-dev = [
-    "pip-tools",
-    "pre-commit",
-
-    # Lint
-    "flake8",
-    "flake8-docstrings",
-    "pep8-naming",
-    "flake8-import-order",
-    "flake8-bugbear",
-    "flake8-quotes",
-    "flake8-comprehensions",
-]
-
-[tool.isort]
-line_length = 120
-case_sensitive = false
-order_by_type = false
+dev = ["pip-tools", "pre-commit", "ruff"]
 
 [build-system]
 requires = ["maturin>=0.13,<0.14"]
 build-backend = "maturin"
+
+[tool.pytest.ini_options]
+# https://docs.pytest.org/en/7.1.x/explanation/goodpractices.html
+addopts = [
+    "--import-mode=importlib",
+]
+
+[tool.ruff]
+select = ["A", "B", "C4", "D", "E", "F", "N", "I", "Q", "UP", "ANN", "S", "BLE", "COM", "DTZ", "PIE", "PT", "RSE", "SIM", "ARG", "PTH", "PL", "TRY", "NPY", "RUF"]
+ignore = ["D1", "D401", "D204", "D203", "D213", "S101", "PLR2004"]
+line-length = 120
+
+[tool.ruff.isort]
+order-by-type = false
+
+[tool.ruff.flake8-quotes]
+docstring-quotes = "double"
+
+[tool.ruff.pylint]
+max-args = 10
+
+[tool.ruff.per-file-ignores]
+"__init__.py" = ["F401"]
