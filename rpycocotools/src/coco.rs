@@ -47,6 +47,11 @@ impl PyCategory {
         self.0.supercategory.clone()
     }
 
+    #[setter(supercategory)]
+    fn set_supercategory(&mut self, supercategory: String) -> () {
+        self.0.supercategory = supercategory;
+    }
+
     fn __repr__(&self) -> String {
         format!(
             "Category(id={}, name='{}', supercategory='{}')",
@@ -96,7 +101,6 @@ impl PyCOCO {
 
     #[getter]
     fn cats(&self) -> PyResult<HashMap<u32, Py<PyCategory>>> {
-        // TODO: Try using a PyDict instead: https://docs.rs/pyo3/0.18.0/pyo3/types/struct.PyDict.html
         let mut py_cats: HashMap<u32, Py<PyCategory>> = HashMap::new();
         Python::with_gil(|py| {
             for (id, cat) in self.0.cats.clone().into_iter() {
