@@ -1,5 +1,5 @@
-import rpycocotools
 import pytest
+import rpycocotools
 
 
 @pytest.mark.xfail(reason="Not properly implemented yet")
@@ -15,7 +15,6 @@ def test_set_dataset_cats(coco_dataset: rpycocotools.COCO):
     assert coco_dataset.cats == {1: cat}
 
 
-import rpycocotools
 def test_access_cat(coco_dataset: rpycocotools.COCO):
     assert coco_dataset.cats[2].supercategory == "vehicle"
     assert coco_dataset.cats[2].id == 2

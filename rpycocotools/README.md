@@ -16,5 +16,10 @@ coco_dataset.visualize_img(174482)
 
 ![rpycocotools_visu_example](https://user-images.githubusercontent.com/34478245/216580391-72226762-3fca-482b-a5ed-f93ed5a21931.png)
 
+### Run the tests
+```
+python -m pytest . -vv
+```
+
 ## TODO
 - Try to use `hypothesis` for testing.
