@@ -58,34 +58,21 @@ pub fn load_img(img_path: &PathBuf) -> image::ImageBuffer<image::Rgb<u8>, Vec<u8
 
 pub fn display_img(
     img: &image::ImageBuffer<image::Rgb<u8>, Vec<u8>>,
-    img_path: &PathBuf,
+    img_name: &str,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let img_width = img.width() as usize;
     let img_height = img.height() as usize;
     let mut buffer: Vec<u32> = vec![0x00FF_FFFF; img_width * img_height];
     draw_rgb_to_buffer(&img, &mut buffer);
     let mut window = Window::new(
-        format!(
-            "{} - Press Q or ESC to exit",
-            img_path
-                .file_name()
-                .map_or("Image", |file_name| file_name.to_str().unwrap_or("Image"))
-        )
-        .as_str(),
+        format!("{} - Press Q or ESC to exit", img_name).as_str(),
         img_width,
         img_height,
         WindowOptions::default(),
-    )
-    .unwrap_or_else(|e| {
-        panic!("Could not open window, got the following error: {e}");
-    });
+    )?;
 
     while window.is_open() && !window.is_key_down(Key::Escape) && !window.is_key_down(Key::Q) {
-        window
-            .update_with_buffer(&buffer, img_width, img_height)
-            .unwrap_or_else(|e| {
-                panic!("Could not update buffer, got the following error: {e}");
-            });
+        window.update_with_buffer(&buffer, img_width, img_height)?;
     }
     Ok(())
 }
@@ -112,6 +99,11 @@ pub fn show_anns(
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mut img = load_img(img_path);
     draw_anns(&mut img, &anns, draw_bbox)?;
-    display_img(&img, img_path)?;
+    display_img(
+        &img,
+        img_path
+            .file_name()
+            .map_or("Image", |file_name| file_name.to_str().unwrap_or("Image")),
+    )?;
     Ok(())
 }

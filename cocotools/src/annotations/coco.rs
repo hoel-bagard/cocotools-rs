@@ -3,6 +3,7 @@ use std::fs;
 use std::path::Path;
 use std::{collections::HashMap, path::PathBuf};
 
+use image::ImageBuffer;
 use serde::{Deserialize, Serialize};
 
 use crate::errors::{LoadingError, MissingIdError};
@@ -241,11 +242,11 @@ impl HashmapDataset {
         &self,
         img_id: u32,
         draw_bbox: bool,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    ) -> Result<image::ImageBuffer<image::Rgb<u8>, Vec<u8>>, Box<dyn std::error::Error>> {
         let img_path = self.image_folder.join(&self.get_img(img_id)?.file_name);
         let mut img = load_img(&img_path);
         draw_anns(&mut img, &self.get_img_anns(img_id)?, draw_bbox)?;
-        Ok(())
+        Ok(img)
     }
 
     /// Draw the annotation on the image and return it.
