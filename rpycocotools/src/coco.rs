@@ -80,6 +80,84 @@ impl From<coco::Category> for PyCategory {
     }
 }
 
+#[pyclass(name = "Annotation", module = "rpycocotools")]
+#[derive(Debug, Clone)]
+pub struct PyAnnotation(coco::Annotation);
+
+#[pymethods]
+impl PyAnnotation {
+    // #[new]
+    // fn new(
+    //     id: u32,
+    //     image_id: u32,
+    //     category_id: u32,
+    //     // segmentation: bool, // TODO
+    //     area: f64,
+    //     bbox: Vec<f64>,
+    //     iscrow: u32,
+    // ) -> Self {
+    //     Self(coco::Annotation {
+    //         id,
+    //         image_id,
+    //         category_id,
+    //         segmentation,
+    //         area,
+    //         bbox,
+    //         iscrowd,
+    //     })
+    // }
+
+    #[getter]
+    fn get_id(&self) -> u32 {
+        self.0.id
+    }
+
+    #[getter]
+    fn get_image_id(&self) -> u32 {
+        self.0.image_id
+    }
+
+    #[getter]
+    fn get_category_id(&self) -> u32 {
+        self.0.category_id
+    }
+
+    // #[getter]
+    // fn get_segmentation(&self) -> f64 {
+    //     self.0.segmentation
+    // }
+
+    #[getter]
+    fn get_area(&self) -> f64 {
+        self.0.area
+    }
+
+    #[getter]
+    fn get_bbox(&self) -> (f64, f64, f64, f64) {
+        (
+            self.0.bbox.left,
+            self.0.bbox.top,
+            self.0.bbox.width,
+            self.0.bbox.height,
+        )
+    }
+
+    #[getter]
+    fn get_iscrowd(&self) -> u32 {
+        self.0.iscrowd
+    }
+
+    fn __repr__(&self) -> String {
+        format!("{:?}", self.0)
+    }
+}
+
+impl From<coco::Annotation> for PyAnnotation {
+    fn from(ann: coco::Annotation) -> Self {
+        Self(ann)
+    }
+}
+
 #[pyclass(name = "COCO", module = "rpycocotools")]
 #[derive(Debug)]
 pub struct PyCOCO(COCO);
@@ -97,6 +175,17 @@ impl PyCOCO {
         let dataset = COCO::new(annotations_path, image_folder_path)
             .map_err(|err| PyLoadingError::from(err))?;
         Ok(Self(dataset))
+    }
+
+    #[getter]
+    fn anns(&self) -> PyResult<HashMap<u32, Py<PyAnnotation>>> {
+        let mut py_anns: HashMap<u32, Py<PyAnnotation>> = HashMap::new();
+        Python::with_gil(|py| {
+            for (id, ann) in self.0.anns.clone().into_iter() {
+                py_anns.insert(id, Py::new(py, PyAnnotation(ann)).unwrap());
+            }
+        });
+        Ok(py_anns)
     }
 
     #[getter]
