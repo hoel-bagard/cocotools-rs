@@ -48,7 +48,7 @@ impl PyCategory {
     }
 
     #[setter(supercategory)]
-    fn set_supercategory(&mut self, supercategory: String) -> () {
+    fn set_supercategory(&mut self, supercategory: String) {
         self.0.supercategory = supercategory;
     }
 
@@ -173,7 +173,7 @@ impl PyCOCO {
         let annotations_path = PathBuf::from(annotations_path.to_str().unwrap());
         let image_folder_path = PathBuf::from(image_folder_path.to_str().unwrap());
         let dataset = COCO::new(annotations_path, image_folder_path)
-            .map_err(|err| PyLoadingError::from(err))?;
+            .map_err(PyLoadingError::from)?;
         Ok(Self(dataset))
     }
 
@@ -181,7 +181,7 @@ impl PyCOCO {
     fn anns(&self) -> PyResult<HashMap<u32, Py<PyAnnotation>>> {
         let mut py_anns: HashMap<u32, Py<PyAnnotation>> = HashMap::new();
         Python::with_gil(|py| {
-            for (id, ann) in self.0.anns.clone().into_iter() {
+            for (id, ann) in self.0.anns.clone() {
                 py_anns.insert(id, Py::new(py, PyAnnotation(ann)).unwrap());
             }
         });
@@ -192,7 +192,7 @@ impl PyCOCO {
     fn cats(&self) -> PyResult<HashMap<u32, Py<PyCategory>>> {
         let mut py_cats: HashMap<u32, Py<PyCategory>> = HashMap::new();
         Python::with_gil(|py| {
-            for (id, cat) in self.0.cats.clone().into_iter() {
+            for (id, cat) in self.0.cats.clone() {
                 py_cats.insert(id, Py::new(py, PyCategory(cat)).unwrap());
             }
         });
@@ -203,7 +203,7 @@ impl PyCOCO {
     fn set_cats(&mut self, py_cats: HashMap<u32, Py<PyCategory>>) -> PyResult<()> {
         let mut cats: HashMap<u32, coco::Category> = HashMap::new();
         Python::with_gil(|py| {
-            for (id, py_cat) in py_cats.into_iter() {
+            for (id, py_cat) in py_cats {
                 cats.insert(id, py_cat.extract::<PyCategory>(py).unwrap().0);
             }
         });
