@@ -35,8 +35,9 @@ pub fn show_img_anns(
 /// Will panic if it cannot read the image file.
 // TODO: Error instead of panic.
 // TODO: this function probably does not belong here.
+#[must_use]
 pub fn load_img(img_path: &PathBuf) -> image::ImageBuffer<image::Rgb<u8>, Vec<u8>> {
-    let img = ImageReader::open(img_path)
+    ImageReader::open(img_path)
         .unwrap_or_else(|error| {
             panic!(
                 "Could not open the image {}: {:?}",
@@ -52,20 +53,24 @@ pub fn load_img(img_path: &PathBuf) -> image::ImageBuffer<image::Rgb<u8>, Vec<u8
                 error
             );
         })
-        .into_rgb8();
-    img
+        .into_rgb8()
 }
 
+/// Display the given image in a window.
+///
+/// # Errors
+///
+/// Will return `Err` the window cannot be created / updated.
 pub fn display_img(
     img: &image::ImageBuffer<image::Rgb<u8>, Vec<u8>>,
-    img_name: &str,
+    window_name: &str,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let img_width = img.width() as usize;
     let img_height = img.height() as usize;
     let mut buffer: Vec<u32> = vec![0x00FF_FFFF; img_width * img_height];
-    draw_rgb_to_buffer(&img, &mut buffer);
+    draw_rgb_to_buffer(img, &mut buffer);
     let mut window = Window::new(
-        format!("{} - Press Q or ESC to exit", img_name).as_str(),
+        format!("{window_name} - Press Q or ESC to exit").as_str(),
         img_width,
         img_height,
         WindowOptions::default(),
@@ -98,7 +103,7 @@ pub fn show_anns(
     draw_bbox: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mut img = load_img(img_path);
-    draw_anns(&mut img, &anns, draw_bbox)?;
+    draw_anns(&mut img, anns, draw_bbox)?;
     display_img(
         &img,
         img_path

@@ -3,7 +3,6 @@ use std::fs;
 use std::path::Path;
 use std::{collections::HashMap, path::PathBuf};
 
-use image::ImageBuffer;
 use serde::{Deserialize, Serialize};
 
 use crate::errors::{LoadingError, MissingIdError};
@@ -238,6 +237,10 @@ impl HashmapDataset {
     }
 
     /// Draw the annotations for the given image id on the image and return it.
+    ///
+    /// # Errors
+    ///
+    /// Will return `Err` if there is no image or annotation entry for `img_id`. Or if the segmentation annotations could not be decompressed.
     pub fn draw_img_anns(
         &self,
         img_id: u32,
@@ -250,6 +253,10 @@ impl HashmapDataset {
     }
 
     /// Draw the annotation on the image and return it.
+    ///
+    /// # Errors
+    ///
+    /// Will return `Err` if there is no image for the annotation. Or if the segmentation annotations could not be decompressed.
     pub fn draw_ann(
         &self,
         ann: &Annotation,

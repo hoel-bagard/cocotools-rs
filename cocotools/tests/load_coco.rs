@@ -6,7 +6,8 @@ use cocotools::COCO;
 #[allow(clippy::unwrap_used, clippy::float_cmp)]
 fn load_from_file() {
     let annotations_file_path = PathBuf::from("../data_samples/coco_25k/annotations.json");
-    let dataset = COCO::try_from(&annotations_file_path).unwrap();
+    let image_folder_path = PathBuf::from("../data_samples/coco_25k/images");
+    let dataset = COCO::new(&annotations_file_path, &image_folder_path).unwrap();
 
     assert_eq!(
         dataset.get_img(17627).unwrap().file_name,
