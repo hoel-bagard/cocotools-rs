@@ -1,27 +1,25 @@
-extern crate cocotools;
-use pyo3::class::basic::CompareOp;
-use pyo3::exceptions::PyKeyError;
-
-use crate::cocotools::annotations::coco_types::{
-    self, Annotation, Category, Dataset, Image, Segmentation,
-};
-use crate::cocotools::annotations::load_coco::HashmapDataset;
 use std::collections::HashMap;
-use std::fs;
-use std::io::ErrorKind;
+use std::path::PathBuf;
 
+use cocotools::annotations::coco;
+use cocotools::visualize::display::display_img;
+use cocotools::COCO;
+use pyo3::class::basic::CompareOp;
+// use pyo3::exceptions::{PyKeyError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::PyUnicode;
 
+use crate::errors::PyLoadingError;
+
 #[pyclass(name = "Category", module = "rpycocotools")]
 #[derive(Debug, Clone)]
-pub struct PyCategory(Category);
+pub struct PyCategory(coco::Category);
 
 #[pymethods]
 impl PyCategory {
     #[new]
     fn new(id: u32, name: String, supercategory: String) -> Self {
-        Self(Category {
+        Self(coco::Category {
             id,
             name,
             supercategory,
@@ -49,6 +47,11 @@ impl PyCategory {
         self.0.supercategory.clone()
     }
 
+    #[setter(supercategory)]
+    fn set_supercategory(&mut self, supercategory: String) {
+        self.0.supercategory = supercategory;
+    }
+
     fn __repr__(&self) -> String {
         format!(
             "Category(id={}, name='{}', supercategory='{}')",
@@ -71,71 +74,135 @@ impl PyCategory {
     }
 }
 
-impl From<Category> for PyCategory {
-    fn from(cat: Category) -> Self {
+impl From<coco::Category> for PyCategory {
+    fn from(cat: coco::Category) -> Self {
         Self(cat)
     }
 }
 
-#[pyclass(module = "rpycocotools")]
-#[derive(Debug)]
-pub struct COCO {
-    // TODO: Redo COCO the same way PyCategory is done, as a wrapper around the rust crate version.
-    //       Otherwise it's missing things like get_img_anns, etc...
-    pub dataset: HashmapDataset,
-    // #[pyo3(get)]
-    // cats: HashMap<u32, Py<PyCategory>>,
-}
+#[pyclass(name = "Annotation", module = "rpycocotools")]
+#[derive(Debug, Clone)]
+pub struct PyAnnotation(coco::Annotation);
 
 #[pymethods]
-impl COCO {
+impl PyAnnotation {
+    // #[new]
+    // fn new(
+    //     id: u32,
+    //     image_id: u32,
+    //     category_id: u32,
+    //     // segmentation: bool, // TODO
+    //     area: f64,
+    //     bbox: Vec<f64>,
+    //     iscrow: u32,
+    // ) -> Self {
+    //     Self(coco::Annotation {
+    //         id,
+    //         image_id,
+    //         category_id,
+    //         segmentation,
+    //         area,
+    //         bbox,
+    //         iscrowd,
+    //     })
+    // }
+
+    #[getter]
+    fn get_id(&self) -> u32 {
+        self.0.id
+    }
+
+    #[getter]
+    fn get_image_id(&self) -> u32 {
+        self.0.image_id
+    }
+
+    #[getter]
+    fn get_category_id(&self) -> u32 {
+        self.0.category_id
+    }
+
+    // #[getter]
+    // fn get_segmentation(&self) -> f64 {
+    //     self.0.segmentation
+    // }
+
+    #[getter]
+    fn get_area(&self) -> f64 {
+        self.0.area
+    }
+
+    #[getter]
+    fn get_bbox(&self) -> (f64, f64, f64, f64) {
+        (
+            self.0.bbox.left,
+            self.0.bbox.top,
+            self.0.bbox.width,
+            self.0.bbox.height,
+        )
+    }
+
+    #[getter]
+    fn get_iscrowd(&self) -> u32 {
+        self.0.iscrowd
+    }
+
+    fn __repr__(&self) -> String {
+        format!("{:?}", self.0)
+    }
+}
+
+impl From<coco::Annotation> for PyAnnotation {
+    fn from(ann: coco::Annotation) -> Self {
+        Self(ann)
+    }
+}
+
+#[pyclass(name = "COCO", module = "rpycocotools")]
+#[derive(Debug)]
+pub struct PyCOCO(COCO);
+
+#[pymethods]
+impl PyCOCO {
     #[new]
-    fn new(_py: Python<'_>, annotations_path: &PyUnicode) -> PyResult<Self> {
-        let annotations_path = annotations_path.to_str().unwrap().to_owned();
+    fn new(
+        _py: Python<'_>,
+        annotations_path: &PyUnicode,
+        image_folder_path: &PyUnicode,
+    ) -> PyResult<Self> {
+        let annotations_path = PathBuf::from(annotations_path.to_str().unwrap());
+        let image_folder_path = PathBuf::from(image_folder_path.to_str().unwrap());
+        let dataset =
+            COCO::new(annotations_path, image_folder_path).map_err(PyLoadingError::from)?;
+        Ok(Self(dataset))
+    }
 
-        let annotations_file_content =
-            fs::read_to_string(annotations_path).unwrap_or_else(|error| {
-                if error.kind() == ErrorKind::NotFound {
-                    panic!("Could not find the annotations file: {:?}", error);
-                } else {
-                    panic!("Problem opening the annotations file: {:?}", error);
-                }
-            });
-
-        let dataset: Dataset =
-            serde_json::from_str(&annotations_file_content).expect("Error decoding the json file");
-
-        let dataset = HashmapDataset::new(dataset).unwrap_or_else(|error| {
-            panic!(
-                "Found an annotation for an image id not in the dataset when creating the dataset: {:?}",
-                error
-            );
+    #[getter]
+    fn anns(&self) -> PyResult<HashMap<u32, Py<PyAnnotation>>> {
+        let mut py_anns: HashMap<u32, Py<PyAnnotation>> = HashMap::new();
+        Python::with_gil(|py| {
+            for ann in self.0.get_anns() {
+                py_anns.insert(ann.id, Py::new(py, PyAnnotation(ann.clone())).unwrap());
+            }
         });
-
-        Ok(Self { dataset })
+        Ok(py_anns)
     }
 
     #[getter]
     fn cats(&self) -> PyResult<HashMap<u32, Py<PyCategory>>> {
-        // TODO: Try using a PyDict instead: https://docs.rs/pyo3/0.18.0/pyo3/types/struct.PyDict.html
         let mut py_cats: HashMap<u32, Py<PyCategory>> = HashMap::new();
         Python::with_gil(|py| {
-            for (id, cat) in self.dataset.cats.clone().into_iter() {
-                py_cats.insert(id, Py::new(py, PyCategory(cat)).unwrap());
+            for cat in self.0.get_cats() {
+                py_cats.insert(cat.id, Py::new(py, PyCategory(cat.clone())).unwrap());
             }
         });
         Ok(py_cats)
     }
 
-    #[setter(cats)]
-    fn set_cats(&mut self, py_cats: HashMap<u32, Py<PyCategory>>) -> PyResult<()> {
-        let mut cats: HashMap<u32, Category> = HashMap::new();
-        Python::with_gil(|py| {
-            for (id, py_cat) in py_cats.into_iter() {
-                cats.insert(id, py_cat.extract::<PyCategory>(py).unwrap().0);
-            }
-        });
-        self.dataset.cats = cats;
+    pub fn visualize_img(&self, img_id: u32) -> PyResult<()> {
+        let img = self.0.draw_img_anns(img_id, true).unwrap();
+        // .map_err(|err| PyValueError::new_err(err.to_string()))?;
+        display_img(&img, &self.0.get_img(img_id).unwrap().file_name).unwrap();
         Ok(())
     }
 }

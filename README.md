@@ -15,3 +15,9 @@ at your option.
 
 ## TODO:
 - [ ] Github action to release python version (see [here](https://github.com/pola-rs/polars/blob/master/.github/workflows/create-python-release.yml))
+
+
+- repo: https://github.com/tox-dev/pyproject-fmt
+  rev: "0.9.2"
+  hooks:
+    - id: pyproject-fmt
