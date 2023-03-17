@@ -94,8 +94,8 @@ pub struct Category {
 /// Transforms the COCO dataset into a hashmap version where the ids are keys.
 #[derive(Debug)]
 pub struct HashmapDataset {
-    pub anns: HashMap<u32, Annotation>,
-    pub cats: HashMap<u32, Category>,
+    anns: HashMap<u32, Annotation>,
+    cats: HashMap<u32, Category>,
     imgs: HashMap<u32, Image>,
     /// Hashmap that links an image id to the image's annotations
     // Use Rc to reference the annotations directly ?
