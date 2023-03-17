@@ -172,8 +172,8 @@ impl PyCOCO {
     ) -> PyResult<Self> {
         let annotations_path = PathBuf::from(annotations_path.to_str().unwrap());
         let image_folder_path = PathBuf::from(image_folder_path.to_str().unwrap());
-        let dataset = COCO::new(annotations_path, image_folder_path)
-            .map_err(PyLoadingError::from)?;
+        let dataset =
+            COCO::new(annotations_path, image_folder_path).map_err(PyLoadingError::from)?;
         Ok(Self(dataset))
     }
 
@@ -181,8 +181,8 @@ impl PyCOCO {
     fn anns(&self) -> PyResult<HashMap<u32, Py<PyAnnotation>>> {
         let mut py_anns: HashMap<u32, Py<PyAnnotation>> = HashMap::new();
         Python::with_gil(|py| {
-            for (id, ann) in self.0.anns.clone() {
-                py_anns.insert(id, Py::new(py, PyAnnotation(ann)).unwrap());
+            for ann in self.0.get_anns() {
+                py_anns.insert(ann.id, Py::new(py, PyAnnotation(ann.clone())).unwrap());
             }
         });
         Ok(py_anns)
@@ -192,23 +192,11 @@ impl PyCOCO {
     fn cats(&self) -> PyResult<HashMap<u32, Py<PyCategory>>> {
         let mut py_cats: HashMap<u32, Py<PyCategory>> = HashMap::new();
         Python::with_gil(|py| {
-            for (id, cat) in self.0.cats.clone() {
-                py_cats.insert(id, Py::new(py, PyCategory(cat)).unwrap());
+            for cat in self.0.get_cats() {
+                py_cats.insert(cat.id, Py::new(py, PyCategory(cat.clone())).unwrap());
             }
         });
         Ok(py_cats)
-    }
-
-    #[setter(cats)]
-    fn set_cats(&mut self, py_cats: HashMap<u32, Py<PyCategory>>) -> PyResult<()> {
-        let mut cats: HashMap<u32, coco::Category> = HashMap::new();
-        Python::with_gil(|py| {
-            for (id, py_cat) in py_cats {
-                cats.insert(id, py_cat.extract::<PyCategory>(py).unwrap().0);
-            }
-        });
-        self.0.cats = cats;
-        Ok(())
     }
 
     pub fn visualize_img(&self, img_id: u32) -> PyResult<()> {
