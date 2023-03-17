@@ -1,3 +1,7 @@
+[build-system]
+requires = ["maturin>=0.14,<0.15"]
+build-backend = "maturin"
+
 [project]
 name = "rpycocotools"
 version = "0.0.1"
@@ -27,15 +31,13 @@ requires-python = ">=3.8"
 
 [tool.maturin]
 sdist-include = ["LICENSE", "README.md"]
+# bindings = "cffi"
+# compatibility = "linux"
 
 [project.optional-dependencies]
 build = ["maturin"]
 test = ["pytest"]
 dev = ["pip-tools", "pre-commit", "ruff"]
-
-[build-system]
-requires = ["maturin>=0.13,<0.14"]
-build-backend = "maturin"
 
 [tool.pytest.ini_options]
 # https://docs.pytest.org/en/7.1.x/explanation/goodpractices.html
