@@ -3,6 +3,8 @@ use std::fs;
 use std::path::Path;
 use std::{collections::HashMap, path::PathBuf};
 
+#[cfg(feature = "pyo3")]
+use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 
 use crate::errors::{LoadingError, MissingIdError};
@@ -16,6 +18,7 @@ pub struct Dataset {
     pub categories: Vec<Category>,
 }
 
+#[cfg_attr(feature = "pyo3", pyclass(get_all))]
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct Image {
     pub id: u32,
@@ -24,6 +27,7 @@ pub struct Image {
     pub file_name: String,
 }
 
+#[cfg_attr(feature = "pyo3", pyclass(get_all))]
 #[derive(Clone, Deserialize, Serialize, Debug)]
 pub struct Annotation {
     pub id: u32,
@@ -43,6 +47,7 @@ pub struct Annotation {
     pub iscrowd: u32,
 }
 
+// #[cfg_attr(feature = "pyo3", pyclass)]
 #[derive(Clone, Deserialize, Serialize, Debug)]
 #[serde(untagged)]
 pub enum Segmentation {
@@ -56,6 +61,7 @@ pub enum Segmentation {
 pub type Polygon = Vec<Vec<f64>>;
 
 /// Internal type used to represent a polygon. It contains the width and height of the image for easier handling, notably when using traits.
+#[cfg_attr(feature = "pyo3", pyclass(get_all))]
 #[derive(Clone, Deserialize, Serialize, Debug)]
 pub struct PolygonRS {
     pub size: Vec<u32>,
@@ -63,18 +69,21 @@ pub struct PolygonRS {
 }
 
 /// Size is [height, width]
+#[cfg_attr(feature = "pyo3", pyclass(get_all))]
 #[derive(Clone, Deserialize, Serialize, Debug, Eq, PartialEq)]
 pub struct Rle {
     pub size: Vec<u32>,
     pub counts: Vec<u32>,
 }
 
+#[cfg_attr(feature = "pyo3", pyclass(get_all))]
 #[derive(Clone, Deserialize, Serialize, Debug, Eq, PartialEq)]
 pub struct EncodedRle {
     pub size: Vec<u32>,
     pub counts: String,
 }
 
+#[cfg_attr(feature = "pyo3", pyclass(get_all))]
 #[derive(Clone, Deserialize, Serialize, Debug)]
 pub struct Bbox {
     pub left: f64,
@@ -83,6 +92,7 @@ pub struct Bbox {
     pub height: f64,
 }
 
+#[cfg_attr(feature = "pyo3", pyclass(get_all))]
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct Category {
     pub id: u32,
