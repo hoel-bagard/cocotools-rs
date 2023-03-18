@@ -122,10 +122,10 @@ impl PyAnnotation {
         self.0.category_id
     }
 
-    // #[getter]
-    // fn get_segmentation(&self) -> f64 {
-    //     self.0.segmentation
-    // }
+    #[getter]
+    fn get_segmentation(&self) -> coco::Segmentation {
+        self.0.segmentation.clone()
+    }
 
     #[getter]
     fn get_area(&self) -> f64 {
@@ -133,16 +133,10 @@ impl PyAnnotation {
     }
 
     #[getter]
-    fn get_bbox(&self) -> (f64, f64, f64, f64) {
-        (
-            self.0.bbox.left,
-            self.0.bbox.top,
-            self.0.bbox.width,
-            self.0.bbox.height,
-        )
+    fn get_bbox(&self) -> coco::Bbox {
+        self.0.bbox.clone()
     }
 
-    #[getter]
     fn get_iscrowd(&self) -> u32 {
         self.0.iscrowd
     }
@@ -177,12 +171,28 @@ impl PyCOCO {
         Ok(Self(dataset))
     }
 
+    // #[getter]
+    // fn imgs(&self) -> PyResult<Vec<Py<coco::Image>>> {
+    //     // let imgs: Vec<coco::Image> = self.0.get_imgs().iter().cloned().cloned().collect();
+    //     // Python::with_gil(|py| imgs.into_py(py))
+
+    //     let mut py_anns: Vec<Py<coco::Image>> = Vec::new();
+    //     Python::with_gil(|py| {
+    //         for img in self.0.get_imgs() {
+    //             let img_py = Py::new(py, img).unwrap();
+    //             // let img_py = img.clone().into_py(py);
+    //             py_anns.push(img_py);
+    //         }
+    //     });
+    //     Ok(py_anns)
+    // }
+
     #[getter]
-    fn anns(&self) -> PyResult<HashMap<u32, Py<PyAnnotation>>> {
-        let mut py_anns: HashMap<u32, Py<PyAnnotation>> = HashMap::new();
+    fn anns(&self) -> PyResult<HashMap<u32, Py<coco::Annotation>>> {
+        let mut py_anns: HashMap<u32, Py<coco::Annotation>> = HashMap::new();
         Python::with_gil(|py| {
             for ann in self.0.get_anns() {
-                py_anns.insert(ann.id, Py::new(py, PyAnnotation(ann.clone())).unwrap());
+                py_anns.insert(ann.id, Py::new(py, ann.clone()).unwrap());
             }
         });
         Ok(py_anns)

@@ -12,17 +12,22 @@ impl Bbox {
     }
 }
 
-// #[pymethods]
-// impl Segmentation {
-//     fn __repr__(&self) -> String {
-//         match self {
-//             Segmentation::Rle(rle) => "Segmentation of type rle",
-//             Segmentation::EncodedRle(encoded_rle) => "Segmentation of type encoded_rle",
-//             Segmentation::Polygon(poly) => "Segmentation of type poly",
-//             Segmentation::PolygonRS(poly) => "Segmentation of type poly",
-//         }
-//     }
-// }
+#[pymethods]
+impl Annotation {
+    fn __repr__(&self) -> String {
+        format!(
+            "Annotation(id={}, image_id={}, category_id={}, segmentation={:?}, area={}, bbox={}, iscrowd={})",
+            self.id, self.image_id, self.category_id, self.segmentation, self.area, &self.bbox.__repr__(), self.iscrowd
+        )
+    }
+}
+
+#[pymethods]
+impl PolygonRS {
+    fn __repr__(&self) -> String {
+        format!("Polygon(counts={:?})", self.counts)
+    }
+}
 
 impl IntoPy<PyObject> for Segmentation {
     fn into_py(self, py: Python<'_>) -> PyObject {
