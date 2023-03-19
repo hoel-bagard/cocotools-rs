@@ -125,6 +125,16 @@ impl PyCOCO {
             .collect()
     }
 
+    fn get_img_anns(&self, img_id: u32, py: Python<'_>) -> PyResult<Vec<Py<coco::Annotation>>> {
+        Ok(self
+            .0
+            .get_img_anns(img_id)
+            .unwrap()
+            .into_iter()
+            .map(|ann| Py::new(py, ann.clone()).unwrap())
+            .collect())
+    }
+
     pub fn visualize_img(&self, img_id: u32) -> PyResult<()> {
         let img = self.0.draw_img_anns(img_id, true).unwrap();
         // .map_err(|err| PyValueError::new_err(err.to_string()))?;

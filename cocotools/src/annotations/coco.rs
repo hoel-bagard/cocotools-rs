@@ -217,10 +217,7 @@ impl HashmapDataset {
         self.cats.values().collect()
     }
 
-    /// Return a result containing the annotations for the given image id.
-    ///
-
-    /// Return a result containing the image struct corresponding to the given image id.
+    /// Return the image entry corresponding to the given image id.
     ///
     /// # Errors
     ///
