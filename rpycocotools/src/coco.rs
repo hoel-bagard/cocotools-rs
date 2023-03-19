@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::path::PathBuf;
 
 use cocotools::annotations::coco;
@@ -99,42 +98,31 @@ impl PyCOCO {
         Ok(Self(dataset))
     }
 
-    // #[getter]
-    // fn imgs(&self) -> PyResult<Vec<Py<coco::Image>>> {
-    //     // let imgs: Vec<coco::Image> = self.0.get_imgs().iter().cloned().cloned().collect();
-    //     // Python::with_gil(|py| imgs.into_py(py))
-
-    //     let mut py_anns: Vec<Py<coco::Image>> = Vec::new();
-    //     Python::with_gil(|py| {
-    //         for img in self.0.get_imgs() {
-    //             let img_py = Py::new(py, img).unwrap();
-    //             // let img_py = img.clone().into_py(py);
-    //             py_anns.push(img_py);
-    //         }
-    //     });
-    //     Ok(py_anns)
-    // }
-
     #[getter]
-    fn anns(&self) -> PyResult<HashMap<u32, Py<coco::Annotation>>> {
-        let mut py_anns: HashMap<u32, Py<coco::Annotation>> = HashMap::new();
-        Python::with_gil(|py| {
-            for ann in self.0.get_anns() {
-                py_anns.insert(ann.id, Py::new(py, ann.clone()).unwrap());
-            }
-        });
-        Ok(py_anns)
+    fn imgs(&self, py: Python<'_>) -> Vec<Py<coco::Image>> {
+        self.0
+            .get_imgs()
+            .into_iter()
+            .map(|img| Py::new(py, img.clone()).unwrap())
+            .collect()
     }
 
     #[getter]
-    fn cats(&self) -> PyResult<HashMap<u32, Py<PyCategory>>> {
-        let mut py_cats: HashMap<u32, Py<PyCategory>> = HashMap::new();
-        Python::with_gil(|py| {
-            for cat in self.0.get_cats() {
-                py_cats.insert(cat.id, Py::new(py, PyCategory(cat.clone())).unwrap());
-            }
-        });
-        Ok(py_cats)
+    fn anns(&self, py: Python<'_>) -> Vec<Py<coco::Annotation>> {
+        self.0
+            .get_anns()
+            .into_iter()
+            .map(|ann| Py::new(py, ann.clone()).unwrap())
+            .collect()
+    }
+
+    #[getter]
+    fn cats(&self, py: Python<'_>) -> Vec<Py<coco::Category>> {
+        self.0
+            .get_cats()
+            .into_iter()
+            .map(|cat| Py::new(py, cat.clone()).unwrap())
+            .collect()
     }
 
     pub fn visualize_img(&self, img_id: u32) -> PyResult<()> {
