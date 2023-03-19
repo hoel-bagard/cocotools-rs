@@ -16,9 +16,23 @@ impl Bbox {
 impl Annotation {
     fn __repr__(&self) -> String {
         format!(
-            "Annotation(id={}, image_id={}, category_id={}, segmentation={:?}, area={}, bbox={}, iscrowd={})",
-            self.id, self.image_id, self.category_id, self.segmentation, self.area, &self.bbox.__repr__(), self.iscrowd
+            "Annotation(id={}, image_id={}, category_id={}, segmentation={}, area={}, bbox={}, iscrowd={})",
+            self.id, self.image_id, self.category_id, &self.segmentation.__repr__(), self.area, &self.bbox.__repr__(), self.iscrowd
         )
+    }
+}
+
+#[pymethods]
+impl Rle {
+    fn __repr__(&self) -> String {
+        format!("RLE(counts={:?}, size={:?})", self.counts, self.size)
+    }
+}
+
+#[pymethods]
+impl EncodedRle {
+    fn __repr__(&self) -> String {
+        format!("EncodedRLE(counts={:?}, size={:?})", self.counts, self.size)
     }
 }
 
@@ -26,6 +40,17 @@ impl Annotation {
 impl PolygonRS {
     fn __repr__(&self) -> String {
         format!("Polygon(counts={:?})", self.counts)
+    }
+}
+
+impl Segmentation {
+    fn __repr__(&self) -> String {
+        match self {
+            Segmentation::Rle(rle) => rle.__repr__(),
+            Segmentation::EncodedRle(encoded_rle) => encoded_rle.__repr__(),
+            Segmentation::Polygon(poly) => format!("Polygon(counts={:?})", poly),
+            Segmentation::PolygonRS(poly) => poly.__repr__(),
+        }
     }
 }
 
