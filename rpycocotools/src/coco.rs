@@ -3,81 +3,11 @@ use std::path::PathBuf;
 use cocotools::annotations::coco;
 use cocotools::visualize::display::display_img;
 use cocotools::COCO;
-use pyo3::class::basic::CompareOp;
 // use pyo3::exceptions::{PyKeyError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::PyUnicode;
 
 use crate::errors::PyLoadingError;
-
-#[pyclass(name = "Category", module = "rpycocotools")]
-#[derive(Debug, Clone)]
-pub struct PyCategory(coco::Category);
-
-#[pymethods]
-impl PyCategory {
-    #[new]
-    fn new(id: u32, name: String, supercategory: String) -> Self {
-        Self(coco::Category {
-            id,
-            name,
-            supercategory,
-        })
-    }
-
-    #[getter]
-    fn id(&self) -> u32 {
-        self.0.id
-    }
-
-    #[getter(name)]
-    fn name(&self) -> String {
-        self.0.name.clone()
-    }
-
-    #[setter(name)]
-    fn set_name(&mut self, new_name: String) -> PyResult<()> {
-        self.0.name = new_name;
-        Ok(())
-    }
-
-    #[getter]
-    fn supercategory(&self) -> String {
-        self.0.supercategory.clone()
-    }
-
-    #[setter(supercategory)]
-    fn set_supercategory(&mut self, supercategory: String) {
-        self.0.supercategory = supercategory;
-    }
-
-    fn __repr__(&self) -> String {
-        format!(
-            "Category(id={}, name='{}', supercategory='{}')",
-            self.0.id, self.0.name, self.0.supercategory
-        )
-    }
-
-    fn __richcmp__(&self, other: &Self, op: CompareOp, py: Python<'_>) -> PyObject {
-        match op {
-            CompareOp::Eq => (self.0.id == other.0.id
-                && self.0.name == other.0.name
-                && self.0.supercategory == other.0.supercategory)
-                .into_py(py),
-            CompareOp::Ne => (self.0.id != other.0.id
-                || self.0.name != other.0.name
-                || self.0.supercategory != other.0.supercategory)
-                .into_py(py),
-            _ => py.NotImplemented(),
-        }
-    }
-}
-
-impl From<coco::Category> for PyCategory {
-    fn from(cat: coco::Category) -> Self {
-        Self(cat)
-    }
-}
 
 #[pyclass(name = "COCO", module = "rpycocotools")]
 #[derive(Debug)]

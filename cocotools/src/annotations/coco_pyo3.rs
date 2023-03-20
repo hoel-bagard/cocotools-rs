@@ -1,6 +1,50 @@
+use pyo3::class::basic::CompareOp;
 use pyo3::prelude::*;
 
 use crate::annotations::coco::*;
+
+#[pymethods]
+impl Annotation {
+    fn __repr__(&self) -> String {
+        format!(
+            "Annotation(id={}, image_id={}, category_id={}, segmentation={}, area={}, bbox={}, iscrowd={})",
+            self.id, self.image_id, self.category_id, &self.segmentation.__repr__(), self.area, &self.bbox.__repr__(), self.iscrowd
+        )
+    }
+}
+
+#[pymethods]
+impl Category {
+    #[new]
+    fn new(id: u32, name: String, supercategory: String) -> Self {
+        Self {
+            id,
+            name,
+            supercategory,
+        }
+    }
+
+    fn __repr__(&self) -> String {
+        format!(
+            "Category(id={}, name='{}', supercategory='{}')",
+            self.id, self.name, self.supercategory
+        )
+    }
+
+    fn __richcmp__(&self, other: &Self, op: CompareOp, py: Python<'_>) -> PyObject {
+        match op {
+            CompareOp::Eq => (self.id == other.id
+                && self.name == other.name
+                && self.supercategory == other.supercategory)
+                .into_py(py),
+            CompareOp::Ne => (self.id != other.id
+                || self.name != other.name
+                || self.supercategory != other.supercategory)
+                .into_py(py),
+            _ => py.NotImplemented(),
+        }
+    }
+}
 
 #[pymethods]
 impl Bbox {
@@ -10,15 +54,21 @@ impl Bbox {
             self.left, self.top, self.width, self.height
         )
     }
-}
 
-#[pymethods]
-impl Annotation {
-    fn __repr__(&self) -> String {
-        format!(
-            "Annotation(id={}, image_id={}, category_id={}, segmentation={}, area={}, bbox={}, iscrowd={})",
-            self.id, self.image_id, self.category_id, &self.segmentation.__repr__(), self.area, &self.bbox.__repr__(), self.iscrowd
-        )
+    fn __richcmp__(&self, other: &Self, op: CompareOp, py: Python<'_>) -> PyObject {
+        match op {
+            CompareOp::Eq => (self.left == other.left
+                && self.top == other.top
+                && self.width == other.width
+                && self.height == other.height)
+                .into_py(py),
+            CompareOp::Ne => (self.left != other.left
+                || self.top != other.top
+                || self.width != other.width
+                || self.height != other.height)
+                .into_py(py),
+            _ => py.NotImplemented(),
+        }
     }
 }
 
