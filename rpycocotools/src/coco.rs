@@ -28,8 +28,8 @@ impl PyCOCO {
         Ok(Self(dataset))
     }
 
-    #[getter]
-    fn imgs(&self, py: Python<'_>) -> Vec<Py<coco::Image>> {
+    /// Order is non-deterministic
+    fn get_imgs(&self, py: Python<'_>) -> Vec<Py<coco::Image>> {
         self.0
             .get_imgs()
             .into_iter()
@@ -37,8 +37,7 @@ impl PyCOCO {
             .collect()
     }
 
-    #[getter]
-    fn anns(&self, py: Python<'_>) -> Vec<Py<coco::Annotation>> {
+    fn get_anns(&self, py: Python<'_>) -> Vec<Py<coco::Annotation>> {
         self.0
             .get_anns()
             .into_iter()
@@ -46,8 +45,7 @@ impl PyCOCO {
             .collect()
     }
 
-    #[getter]
-    fn cats(&self, py: Python<'_>) -> Vec<Py<coco::Category>> {
+    fn get_cats(&self, py: Python<'_>) -> Vec<Py<coco::Category>> {
         self.0
             .get_cats()
             .into_iter()
