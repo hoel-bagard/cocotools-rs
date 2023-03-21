@@ -60,7 +60,10 @@ fn decode_poly(
     width: u32,
     height: u32,
 ) -> PyResult<&PyArray2<u8>> {
-    Ok(masks::mask_from_poly(&poly, width, height)
-        .map_err(PyMaskError::from)?
-        .into_pyarray(py))
+    let mask = masks::mask_from_poly(&poly, width, height).map_err(PyMaskError::from)?;
+    let shape = (mask.shape()[1], mask.shape()[0]);
+    let mask = mask.into_shape(shape).unwrap();
+    let mask =
+        Array::from_shape_vec(mask.raw_dim().f(), mask.t().iter().cloned().collect()).unwrap();
+    Ok(mask.into_pyarray(py))
 }
