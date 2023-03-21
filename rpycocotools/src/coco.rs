@@ -69,9 +69,9 @@ impl PyCOCO {
             .0
             .draw_img_anns(img_id, true)
             .map_err(|err| match err {
-                CocoError::MissingIdError(err) => PyKeyError::new_err(err.to_string()),
-                CocoError::MaskError(err) => PyValueError::new_err(err.to_string()),
-                CocoError::LoadingError(err) => PyValueError::new_err(err.to_string()),
+                CocoError::MissingId(err) => PyKeyError::new_err(err.to_string()),
+                CocoError::Mask(err) => PyValueError::new_err(err.to_string()),
+                CocoError::Loading(err) => PyValueError::new_err(err.to_string()),
             })?;
 
         let file_name = &self

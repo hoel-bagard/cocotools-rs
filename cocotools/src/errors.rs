@@ -38,11 +38,11 @@ pub enum MaskError {
 #[derive(Debug, Error)]
 pub enum CocoError {
     #[error(transparent)]
-    MissingIdError(#[from] MissingIdError),
+    MissingId(#[from] MissingIdError),
     #[error(transparent)]
-    LoadingError(#[from] LoadingError),
+    Loading(#[from] LoadingError),
     #[error(transparent)]
-    MaskError(#[from] MaskError),
+    Mask(#[from] MaskError),
 }
 
 // From https://www.lpalmieri.com/posts/error-handling-rust/
