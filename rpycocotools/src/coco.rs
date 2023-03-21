@@ -1,9 +1,10 @@
 use std::path::PathBuf;
 
 use cocotools::annotations::coco;
+use cocotools::errors::CocoError;
 use cocotools::visualize::display::display_img;
 use cocotools::COCO;
-// use pyo3::exceptions::{PyKeyError, PyValueError};
+use pyo3::exceptions::{PyKeyError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::PyUnicode;
 
@@ -64,17 +65,22 @@ impl PyCOCO {
     }
 
     pub fn visualize_img(&self, img_id: u32) -> PyResult<()> {
-        let img = self.0.draw_img_anns(img_id, true).unwrap();
-        // .map_err(|err| PyValueError::new_err(err.to_string()))?;
-        display_img(
-            &img,
-            &self
-                .0
-                .get_img(img_id)
-                .map_err(PyMissingIdError::from)?
-                .file_name,
-        )
-        .unwrap();
+        let img = self
+            .0
+            .draw_img_anns(img_id, true)
+            .map_err(|err| match err {
+                CocoError::MissingIdError(err) => PyKeyError::new_err(err.to_string()),
+                CocoError::MaskError(err) => PyValueError::new_err(err.to_string()),
+                CocoError::LoadingError(err) => PyValueError::new_err(err.to_string()),
+            })?;
+
+        let file_name = &self
+            .0
+            .get_img(img_id)
+            .map_err(PyMissingIdError::from)?
+            .file_name;
+
+        display_img(&img, file_name).unwrap();
         Ok(())
     }
 }

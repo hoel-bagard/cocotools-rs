@@ -2,9 +2,7 @@
 use pyo3::exceptions::{PyKeyError, PyValueError};
 use pyo3::prelude::*;
 
-use crate::cocotools::converters::masks::MaskError;
-use crate::cocotools::errors::LoadingError;
-use crate::cocotools::errors::MissingIdError;
+use crate::cocotools::errors::{LoadingError, MaskError, MissingIdError};
 
 pub struct PyLoadingError(LoadingError);
 
@@ -44,6 +42,6 @@ impl From<MaskError> for PyMaskError {
 
 impl From<PyMaskError> for PyErr {
     fn from(error: PyMaskError) -> Self {
-        PyKeyError::new_err(error.0.to_string())
+        PyValueError::new_err(error.0.to_string())
     }
 }
