@@ -2,21 +2,10 @@ use image;
 use imageproc::contours;
 use imageproc::drawing;
 use ndarray::{s, Array2, ArrayViewMut, ShapeBuilder};
-use thiserror::Error;
 
 use crate::annotations::coco;
 use crate::argparse::Segmentation;
-
-#[allow(clippy::enum_variant_names)]
-#[derive(Debug, Error)]
-pub enum MaskError {
-    #[error("Failed to convert RLE to its compressed version due to a type conversion error. Tried to convert '{1:?}' to u8 and failed.")]
-    IntConversion(#[source] std::num::TryFromIntError, i64),
-    #[error("Failed to convert RLE to its compressed version due to a type conversion error. Tried to convert '{1:?}' to u8 and failed.")]
-    StrConversion(#[source] std::str::Utf8Error, Vec<u8>),
-    #[error("Failed to convert an image mask to an ndarray version of it.")]
-    ImageToNDArrayConversion(#[source] ndarray::ShapeError),
-}
+use crate::errors::MaskError;
 
 /// A boolean mask indicating for each pixel whether it belongs to the object or not.
 pub type Mask = Array2<u8>;

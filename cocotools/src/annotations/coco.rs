@@ -7,7 +7,7 @@ use std::{collections::HashMap, path::PathBuf};
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 
-use crate::errors::{LoadingError, MissingIdError};
+use crate::errors::{self, LoadingError, MissingIdError};
 use crate::visualize::display::load_img;
 use crate::visualize::draw::draw_anns;
 
@@ -252,7 +252,7 @@ impl HashmapDataset {
         &self,
         img_id: u32,
         draw_bbox: bool,
-    ) -> Result<image::ImageBuffer<image::Rgb<u8>, Vec<u8>>, Box<dyn std::error::Error>> {
+    ) -> Result<image::ImageBuffer<image::Rgb<u8>, Vec<u8>>, errors::CocoError> {
         let img_path = self.image_folder.join(&self.get_img(img_id)?.file_name);
         let mut img = load_img(&img_path);
         draw_anns(&mut img, &self.get_img_anns(img_id)?, draw_bbox)?;

@@ -6,7 +6,8 @@ use rand::Rng;
 
 use crate::annotations::coco;
 use crate::annotations::coco::Annotation;
-use crate::converters::masks::{self, Mask};
+use crate::converters::masks;
+use crate::errors::MaskError;
 
 #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
 pub fn draw_bbox(img: &mut image::RgbImage, bbox: &coco::Bbox, color: image::Rgb<u8>) {
@@ -17,7 +18,7 @@ pub fn draw_bbox(img: &mut image::RgbImage, bbox: &coco::Bbox, color: image::Rgb
 }
 
 #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
-pub fn draw_mask(img: &mut image::RgbImage, mask: &Mask, color: image::Rgb<u8>) {
+pub fn draw_mask(img: &mut image::RgbImage, mask: &masks::Mask, color: image::Rgb<u8>) {
     let mask_alpha: f64 = 0.4;
     let img_alpha = 1.0 - mask_alpha;
     for (image::Rgb([r, g, b]), mask_value) in zip(img.pixels_mut(), mask.iter()) {
@@ -38,7 +39,7 @@ pub fn draw_anns(
     img: &mut image::ImageBuffer<image::Rgb<u8>, Vec<u8>>,
     anns: &Vec<&Annotation>,
     draw_bbox: bool,
-) -> Result<(), masks::MaskError> {
+) -> Result<(), MaskError> {
     let mut rng = rand::thread_rng();
     for ann in anns {
         let color = image::Rgb([rng.gen::<u8>(), rng.gen::<u8>(), rng.gen::<u8>()]);

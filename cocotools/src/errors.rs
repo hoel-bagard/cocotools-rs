@@ -24,6 +24,27 @@ pub enum LoadingError {
     Parsing(#[source] MissingIdError, PathBuf),
 }
 
+#[allow(clippy::enum_variant_names)]
+#[derive(Debug, Error)]
+pub enum MaskError {
+    #[error("Failed to convert RLE to its compressed version due to a type conversion error. Tried to convert '{1:?}' to u8 and failed.")]
+    IntConversion(#[source] std::num::TryFromIntError, i64),
+    #[error("Failed to convert RLE to its compressed version due to a type conversion error. Tried to convert '{1:?}' to u8 and failed.")]
+    StrConversion(#[source] std::str::Utf8Error, Vec<u8>),
+    #[error("Failed to convert an image mask to an ndarray version of it.")]
+    ImageToNDArrayConversion(#[source] ndarray::ShapeError),
+}
+
+#[derive(Debug, Error)]
+pub enum CocoError {
+    #[error(transparent)]
+    MissingIdError(#[from] MissingIdError),
+    #[error(transparent)]
+    LoadingError(#[from] LoadingError),
+    #[error(transparent)]
+    MaskError(#[from] MaskError),
+}
+
 // From https://www.lpalmieri.com/posts/error-handling-rust/
 //      https://github.com/LukeMathWalker/zero-to-production/blob/main/src/routes/subscriptions.rs#L199
 impl std::fmt::Debug for MissingIdError {
