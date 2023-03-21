@@ -20,7 +20,7 @@ where
             let shape = (mask.shape()[1], mask.shape()[0]);
             let mask = mask.into_shape(shape).unwrap();
             let mask =
-                Array::from_shape_vec(mask.raw_dim().f(), mask.t().iter().cloned().collect())
+                Array::from_shape_vec(mask.raw_dim().f(), mask.t().iter().copied().collect())
                     .unwrap();
             let mask = mask.into_pyarray(py);
             Ok(mask)
@@ -64,6 +64,6 @@ fn decode_poly(
     let shape = (mask.shape()[1], mask.shape()[0]);
     let mask = mask.into_shape(shape).unwrap();
     let mask =
-        Array::from_shape_vec(mask.raw_dim().f(), mask.t().iter().cloned().collect()).unwrap();
+        Array::from_shape_vec(mask.raw_dim().f(), mask.t().iter().copied().collect()).unwrap();
     Ok(mask.into_pyarray(py))
 }

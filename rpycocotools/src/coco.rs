@@ -7,7 +7,7 @@ use cocotools::COCO;
 use pyo3::prelude::*;
 use pyo3::types::PyUnicode;
 
-use crate::errors::PyLoadingError;
+use crate::errors::{PyLoadingError, PyMissingIdError};
 
 #[pyclass(name = "COCO", module = "rpycocotools")]
 #[derive(Debug)]
@@ -57,7 +57,7 @@ impl PyCOCO {
         Ok(self
             .0
             .get_img_anns(img_id)
-            .unwrap()
+            .map_err(PyMissingIdError::from)?
             .into_iter()
             .map(|ann| Py::new(py, ann.clone()).unwrap())
             .collect())
@@ -66,7 +66,15 @@ impl PyCOCO {
     pub fn visualize_img(&self, img_id: u32) -> PyResult<()> {
         let img = self.0.draw_img_anns(img_id, true).unwrap();
         // .map_err(|err| PyValueError::new_err(err.to_string()))?;
-        display_img(&img, &self.0.get_img(img_id).unwrap().file_name).unwrap();
+        display_img(
+            &img,
+            &self
+                .0
+                .get_img(img_id)
+                .map_err(PyMissingIdError::from)?
+                .file_name,
+        )
+        .unwrap();
         Ok(())
     }
 }
