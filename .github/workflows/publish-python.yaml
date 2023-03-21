@@ -35,9 +35,8 @@ jobs:
       - name: Upload wheels
         uses: actions/upload-artifact@v3
         with:
-          working-directory: rpycocotools
           name: wheels
-          path: dist
+          path: rpycocotools/dist
 
   windows:
     runs-on: windows-latest
@@ -60,9 +59,8 @@ jobs:
       - name: Upload wheels
         uses: actions/upload-artifact@v3
         with:
-          working-directory: rpycocotools
           name: wheels
-          path: dist
+          path: rpycocotools/dist
 
   macos:
     runs-on: macos-latest
@@ -84,9 +82,8 @@ jobs:
       - name: Upload wheels
         uses: actions/upload-artifact@v3
         with:
-          working-directory: rpycocotools
           name: wheels
-          path: dist
+          path: rpycocotools/dist
 
   sdist:
     runs-on: ubuntu-latest
@@ -101,9 +98,8 @@ jobs:
       - name: Upload sdist
         uses: actions/upload-artifact@v3
         with:
-          working-directory: rpycocotools
           name: wheels
-          path: dist
+          path: rpycocotools/dist
 
   release:
     name: Release
