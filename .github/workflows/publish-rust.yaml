@@ -27,5 +27,6 @@ jobs:
           override: true
 
       - run: cargo publish --token ${CRATES_TOKEN}
+        working-directory: cocotools
         env:
           CRATES_TOKEN: ${{ secrets.CRATES_TOKEN }}
