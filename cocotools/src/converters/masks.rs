@@ -246,8 +246,8 @@ impl From<&coco::Rle> for Mask {
     /// Converts a RLE to its uncompressed mask.
     #[allow(clippy::cast_possible_truncation)]
     fn from(rle: &coco::Rle) -> Self {
-        let height = rle.size[0] as usize;
         let width = rle.size[1] as usize;
+        let height = rle.size[0] as usize;
 
         let mut mask: Self = Self::zeros((height, width).f());
         let mut mask_1d = ArrayViewMut::from_shape(

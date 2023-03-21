@@ -46,6 +46,21 @@ impl Category {
     }
 }
 
+#[pyclass]
+struct BboxIter {
+    inner: std::vec::IntoIter<f64>,
+}
+
+#[pymethods]
+impl BboxIter {
+    fn __iter__(slf: PyRef<'_, Self>) -> PyRef<'_, Self> {
+        slf
+    }
+
+    fn __next__(mut slf: PyRefMut<'_, Self>) -> Option<f64> {
+        slf.inner.next()
+    }
+}
 #[pymethods]
 impl Bbox {
     #[new]
@@ -63,6 +78,13 @@ impl Bbox {
             "Bbox(left={}, top={}, width={}, height={})",
             self.left, self.top, self.width, self.height
         )
+    }
+
+    fn __iter__(slf: PyRef<'_, Self>) -> PyResult<Py<BboxIter>> {
+        let iter = BboxIter {
+            inner: vec![slf.left, slf.top, slf.width, slf.height].into_iter(),
+        };
+        Py::new(slf.py(), iter)
     }
 
     fn __richcmp__(&self, other: &Self, op: CompareOp, py: Python<'_>) -> PyObject {
