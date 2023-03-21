@@ -48,6 +48,16 @@ impl Category {
 
 #[pymethods]
 impl Bbox {
+    #[new]
+    fn new(left: f64, top: f64, width: f64, height: f64) -> Self {
+        Self {
+            left,
+            top,
+            width,
+            height,
+        }
+    }
+
     fn __repr__(&self) -> String {
         format!(
             "Bbox(left={}, top={}, width={}, height={})",
@@ -74,6 +84,11 @@ impl Bbox {
 
 #[pymethods]
 impl Rle {
+    #[new]
+    fn new(size: Vec<u32>, counts: Vec<u32>) -> Self {
+        Self { size, counts }
+    }
+
     fn __repr__(&self) -> String {
         format!("RLE(counts={:?}, size={:?})", self.counts, self.size)
     }
@@ -81,6 +96,11 @@ impl Rle {
 
 #[pymethods]
 impl EncodedRle {
+    #[new]
+    fn new(size: Vec<u32>, counts: String) -> Self {
+        Self { size, counts }
+    }
+
     fn __repr__(&self) -> String {
         format!("EncodedRLE(counts={:?}, size={:?})", self.counts, self.size)
     }
@@ -88,8 +108,13 @@ impl EncodedRle {
 
 #[pymethods]
 impl PolygonRS {
+    #[new]
+    fn new(size: Vec<u32>, counts: Vec<Vec<f64>>) -> Self {
+        Self { size, counts }
+    }
+
     fn __repr__(&self) -> String {
-        format!("Polygon(counts={:?})", self.counts)
+        format!("PolygonRS(counts={:?})", self.counts)
     }
 }
 
