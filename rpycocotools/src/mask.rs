@@ -39,7 +39,7 @@ pub fn mask(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
 }
 
 #[pyfunction]
-pub fn decode_rle(py: Python<'_>, encoded_mask: coco::Rle) -> PyResult<&PyArray2<u8>> {
+fn decode_rle(py: Python<'_>, encoded_mask: coco::Rle) -> PyResult<&PyArray2<u8>> {
     Ok(decode(py, &coco::Segmentation::Rle(encoded_mask))?)
 }
 
