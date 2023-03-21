@@ -10,21 +10,24 @@ use cocotools::converters::masks;
 
 use crate::errors::PyMaskError;
 
-// fn decode<T>(encoded_mask: T) -> masks::Mask
-// where
-//     T: TryInto<masks::Mask>,
-//     <T as TryInto<masks::Mask>>::Error: std::fmt::Debug,
-// {
-//     match encoded_mask.try_into() {
-//         Ok(mask) => mask,
-//         Err(error) => panic!("Error when decoding mask: {:?}", error),
-//     }
-// }
-
-// #[pyfunction]
-// pub fn decode_rle(py: Python<'_>, encoded_mask: coco::Rle) -> &PyArray2<u8> {
-//     decode(&coco::Segmentation::Rle(encoded_mask)).into_pyarray(py)
-// }
+fn decode<T>(py: Python<'_>, encoded_mask: T) -> Result<&PyArray2<u8>, PyMaskError>
+where
+    T: TryInto<masks::Mask>,
+    <T as TryInto<masks::Mask>>::Error: Into<PyMaskError>,
+{
+    match encoded_mask.try_into() {
+        Ok(mask) => {
+            let shape = (mask.shape()[1], mask.shape()[0]);
+            let mask = mask.into_shape(shape).unwrap();
+            let mask =
+                Array::from_shape_vec(mask.raw_dim().f(), mask.t().iter().cloned().collect())
+                    .unwrap();
+            let mask = mask.into_pyarray(py);
+            Ok(mask)
+        }
+        Err(error) => Err(error.into()),
+    }
+}
 
 #[pymodule]
 pub fn mask(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
@@ -36,34 +39,18 @@ pub fn mask(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
 }
 
 #[pyfunction]
-fn decode_rle(py: Python<'_>, encoded_mask: coco::Rle) -> PyResult<&PyArray2<u8>> {
-    Ok(
-        masks::Mask::try_from(&coco::Segmentation::Rle(encoded_mask))
-            .map_err(PyMaskError::from)?
-            .into_pyarray(py),
-    )
+pub fn decode_rle(py: Python<'_>, encoded_mask: coco::Rle) -> PyResult<&PyArray2<u8>> {
+    Ok(decode(py, &coco::Segmentation::Rle(encoded_mask))?)
 }
 
 #[pyfunction]
 fn decode_encoded_rle(py: Python<'_>, encoded_mask: coco::EncodedRle) -> PyResult<&PyArray2<u8>> {
-    Ok(
-        masks::Mask::try_from(&coco::Segmentation::EncodedRle(encoded_mask))
-            .map_err(PyMaskError::from)?
-            .into_pyarray(py),
-    )
+    Ok(decode(py, &coco::Segmentation::EncodedRle(encoded_mask))?)
 }
 
 #[pyfunction]
 fn decode_poly_rs(py: Python<'_>, encoded_mask: coco::PolygonRS) -> PyResult<&PyArray2<u8>> {
-    let mask = masks::Mask::try_from(&coco::Segmentation::PolygonRS(encoded_mask))
-        .map_err(PyMaskError::from)?;
-
-    let shape = (mask.shape()[1], mask.shape()[0]);
-    let mask = mask.into_shape(shape).unwrap();
-    let mask =
-        Array::from_shape_vec(mask.raw_dim().f(), mask.t().iter().cloned().collect()).unwrap();
-    let mask = mask.into_pyarray(py);
-    Ok(mask)
+    Ok(decode(py, &coco::Segmentation::PolygonRS(encoded_mask))?)
 }
 
 #[pyfunction]
