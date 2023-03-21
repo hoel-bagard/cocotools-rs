@@ -36,7 +36,7 @@ sdist-include = ["LICENSE", "README.md"]
 
 [project.optional-dependencies]
 build = ["maturin"]
-test = ["pytest"]
+test = ["pytest", "hypothesis"]
 dev = ["pip-tools", "pre-commit", "ruff"]
 
 [tool.pytest.ini_options]

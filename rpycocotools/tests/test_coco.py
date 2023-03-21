@@ -1,5 +1,10 @@
 import pytest
+from hypothesis import given
+from hypothesis import strategies as st
 import rpycocotools
+
+u32_max = 4_294_967_295
+u32_st =  st.integers(min_value=0, max_value=u32_max)
 
 
 @pytest.mark.xfail(reason="A dataset is readonly for now")
@@ -51,3 +56,30 @@ def test_get_img_anns(coco_dataset: rpycocotools.COCO) -> None:
     anns = coco_dataset.get_img_anns(480985)
     assert len(anns) == 13
     assert all(ann.image_id == 480985 for ann in anns)
+
+
+@given(u32_st, u32_st, u32_st, u32_st)
+def test_bbox_create(left: int, top: int, width: int, height: int) -> None:
+    bbox = rpycocotools.anns.Bbox(left, top, width, height)
+    # assert bbox == bbox
+
+
+@given(u32_st, u32_st, u32_st, u32_st)
+def test_bbox_equality(left: int, top: int, width: int, height: int) -> None:
+    bbox1 = rpycocotools.anns.Bbox(left, top, width, height)
+    bbox2 = rpycocotools.anns.Bbox(left, top, width, height)
+    assert bbox1 == bbox2
+
+
+@given(st.tuples(st.tuples(u32_st, u32_st, u32_st, u32_st),
+                 st.tuples(u32_st, u32_st, u32_st, u32_st)).filter(lambda x: x[0] != x[1]))
+def test_bbox_inequality(coords: tuple[tuple[int, int, int, int], tuple[int, int, int, int]]) -> None:
+    bbox1 = rpycocotools.anns.Bbox(*coords[0])
+    bbox2 = rpycocotools.anns.Bbox(*coords[1])
+    assert bbox1 != bbox2
+
+
+@given(u32_st, u32_st, u32_st, u32_st)
+def test_bbox_repr(left: int, top: int, width: int, height: int) -> None:
+    bbox = rpycocotools.anns.Bbox(left, top, width, height)
+    assert str(bbox) == f"Bbox(left={left}, top={top}, width={width}, height={height})"
