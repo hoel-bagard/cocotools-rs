@@ -4,8 +4,6 @@
 #
 #    pip-compile --extra=dev --output-file=requirements-dev.txt --resolver=backtracking pyproject.toml
 #
-attrs==22.2.0
-    # via flake8-bugbear
 build==0.10.0
     # via pip-tools
 cfgv==3.3.1
@@ -16,54 +14,28 @@ distlib==0.3.6
     # via virtualenv
 filelock==3.9.0
     # via virtualenv
-flake8==6.0.0
-    # via
-    #   flake8-bugbear
-    #   flake8-comprehensions
-    #   flake8-docstrings
-    #   flake8-quotes
-    #   pep8-naming
-    #   rpycocotools (pyproject.toml)
-flake8-bugbear==23.1.20
-    # via rpycocotools (pyproject.toml)
-flake8-comprehensions==3.10.1
-    # via rpycocotools (pyproject.toml)
-flake8-docstrings==1.7.0
-    # via rpycocotools (pyproject.toml)
-flake8-import-order==0.18.2
-    # via rpycocotools (pyproject.toml)
-flake8-quotes==3.3.2
-    # via rpycocotools (pyproject.toml)
 identify==2.5.16
     # via pre-commit
-mccabe==0.7.0
-    # via flake8
 nodeenv==1.7.0
     # via pre-commit
+numpy==1.24.2
+    # via rpycocotools (pyproject.toml)
 packaging==23.0
     # via build
-pep8-naming==0.13.3
-    # via rpycocotools (pyproject.toml)
 pip-tools==6.12.1
     # via rpycocotools (pyproject.toml)
 platformdirs==2.6.2
     # via virtualenv
 pre-commit==3.0.1
     # via rpycocotools (pyproject.toml)
-pycodestyle==2.10.0
-    # via
-    #   flake8
-    #   flake8-import-order
-pydocstyle==6.3.0
-    # via flake8-docstrings
-pyflakes==3.0.1
-    # via flake8
 pyproject-hooks==1.0.0
     # via build
 pyyaml==6.0
     # via pre-commit
-snowballstemmer==2.2.0
-    # via pydocstyle
+rpycocotools-stubs==0.0.1
+    # via rpycocotools (pyproject.toml)
+ruff==0.0.257
+    # via rpycocotools (pyproject.toml)
 tomli==2.0.1
     # via
     #   build

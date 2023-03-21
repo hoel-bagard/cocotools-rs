@@ -23,7 +23,7 @@ classifiers = [
     "Programming Language :: Python :: Implementation :: PyPy",
 ]
 license = {text="MIT"}
-dependencies = ["rpycocotools-stubs"]
+dependencies = ["numpy", "rpycocotools-stubs"]
 requires-python = ">=3.8"
 
 [project.urls]
@@ -36,7 +36,7 @@ sdist-include = ["LICENSE", "README.md"]
 
 [project.optional-dependencies]
 build = ["maturin"]
-test = ["pytest"]
+test = ["pytest", "hypothesis"]
 dev = ["pip-tools", "pre-commit", "ruff"]
 
 [tool.pytest.ini_options]
@@ -47,7 +47,7 @@ addopts = [
 ]
 
 [tool.ruff]
-select = ["A", "B", "C4", "D", "E", "F", "N", "I", "Q", "UP", "ANN", "S", "BLE", "COM", "DTZ", "PIE", "PT", "RSE", "SIM", "ARG", "PTH", "PL", "TRY", "NPY", "RUF"]
+select = ["A", "B", "C4", "D", "E", "F", "N", "I", "Q", "UP", "ANN", "S", "BLE", "COM", "DTZ", "PIE", "PT", "RSE", "SIM", "ARG", "PTH", "PL", "TRY", "NPY", "RUF", "W"]
 ignore = ["D1", "D401", "D204", "D203", "D213", "S101", "PLR2004"]
 line-length = 120
 

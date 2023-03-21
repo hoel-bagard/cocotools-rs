@@ -1,162 +1,14 @@
-use std::collections::HashMap;
 use std::path::PathBuf;
 
 use cocotools::annotations::coco;
+use cocotools::errors::CocoError;
 use cocotools::visualize::display::display_img;
 use cocotools::COCO;
-use pyo3::class::basic::CompareOp;
-// use pyo3::exceptions::{PyKeyError, PyValueError};
+use pyo3::exceptions::{PyKeyError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::PyUnicode;
 
-use crate::errors::PyLoadingError;
-
-#[pyclass(name = "Category", module = "rpycocotools")]
-#[derive(Debug, Clone)]
-pub struct PyCategory(coco::Category);
-
-#[pymethods]
-impl PyCategory {
-    #[new]
-    fn new(id: u32, name: String, supercategory: String) -> Self {
-        Self(coco::Category {
-            id,
-            name,
-            supercategory,
-        })
-    }
-
-    #[getter]
-    fn id(&self) -> u32 {
-        self.0.id
-    }
-
-    #[getter(name)]
-    fn name(&self) -> String {
-        self.0.name.clone()
-    }
-
-    #[setter(name)]
-    fn set_name(&mut self, new_name: String) -> PyResult<()> {
-        self.0.name = new_name;
-        Ok(())
-    }
-
-    #[getter]
-    fn supercategory(&self) -> String {
-        self.0.supercategory.clone()
-    }
-
-    #[setter(supercategory)]
-    fn set_supercategory(&mut self, supercategory: String) {
-        self.0.supercategory = supercategory;
-    }
-
-    fn __repr__(&self) -> String {
-        format!(
-            "Category(id={}, name='{}', supercategory='{}')",
-            self.0.id, self.0.name, self.0.supercategory
-        )
-    }
-
-    fn __richcmp__(&self, other: &Self, op: CompareOp, py: Python<'_>) -> PyObject {
-        match op {
-            CompareOp::Eq => (self.0.id == other.0.id
-                && self.0.name == other.0.name
-                && self.0.supercategory == other.0.supercategory)
-                .into_py(py),
-            CompareOp::Ne => (self.0.id != other.0.id
-                || self.0.name != other.0.name
-                || self.0.supercategory != other.0.supercategory)
-                .into_py(py),
-            _ => py.NotImplemented(),
-        }
-    }
-}
-
-impl From<coco::Category> for PyCategory {
-    fn from(cat: coco::Category) -> Self {
-        Self(cat)
-    }
-}
-
-#[pyclass(name = "Annotation", module = "rpycocotools")]
-#[derive(Debug, Clone)]
-pub struct PyAnnotation(coco::Annotation);
-
-#[pymethods]
-impl PyAnnotation {
-    // #[new]
-    // fn new(
-    //     id: u32,
-    //     image_id: u32,
-    //     category_id: u32,
-    //     // segmentation: bool, // TODO
-    //     area: f64,
-    //     bbox: Vec<f64>,
-    //     iscrow: u32,
-    // ) -> Self {
-    //     Self(coco::Annotation {
-    //         id,
-    //         image_id,
-    //         category_id,
-    //         segmentation,
-    //         area,
-    //         bbox,
-    //         iscrowd,
-    //     })
-    // }
-
-    #[getter]
-    fn get_id(&self) -> u32 {
-        self.0.id
-    }
-
-    #[getter]
-    fn get_image_id(&self) -> u32 {
-        self.0.image_id
-    }
-
-    #[getter]
-    fn get_category_id(&self) -> u32 {
-        self.0.category_id
-    }
-
-    // #[getter]
-    // fn get_segmentation(&self) -> f64 {
-    //     self.0.segmentation
-    // }
-
-    #[getter]
-    fn get_area(&self) -> f64 {
-        self.0.area
-    }
-
-    #[getter]
-    fn get_bbox(&self) -> (f64, f64, f64, f64) {
-        (
-            self.0.bbox.left,
-            self.0.bbox.top,
-            self.0.bbox.width,
-            self.0.bbox.height,
-        )
-    }
-
-    #[getter]
-    fn get_iscrowd(&self) -> u32 {
-        self.0.iscrowd
-    }
-
-    fn __repr__(&self) -> String {
-        format!("{:?}", self.0)
-    }
-}
-
-impl From<coco::Annotation> for PyAnnotation {
-    fn from(ann: coco::Annotation) -> Self {
-        Self(ann)
-    }
-}
+use crate::errors::{PyLoadingError, PyMissingIdError};
 
 #[pyclass(name = "COCO", module = "rpycocotools")]
 #[derive(Debug)]
@@ -177,32 +29,58 @@ impl PyCOCO {
         Ok(Self(dataset))
     }
 
-    #[getter]
-    fn anns(&self) -> PyResult<HashMap<u32, Py<PyAnnotation>>> {
-        let mut py_anns: HashMap<u32, Py<PyAnnotation>> = HashMap::new();
-        Python::with_gil(|py| {
-            for ann in self.0.get_anns() {
-                py_anns.insert(ann.id, Py::new(py, PyAnnotation(ann.clone())).unwrap());
-            }
-        });
-        Ok(py_anns)
+    /// Order is non-deterministic
+    fn get_imgs(&self, py: Python<'_>) -> Vec<Py<coco::Image>> {
+        self.0
+            .get_imgs()
+            .into_iter()
+            .map(|img| Py::new(py, img.clone()).unwrap())
+            .collect()
     }
 
-    #[getter]
-    fn cats(&self) -> PyResult<HashMap<u32, Py<PyCategory>>> {
-        let mut py_cats: HashMap<u32, Py<PyCategory>> = HashMap::new();
-        Python::with_gil(|py| {
-            for cat in self.0.get_cats() {
-                py_cats.insert(cat.id, Py::new(py, PyCategory(cat.clone())).unwrap());
-            }
-        });
-        Ok(py_cats)
+    fn get_anns(&self, py: Python<'_>) -> Vec<Py<coco::Annotation>> {
+        self.0
+            .get_anns()
+            .into_iter()
+            .map(|ann| Py::new(py, ann.clone()).unwrap())
+            .collect()
+    }
+
+    fn get_cats(&self, py: Python<'_>) -> Vec<Py<coco::Category>> {
+        self.0
+            .get_cats()
+            .into_iter()
+            .map(|cat| Py::new(py, cat.clone()).unwrap())
+            .collect()
+    }
+
+    fn get_img_anns(&self, img_id: u32, py: Python<'_>) -> PyResult<Vec<Py<coco::Annotation>>> {
+        Ok(self
+            .0
+            .get_img_anns(img_id)
+            .map_err(PyMissingIdError::from)?
+            .into_iter()
+            .map(|ann| Py::new(py, ann.clone()).unwrap())
+            .collect())
     }
 
     pub fn visualize_img(&self, img_id: u32) -> PyResult<()> {
-        let img = self.0.draw_img_anns(img_id, true).unwrap();
-        // .map_err(|err| PyValueError::new_err(err.to_string()))?;
-        display_img(&img, &self.0.get_img(img_id).unwrap().file_name).unwrap();
+        let img = self
+            .0
+            .draw_img_anns(img_id, true)
+            .map_err(|err| match err {
+                CocoError::MissingId(err) => PyKeyError::new_err(err.to_string()),
+                CocoError::Mask(err) => PyValueError::new_err(err.to_string()),
+                CocoError::Loading(err) => PyValueError::new_err(err.to_string()),
+            })?;
+
+        let file_name = &self
+            .0
+            .get_img(img_id)
+            .map_err(PyMissingIdError::from)?
+            .file_name;
+
+        display_img(&img, file_name).unwrap();
         Ok(())
     }
 }

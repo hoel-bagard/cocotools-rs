@@ -1,8 +1,8 @@
+// TODO: Try to do a macro to avoid all the boiler plate.
 use pyo3::exceptions::{PyKeyError, PyValueError};
 use pyo3::prelude::*;
 
-use crate::cocotools::errors::LoadingError;
-use crate::cocotools::errors::MissingIdError;
+use crate::cocotools::errors::{LoadingError, MaskError, MissingIdError};
 
 pub struct PyLoadingError(LoadingError);
 
@@ -29,5 +29,19 @@ impl From<MissingIdError> for PyMissingIdError {
 impl From<PyMissingIdError> for PyErr {
     fn from(error: PyMissingIdError) -> Self {
         PyKeyError::new_err(error.0.to_string())
+    }
+}
+
+pub struct PyMaskError(MaskError);
+
+impl From<MaskError> for PyMaskError {
+    fn from(error: MaskError) -> Self {
+        Self(error)
+    }
+}
+
+impl From<PyMaskError> for PyErr {
+    fn from(error: PyMaskError) -> Self {
+        PyValueError::new_err(error.0.to_string())
     }
 }
