@@ -4,7 +4,9 @@
 //!
 //! This crate aims to provide similar functionalities to the [python pycocotools package](https://pypi.org/project/pycocotools/) / [cocoapi](https://github.com/cocodataset/cocoapi) with additionnal utilities such as conversion between dataset formats. It also aims to have a better documentation and a more readable implementation.
 //!
-//! ## Usage example
+//! ## Usage examples
+//!
+//! ### Getting information about an image..
 //!
 //! ```
 //! # use std::path::PathBuf;
@@ -12,8 +14,26 @@
 //!
 //! let annotations_file_path = PathBuf::from("../data_samples/coco_25k/annotations.json");
 //! let image_folder_path = PathBuf::from("../data_samples/coco_25k/images");
-//! let dataset = COCO::new(&annotations_file_path, &image_folder_path)?;
-//! assert_eq!(dataset.get_img(17627)?.file_name, "000000017627.jpg");
+//! let coco_dataset = COCO::new(&annotations_file_path, &image_folder_path)?;
+//! assert_eq!(coco_dataset.get_img(17627)?.file_name, "000000017627.jpg");
+//! # Ok::<(), Box<dyn std::error::Error>>(())
+//! ```
+//!
+//! ### Loading a segmentation mask
+//!
+//! ```
+//! # use std::path::PathBuf;
+//! use cocotools::COCO;
+//! use cocotools::converters::masks;
+//! use cocotools::annotations::coco;
+//!
+//! let annotations_file_path = PathBuf::from("../data_samples/coco_25k/annotations.json");
+//! let image_folder_path = PathBuf::from("../data_samples/coco_25k/images");
+//! let coco_dataset = COCO::new(&annotations_file_path, &image_folder_path)?;
+//! let anns = coco_dataset.get_img_anns(174482)?;
+//! let mask = masks::Mask::try_from(&anns[0].segmentation)?;
+//! assert_eq!(mask.ncols(), 388);
+//! assert_eq!(mask.nrows(), 640);
 //! # Ok::<(), Box<dyn std::error::Error>>(())
 //! ```
 
@@ -23,5 +43,5 @@ pub mod converters;
 pub mod errors;
 pub mod visualize;
 
-#[doc(hidden)]
+// #[doc(hidden)]
 pub use crate::annotations::COCO;
