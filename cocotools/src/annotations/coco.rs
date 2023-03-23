@@ -141,7 +141,7 @@ pub struct HashmapDataset {
     imgs: HashMap<u32, Image>,
     /// Hashmap that links an image id to the image's annotations
     // Use Rc to reference the annotations directly ?
-    img_to_anns: HashMap<u32, Vec<u32>>,
+    img_to_anns: HashMap<u32, Vec<u32>>, // TODO: Use a HashSet instead of a Vec.
     pub image_folder: PathBuf,
 }
 
@@ -226,7 +226,7 @@ impl HashmapDataset {
         self.img_to_anns
             .entry(ann.image_id)
             .or_insert_with(Vec::new)
-            .push(ann.id);
+            .push(ann.id); // TODO: This might lead in duplicated ann id. Use a set.
     }
 
     /// Returns all the annotations of the dataset.

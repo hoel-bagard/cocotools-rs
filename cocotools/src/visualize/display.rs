@@ -30,7 +30,12 @@ pub fn show_img_anns(
     Ok(())
 }
 
-/// # Panics
+/// Load an rgb8 image from the given path.
+///
+/// ## Args
+/// - `img_path`: The path to the image to load.
+///
+/// ## Panics
 ///
 /// Will panic if it cannot read the image file.
 // TODO: Error instead of panic.
@@ -84,17 +89,17 @@ pub fn display_img(
 
 /// Visualize the given image and annotations.
 ///
-/// # Arguments
+/// ## Args
 ///
-/// * `img_path` - The path to the image corresponding to the annotations.
-/// * `anns` - The annotations to draw on the image. The annotations should all correspond to the same image.
-/// * `draw_bbox` - If true, draw the bounding boxes.
+/// - `img_path`: The path to the image corresponding to the annotations.
+/// - `anns: The annotations to draw on the image. The annotations should all correspond to the same image.
+/// - `draw_bbox`: If true, draw the bounding boxes.
 ///
-/// # Panics
+/// ## Panics
 ///
-/// Will panic if it cannot read the image file.
+/// Will panic if the image file cannot be read .
 ///
-/// # Errors
+/// ## Errors
 ///
 /// Will return `Err` if the COCO segmentation mask decompression fails.
 pub fn show_anns(
