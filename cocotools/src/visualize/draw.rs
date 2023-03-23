@@ -9,6 +9,24 @@ use crate::annotations::coco::Annotation;
 use crate::converters::masks;
 use crate::errors::MaskError;
 
+/// Draw the bounding box on the image.
+///
+/// ## Args
+/// - `img`: The image to draw on.
+/// - `bbox`: The bounding box to draw.
+/// - `color`: The color to use for drawing the bounding box.
+///
+/// # Example
+///
+/// ```rust
+/// # use cocotools::annotations::coco::Bbox;
+/// # use cocotools::visualize::draw::draw_bbox;
+/// # use image::RgbImage;
+/// let mut img = RgbImage::new(60, 60);
+/// let bbox = Bbox{left: 40.0, top: 40.0, width: 10.0, height: 10.0};
+/// let color = image::Rgb([255, 0, 0]);
+/// draw_bbox(&mut img, &bbox, color);
+/// ```
 #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
 pub fn draw_bbox(img: &mut image::RgbImage, bbox: &coco::Bbox, color: image::Rgb<u8>) {
     let rect =
