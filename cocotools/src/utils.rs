@@ -15,7 +15,6 @@ use crate::errors::LoadingError;
 /// ## Errors
 ///
 /// Will return `Err` if the image could not be opened or decoded.
-#[must_use]
 pub fn load_img(
     img_path: &PathBuf,
 ) -> Result<image::ImageBuffer<image::Rgb<u8>, Vec<u8>>, LoadingError> {

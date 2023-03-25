@@ -147,7 +147,10 @@ pub fn anns(
     Ok(())
 }
 
-// TODO: implement this as a trait when adding support for grayscale.
+pub(super) trait ToBuffer {
+    fn to_buffer(&self, dst: &mut [u32]);
+}
+
 /// Writes `img` into a a buffer.
 ///
 /// ## Example
@@ -161,20 +164,22 @@ pub fn anns(
 /// let mut buffer: Vec<u32> = vec![0x00FF_FFFF; img_width * img_height];
 /// rgb_to_buffer(img, &mut buffer);
 /// ```
-pub(super) fn rgb_to_buffer(img: &image::RgbImage, dst: &mut [u32]) {
-    for x in 0..img.width() {
-        for y in 0..img.height() {
-            let pixel = img.get_pixel(x, y);
+impl ToBuffer for image::ImageBuffer<image::Rgb<u8>, Vec<u8>> {
+    fn to_buffer(&self, dst: &mut [u32]) {
+        for x in 0..self.width() {
+            for y in 0..self.height() {
+                let pixel = self.get_pixel(x, y);
 
-            // Convert pixel to 0RGB
-            let raw = 0xFF00_0000
-                | (u32::from(pixel[0]) << 16)
-                | (u32::from(pixel[1]) << 8)
-                | u32::from(pixel[2]);
+                // Convert pixel to 0RGB
+                let raw = 0xFF00_0000
+                    | (u32::from(pixel[0]) << 16)
+                    | (u32::from(pixel[1]) << 8)
+                    | u32::from(pixel[2]);
 
-            // Calculate the index in the 1D dist buffer.
-            let index = x + y * img.width();
-            dst[index as usize] = raw;
+                // Calculate the index in the 1D dist buffer.
+                let index = x + y * self.width();
+                dst[index as usize] = raw;
+            }
         }
     }
 }

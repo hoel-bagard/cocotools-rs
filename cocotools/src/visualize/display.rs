@@ -4,7 +4,7 @@ extern crate image;
 extern crate minifb;
 use minifb::{Key, Window, WindowOptions};
 
-use super::draw;
+use super::draw::{self, ToBuffer};
 use crate::annotations::coco::{Annotation, HashmapDataset};
 use crate::utils;
 
@@ -39,7 +39,8 @@ pub fn img(
     let img_width = img.width() as usize;
     let img_height = img.height() as usize;
     let mut buffer: Vec<u32> = vec![0x00FF_FFFF; img_width * img_height];
-    draw::rgb_to_buffer(img, &mut buffer);
+    img.to_buffer(&mut buffer);
+    // draw::rgb_to_buffer(img, &mut buffer);
     let mut window = Window::new(
         format!("{window_name} - Press Q or ESC to exit").as_str(),
         img_width,
