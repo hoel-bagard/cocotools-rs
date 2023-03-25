@@ -22,7 +22,7 @@ pub struct Dataset {
 
 /// Stores information relating to one image.
 #[cfg_attr(feature = "pyo3", pyclass(get_all))]
-#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
 pub struct Image {
     pub id: u32,
     pub width: u32,
@@ -73,11 +73,18 @@ pub enum Segmentation {
 
 /// Polygon(s) representing a segmentation mask.
 ///
-/// A Segmentation mask might require multiple polygons if the mask is in multiple parts (in case of partial oclusion for example).
+/// A Segmentation mask might require multiple polygons if the mask is in multiple parts (in case of partial occlusion for example).
 ///
 /// Each `Vec<f64>` represents an enclosed area belonging to the segmentation mask.
 /// The length of each vector must be even. Every 2*n value represents the x coordinates of the nth point, while the 2*n+1 represents its y coordinates.
-/// [[510.66, 423.01, 511.72, 420.03, ..., 510.45, 423.01]]`
+///
+/// # Example:
+/// ```rust
+/// # use cocotools::annotations::coco::Polygon;
+/// let poly: Polygon = vec![vec![510.66, 423.01, 511.72, 420.03, 510.45, 423.01], vec![10.0, 10.0, 15.0, 15.0, 10.0, 15.0]];
+/// assert_eq!(poly.len(), 2);
+/// assert_eq!(poly[0].len() % 2, 0);
+/// ```
 pub type Polygon = Vec<Vec<f64>>;
 
 /// Internal type used to represent polygons.

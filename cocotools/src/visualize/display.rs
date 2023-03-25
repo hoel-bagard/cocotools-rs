@@ -92,7 +92,7 @@ pub fn display_img(
 /// ## Args
 ///
 /// - `img_path`: The path to the image corresponding to the annotations.
-/// - `anns: The annotations to draw on the image. The annotations should all correspond to the same image.
+/// - `anns`: The annotations to draw on the image. The annotations should all correspond to the same image.
 /// - `draw_bbox`: If true, draw the bounding boxes.
 ///
 /// ## Panics

@@ -57,10 +57,10 @@ pub fn draw_bbox(img: &mut image::RgbImage, bbox: &coco::Bbox, color: image::Rgb
 ///                    [0, 0, 0, 0, 0, 0, 0]];
 /// let mut img = RgbImage::new(7, 7);
 /// let color = image::Rgb([255, 0, 0]);
-/// draw_mask(&mut img, &mask, &color);
+/// draw_mask(&mut img, &mask, color);
 /// ```
 #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
-pub fn draw_mask(img: &mut image::RgbImage, mask: &masks::Mask, color: &image::Rgb<u8>) {
+pub fn draw_mask(img: &mut image::RgbImage, mask: &masks::Mask, color: image::Rgb<u8>) {
     let mask_alpha: f64 = 0.4;
     let img_alpha = 1.0 - mask_alpha;
     for (image::Rgb([r, g, b]), mask_value) in zip(img.pixels_mut(), mask.iter()) {
@@ -141,7 +141,7 @@ pub fn draw_anns(
             self::draw_bbox(img, &ann.bbox, color);
         }
         let mask = masks::Mask::try_from(&ann.segmentation)?;
-        draw_mask(img, &mask, &color);
+        draw_mask(img, &mask, color);
     }
 
     Ok(())

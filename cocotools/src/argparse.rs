@@ -6,13 +6,13 @@ use crate::converters::masks::Segmentation;
 
 #[derive(Parser)]
 #[command(author, version, about)]
-pub(crate) struct Cli {
+pub struct Cli {
     #[command(subcommand)]
     pub command: Commands,
 }
 
 #[derive(Subcommand)]
-pub(crate) enum Commands {
+pub enum Commands {
     /// Visualize COCO labels.
     Visualize {
         /// Path to the COCO json annotation file.
