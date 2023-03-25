@@ -1,3 +1,4 @@
+//! Module with the errors for the crate.
 use std::path::PathBuf;
 
 use thiserror::Error;
