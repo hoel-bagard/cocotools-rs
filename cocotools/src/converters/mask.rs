@@ -27,9 +27,7 @@ pub fn convert_coco_segmentation(
     dataset: &mut coco::HashmapDataset,
     target_segmentation: Segmentation,
 ) -> Result<(), MaskError> {
-    // TODO: Try to avoid the clonning and the add_ann
-    let anns: Vec<coco::Annotation> = dataset.get_anns().into_iter().cloned().collect();
-    for ann in anns {
+    for ann in dataset.anns.values_mut() {
         let converted_segmentation = match &ann.segmentation {
             coco::Segmentation::Rle(rle) => match target_segmentation {
                 Segmentation::Rle => coco::Segmentation::Rle(rle.clone()),
@@ -41,9 +39,9 @@ pub fn convert_coco_segmentation(
             coco::Segmentation::EncodedRle(encoded_rle) => match target_segmentation {
                 Segmentation::Rle => coco::Segmentation::Rle(coco::Rle::from(encoded_rle)),
                 Segmentation::EncodedRle => coco::Segmentation::EncodedRle(encoded_rle.clone()),
-                Segmentation::Polygons => {
-                    coco::Segmentation::Polygons(coco::Polygons::from(&coco::Rle::from(encoded_rle)))
-                }
+                Segmentation::Polygons => coco::Segmentation::Polygons(coco::Polygons::from(
+                    &coco::Rle::from(encoded_rle),
+                )),
             },
             coco::Segmentation::PolygonsRS(poly) => match target_segmentation {
                 Segmentation::Rle => coco::Segmentation::Rle(coco::Rle::try_from(poly)?),
@@ -54,10 +52,7 @@ pub fn convert_coco_segmentation(
             },
             coco::Segmentation::Polygons(_) => unimplemented!(),
         };
-        dataset.add_ann(&coco::Annotation {
-            segmentation: converted_segmentation,
-            ..ann
-        });
+        ann.segmentation = converted_segmentation;
     }
     Ok(())
 }

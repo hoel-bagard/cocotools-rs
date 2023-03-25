@@ -143,7 +143,7 @@ pub struct Category {
 /// This struct provides methods to make working with the dataset easier and more efficient.
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct HashmapDataset {
-    anns: HashMap<u32, Annotation>,
+    pub(crate) anns: HashMap<u32, Annotation>,
     cats: HashMap<u32, Category>,
     imgs: HashMap<u32, Image>,
     /// Hashmap that links an image id to the image's annotations
@@ -225,15 +225,6 @@ impl HashmapDataset {
         self.anns
             .get(&ann_id)
             .ok_or(MissingIdError::Annotation(ann_id))
-    }
-
-    /// Overwrite if already present.
-    pub fn add_ann(&mut self, ann: &Annotation) {
-        self.anns.insert(ann.id, ann.clone());
-        self.img_to_anns
-            .entry(ann.image_id)
-            .or_insert_with(Vec::new)
-            .push(ann.id); // TODO: This might lead in duplicated ann id. Use a set.
     }
 
     /// Returns all the annotations of the dataset.
