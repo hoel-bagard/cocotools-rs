@@ -9,11 +9,3 @@ Licensed under either of:
 - [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0)
 - [MIT license](http://opensource.org/licenses/MIT)
 at your option.
-
-## TODO:
-- [ ] See if rayon can be used.
-
-- repo: https://github.com/tox-dev/pyproject-fmt
-  rev: "0.9.2"
-  hooks:
-    - id: pyproject-fmt
