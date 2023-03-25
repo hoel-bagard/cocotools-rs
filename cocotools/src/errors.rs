@@ -2,6 +2,7 @@ use std::path::PathBuf;
 
 use thiserror::Error;
 
+/// Error returned when trying to access an element of the dataset that does not exist.
 #[derive(thiserror::Error)]
 pub enum MissingIdError {
     #[error("The following annotation id was not found in the dataset: `{0}`.")]
@@ -14,6 +15,7 @@ pub enum MissingIdError {
     // InvalidValue(#[from] anyhow::Error),
 }
 
+/// Error returned when a dataset cannot be loaded.
 #[derive(Error)]
 pub enum LoadingError {
     #[error("Failed to read the annotation file {1:?}.")]
@@ -24,6 +26,7 @@ pub enum LoadingError {
     Parsing(#[source] MissingIdError, PathBuf),
 }
 
+/// Error returned converting a segmentation mask to another format fails.
 #[allow(clippy::enum_variant_names)]
 #[derive(Debug, Error)]
 pub enum MaskError {
@@ -35,6 +38,7 @@ pub enum MaskError {
     ImageToNDArrayConversion(#[source] ndarray::ShapeError),
 }
 
+/// Enum grouping all the error types from the crate.
 #[derive(Debug, Error)]
 pub enum CocoError {
     #[error(transparent)]
