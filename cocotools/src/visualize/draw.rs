@@ -24,7 +24,7 @@ use crate::errors::MaskError;
 /// let mut img = RgbImage::new(60, 60);
 /// let bbox = Bbox{left: 40.0, top: 40.0, width: 10.0, height: 10.0};
 /// let color = image::Rgb([255, 0, 0]);
-/// bbox(&mut img, &bbox, color);
+/// draw::bbox(&mut img, &bbox, color);
 /// ```
 #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
 pub fn bbox(img: &mut image::RgbImage, bbox: &coco::Bbox, color: image::Rgb<u8>) {
@@ -57,7 +57,7 @@ pub fn bbox(img: &mut image::RgbImage, bbox: &coco::Bbox, color: image::Rgb<u8>)
 ///                    [0, 0, 0, 0, 0, 0, 0]];
 /// let mut img = RgbImage::new(7, 7);
 /// let color = image::Rgb([255, 0, 0]);
-/// mask(&mut img, &mask, color);
+/// draw::mask(&mut img, &mask, color);
 /// ```
 #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
 pub fn mask(img: &mut image::RgbImage, mask: &masks::Mask, color: image::Rgb<u8>) {
