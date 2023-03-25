@@ -49,14 +49,14 @@ fn decode_encoded_rle(py: Python<'_>, encoded_mask: coco::EncodedRle) -> PyResul
 }
 
 #[pyfunction]
-fn decode_poly_rs(py: Python<'_>, encoded_mask: coco::PolygonRS) -> PyResult<&PyArray2<u8>> {
-    Ok(decode(py, &coco::Segmentation::PolygonRS(encoded_mask))?)
+fn decode_poly_rs(py: Python<'_>, encoded_mask: coco::PolygonsRS) -> PyResult<&PyArray2<u8>> {
+    Ok(decode(py, &coco::Segmentation::PolygonsRS(encoded_mask))?)
 }
 
 #[pyfunction]
 fn decode_poly(
     py: Python<'_>,
-    poly: coco::Polygon,
+    poly: coco::Polygons,
     width: u32,
     height: u32,
 ) -> PyResult<&PyArray2<u8>> {

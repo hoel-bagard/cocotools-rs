@@ -11,7 +11,6 @@ Licensed under either of:
 at your option.
 
 ## TODO:
-- [ ] Github action to release python version (see [here](https://github.com/pola-rs/polars/blob/master/.github/workflows/create-python-release.yml))
 - [ ] See if rayon can be used.
 
 - repo: https://github.com/tox-dev/pyproject-fmt

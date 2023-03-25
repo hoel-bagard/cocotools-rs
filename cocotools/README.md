@@ -30,4 +30,3 @@ cargo run -- convert-segmentation ../data_samples/coco_25k/annotations.json rle 
 
 ## TODOs:
 - Rename the `masks` module to `mask`.
-- Rename `Polygon` and `PolygonRS` to `Polygons` and `PolygonsRS`.

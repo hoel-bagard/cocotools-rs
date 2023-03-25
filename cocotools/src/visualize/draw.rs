@@ -109,7 +109,7 @@ pub fn mask(img: &mut image::RgbImage, mask: &masks::Mask, color: image::Rgb<u8>
 ///         id: 2,
 ///         image_id: 1,
 ///         category_id: 2,
-///         segmentation: coco::Segmentation::PolygonRS(coco::PolygonRS {
+///         segmentation: coco::Segmentation::PolygonsRS(coco::PolygonsRS {
 ///             size: vec![40, 40],
 ///             counts: vec![vec![4.0, 4.0, 24.0, 4.0, 24.0, 24.0, 4.0, 24.0]],
 ///         }),

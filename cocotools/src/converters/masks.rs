@@ -13,7 +13,7 @@ pub type Mask = Array2<u8>;
 /// Segmentation types.
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
 pub enum Segmentation {
-    Polygon,
+    Polygons,
     Rle,
     EncodedRle,
 }
@@ -36,23 +36,23 @@ pub fn convert_coco_segmentation(
                 Segmentation::EncodedRle => {
                     coco::Segmentation::EncodedRle(coco::EncodedRle::try_from(rle)?)
                 }
-                Segmentation::Polygon => coco::Segmentation::Polygon(coco::Polygon::from(rle)),
+                Segmentation::Polygons => coco::Segmentation::Polygons(coco::Polygons::from(rle)),
             },
             coco::Segmentation::EncodedRle(encoded_rle) => match target_segmentation {
                 Segmentation::Rle => coco::Segmentation::Rle(coco::Rle::from(encoded_rle)),
                 Segmentation::EncodedRle => coco::Segmentation::EncodedRle(encoded_rle.clone()),
-                Segmentation::Polygon => {
-                    coco::Segmentation::Polygon(coco::Polygon::from(&coco::Rle::from(encoded_rle)))
+                Segmentation::Polygons => {
+                    coco::Segmentation::Polygons(coco::Polygons::from(&coco::Rle::from(encoded_rle)))
                 }
             },
-            coco::Segmentation::PolygonRS(poly) => match target_segmentation {
+            coco::Segmentation::PolygonsRS(poly) => match target_segmentation {
                 Segmentation::Rle => coco::Segmentation::Rle(coco::Rle::try_from(poly)?),
                 Segmentation::EncodedRle => coco::Segmentation::EncodedRle(
                     coco::EncodedRle::try_from(&coco::Rle::from(&Mask::try_from(poly)?))?,
                 ),
-                Segmentation::Polygon => coco::Segmentation::Polygon(poly.counts.clone()),
+                Segmentation::Polygons => coco::Segmentation::Polygons(poly.counts.clone()),
             },
-            coco::Segmentation::Polygon(_) => unimplemented!(),
+            coco::Segmentation::Polygons(_) => unimplemented!(),
         };
         dataset.add_ann(&coco::Annotation {
             segmentation: converted_segmentation,
@@ -63,7 +63,7 @@ pub fn convert_coco_segmentation(
 }
 
 #[allow(clippy::expect_used)]
-impl From<&coco::Rle> for coco::Polygon {
+impl From<&coco::Rle> for coco::Polygons {
     fn from(rle: &coco::Rle) -> Self {
         let mask = Mask::from(rle);
         let mask_img = mask
@@ -120,11 +120,11 @@ impl From<&coco::Rle> for coco::Polygon {
     }
 }
 
-impl TryFrom<&coco::PolygonRS> for coco::Rle {
+impl TryFrom<&coco::PolygonsRS> for coco::Rle {
     type Error = MaskError;
     // It might be more efficient to do it like this: https://github.com/cocodataset/cocoapi/blob/master/common/maskApi.c#L162
     // It would also avoid having slightly different results from the reference implementation.
-    fn try_from(poly: &coco::PolygonRS) -> Result<Self, Self::Error> {
+    fn try_from(poly: &coco::PolygonsRS) -> Result<Self, Self::Error> {
         Ok(Self::from(&Mask::try_from(poly)?))
     }
 }
@@ -310,8 +310,8 @@ impl TryFrom<&coco::Segmentation> for Mask {
             coco::Segmentation::EncodedRle(encoded_rle) => {
                 Self::from(&coco::Rle::from(encoded_rle))
             }
-            coco::Segmentation::PolygonRS(poly) => Self::try_from(poly)?,
-            coco::Segmentation::Polygon(_) => {
+            coco::Segmentation::PolygonsRS(poly) => Self::try_from(poly)?,
+            coco::Segmentation::Polygons(_) => {
                 unimplemented!("Use the 'mask_from_poly' function.")
             }
         };
@@ -320,11 +320,11 @@ impl TryFrom<&coco::Segmentation> for Mask {
 }
 
 #[allow(clippy::cast_possible_truncation)]
-impl TryFrom<&coco::PolygonRS> for Mask {
+impl TryFrom<&coco::PolygonsRS> for Mask {
     type Error = MaskError;
 
     /// Create a mask from a compressed polygon representation.
-    fn try_from(poly_ann: &coco::PolygonRS) -> Result<Self, Self::Error> {
+    fn try_from(poly_ann: &coco::PolygonsRS) -> Result<Self, Self::Error> {
         let mut mask = image::GrayImage::new(poly_ann.size[1], poly_ann.size[0]);
 
         for poly in &poly_ann.counts {
@@ -365,7 +365,7 @@ impl TryFrom<&coco::PolygonRS> for Mask {
 /// ## Returns:
 /// - The decompressed mask.
 #[allow(clippy::cast_possible_truncation)]
-pub fn mask_from_poly(poly: &coco::Polygon, width: u32, height: u32) -> Result<Mask, MaskError> {
+pub fn mask_from_poly(poly: &coco::Polygons, width: u32, height: u32) -> Result<Mask, MaskError> {
     let mut points_poly: Vec<imageproc::point::Point<i32>> = Vec::new();
     for i in (0..poly[0].len()).step_by(2) {
         points_poly.push(imageproc::point::Point::new(
@@ -383,7 +383,7 @@ pub fn mask_from_poly(poly: &coco::Polygon, width: u32, height: u32) -> Result<M
 #[cfg(test)]
 #[allow(clippy::unwrap_used)]
 mod tests {
-    use super::coco::{EncodedRle, Polygon, PolygonRS, Rle};
+    use super::coco::{EncodedRle, Polygons, PolygonsRS, Rle};
     use super::*;
     use ndarray::array;
     use proptest::prelude::*;
@@ -437,7 +437,7 @@ mod tests {
     #[case::thick_horizontal_line(&Rle { size: vec![7, 7], counts: vec![9, 3, 4, 3, 4, 3, 4, 3, 4, 3, 9] })]
     #[case::vertical_line(&Rle { size: vec![7, 7], counts: vec![15, 5, 2, 5, 2, 5, 15] })]
     fn rle_to_poly_to_rle(#[case] rle: &Rle) {
-        let poly = Polygon::from(rle);
+        let poly = Polygons::from(rle);
         let mask = mask_from_poly(&poly, rle.size[1], rle.size[0]).unwrap();
         let result_rle = Rle::try_from(&mask).unwrap();
         assert_eq!(&result_rle, rle);
@@ -446,21 +446,21 @@ mod tests {
     #[rstest]
     #[case::square(
         &Rle {size: vec![4, 4], counts: vec![5, 2, 2, 2, 5]},
-        &PolygonRS {size: vec![4, 4], counts: vec![vec![1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 2.0, 1.0]] }
+        &PolygonsRS {size: vec![4, 4], counts: vec![vec![1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 2.0, 1.0]] }
     )]
     #[case::horizontal_thick_line(
         &Rle {size: vec![7, 7], counts: vec![9, 3, 4, 3, 4, 3, 4, 3, 4, 3, 9]},
-        &PolygonRS {size: vec![7, 7], counts: vec![vec![1.0, 2.0, 1.0, 4.0, 5.0, 4.0, 5.0, 2.0]]}
+        &PolygonsRS {size: vec![7, 7], counts: vec![vec![1.0, 2.0, 1.0, 4.0, 5.0, 4.0, 5.0, 2.0]]}
     )]
     #[case::vertical_thick_line(
         &Rle {size: vec![7, 7], counts: vec![15, 5, 2, 5, 2, 5, 15]},
-        &PolygonRS {size: vec![7, 7], counts: vec![vec![2.0, 1.0, 2.0, 5.0, 4.0, 5.0, 4.0, 1.0]]}
+        &PolygonsRS {size: vec![7, 7], counts: vec![vec![2.0, 1.0, 2.0, 5.0, 4.0, 5.0, 4.0, 1.0]]}
     )]
-    // There is no method defined for testing the equality of two polygons, the assert_eq is therefore done between PolygonRS.
-    fn rle_to_poly(#[case] rle: &Rle, #[case] expected_polygon: &PolygonRS) {
-        let poly = PolygonRS {
+    // There is no method defined for testing the equality of two polygons, the assert_eq is therefore done between PolygonsRS.
+    fn rle_to_poly(#[case] rle: &Rle, #[case] expected_polygon: &PolygonsRS) {
+        let poly = PolygonsRS {
             size: rle.size.clone(),
-            counts: Polygon::from(rle),
+            counts: Polygons::from(rle),
         };
         assert_eq!(&poly, expected_polygon);
     }

@@ -48,7 +48,7 @@ pub struct Annotation {
     pub category_id: u32,
     /// Segmentation in the annotation file can be a polygon, RLE or encoded RLE.\
     /// Examples of what each segmentation should look like in the JSON file:
-    /// - [`Polygon`]: `"segmentation": [[510.66, 423.01, 511.72, 420.03, ..., 510.45, 423.01]]`
+    /// - [`Polygons`]: `"segmentation": [[510.66, 423.01, 511.72, 420.03, ..., 510.45, 423.01]]`
     /// - [`Rle`]: `"segmentation": {"size": [40, 40], "counts": [245, 5, 35, 5, ..., 5, 35, 5, 1190]}`
     /// - [`EncodedRle`]: `"segmentation": {"size": [480, 640], "counts": "aUh2b0X...BgRU4"}`
     pub segmentation: Segmentation,
@@ -66,9 +66,9 @@ pub struct Annotation {
 pub enum Segmentation {
     Rle(Rle),
     EncodedRle(EncodedRle),
-    Polygon(Polygon),
+    Polygons(Polygons),
     #[serde(skip)]
-    PolygonRS(PolygonRS),
+    PolygonsRS(PolygonsRS),
 }
 
 /// Polygon(s) representing a segmentation mask.
@@ -80,22 +80,22 @@ pub enum Segmentation {
 ///
 /// # Example:
 /// ```rust
-/// # use cocotools::annotations::coco::Polygon;
-/// let poly: Polygon = vec![vec![510.66, 423.01, 511.72, 420.03, 510.45, 423.01], vec![10.0, 10.0, 15.0, 15.0, 10.0, 15.0]];
+/// # use cocotools::annotations::coco::Polygons;
+/// let poly: Polygons = vec![vec![510.66, 423.01, 511.72, 420.03, 510.45, 423.01], vec![10.0, 10.0, 15.0, 15.0, 10.0, 15.0]];
 /// assert_eq!(poly.len(), 2);
 /// assert_eq!(poly[0].len() % 2, 0);
 /// ```
-pub type Polygon = Vec<Vec<f64>>;
+pub type Polygons = Vec<Vec<f64>>;
 
 /// Internal type used to represent polygons.
 ///
 /// It contains the width and height of the image for easier handling, notably when using traits.
 #[cfg_attr(feature = "pyo3", pyclass(get_all))]
 #[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct PolygonRS {
+pub struct PolygonsRS {
     /// Vector with two elements, the width and height of the image corresponding to the segmentation mask.
     pub size: Vec<u32>,
-    /// See [`Polygon`].
+    /// See [`Polygons`].
     pub counts: Vec<Vec<f64>>,
 }
 
@@ -188,8 +188,8 @@ impl HashmapDataset {
 
             // The polygon format from COCO is annoying to deal with as it does not contain the size of the image,
             // it is therefore transformed into a more complete format.
-            if let Segmentation::Polygon(counts) = annotation.segmentation {
-                annotation.segmentation = Segmentation::PolygonRS(PolygonRS {
+            if let Segmentation::Polygons(counts) = annotation.segmentation {
+                annotation.segmentation = Segmentation::PolygonsRS(PolygonsRS {
                     size: if let Some(img) = imgs.get(&img_id) {
                         vec![img.height, img.width]
                     } else {
@@ -347,7 +347,7 @@ impl From<&HashmapDataset> for Dataset {
     }
 }
 
-impl PartialEq for PolygonRS {
+impl PartialEq for PolygonsRS {
     // TODO: redo this function in a clearer way:
     // - Search for the first point of self in other. If it's not there, then return false.
     // - Look left an right of other for the second point of self to know in which direction to rotate (if not there return false).
@@ -399,52 +399,52 @@ impl PartialEq for PolygonRS {
 #[cfg(test)]
 #[allow(clippy::unwrap_used)]
 mod tests {
-    use super::PolygonRS;
+    use super::PolygonsRS;
     use rstest::rstest;
 
     #[rstest]
     #[case::single_polygon(
-        &PolygonRS {size: vec![20, 20], counts: vec![vec![1.1, 2.1, 3.2, 4.2, 5.3, 6.3]] },
-        &PolygonRS {size: vec![20, 20], counts: vec![vec![1.1, 2.1, 3.2, 4.2, 5.3, 6.3]] },
+        &PolygonsRS {size: vec![20, 20], counts: vec![vec![1.1, 2.1, 3.2, 4.2, 5.3, 6.3]] },
+        &PolygonsRS {size: vec![20, 20], counts: vec![vec![1.1, 2.1, 3.2, 4.2, 5.3, 6.3]] },
     )]
     #[case::two_polygons(
-        &PolygonRS {size: vec![20, 20], counts: vec![vec![1.1, 2.1, 3.2, 4.2, 5.3, 6.3], vec![7.4, 8.4, 9.5, 10.5, 11.6, 12.6]]},
-        &PolygonRS {size: vec![20, 20], counts: vec![vec![1.1, 2.1, 3.2, 4.2, 5.3, 6.3], vec![7.4, 8.4, 9.5, 10.5, 11.6, 12.6]]},
+        &PolygonsRS {size: vec![20, 20], counts: vec![vec![1.1, 2.1, 3.2, 4.2, 5.3, 6.3], vec![7.4, 8.4, 9.5, 10.5, 11.6, 12.6]]},
+        &PolygonsRS {size: vec![20, 20], counts: vec![vec![1.1, 2.1, 3.2, 4.2, 5.3, 6.3], vec![7.4, 8.4, 9.5, 10.5, 11.6, 12.6]]},
     )]
     #[case::two_polygons_different_order(
-        &PolygonRS {size: vec![20, 20], counts: vec![vec![1.1, 2.1, 3.2, 4.2, 5.3, 6.3], vec![7.4, 8.4, 9.5, 10.5, 11.6, 12.6]]},
-        &PolygonRS {size: vec![20, 20], counts: vec![vec![7.4, 8.4, 9.5, 10.5, 11.6, 12.6], vec![1.1, 2.1, 3.2, 4.2, 5.3, 6.3]]},
+        &PolygonsRS {size: vec![20, 20], counts: vec![vec![1.1, 2.1, 3.2, 4.2, 5.3, 6.3], vec![7.4, 8.4, 9.5, 10.5, 11.6, 12.6]]},
+        &PolygonsRS {size: vec![20, 20], counts: vec![vec![7.4, 8.4, 9.5, 10.5, 11.6, 12.6], vec![1.1, 2.1, 3.2, 4.2, 5.3, 6.3]]},
     )]
     #[case::different_start_point(
-        &PolygonRS {size: vec![20, 20], counts: vec![vec![1.1, 2.1, 3.2, 4.2, 5.3, 6.3], vec![7.4, 8.4, 9.5, 10.5, 11.6, 12.6]]},
-        &PolygonRS {size: vec![20, 20], counts: vec![vec![11.6, 12.6, 7.4, 8.4, 9.5, 10.5], vec![3.2, 4.2, 5.3, 6.3, 1.1, 2.1]]},
+        &PolygonsRS {size: vec![20, 20], counts: vec![vec![1.1, 2.1, 3.2, 4.2, 5.3, 6.3], vec![7.4, 8.4, 9.5, 10.5, 11.6, 12.6]]},
+        &PolygonsRS {size: vec![20, 20], counts: vec![vec![11.6, 12.6, 7.4, 8.4, 9.5, 10.5], vec![3.2, 4.2, 5.3, 6.3, 1.1, 2.1]]},
     )]
     #[case::reversed_order(
-        &PolygonRS {size: vec![20, 20], counts: vec![vec![1.1, 2.1, 3.2, 4.2, 5.3, 6.3, 7.4, 8.4]]},
-        &PolygonRS {size: vec![20, 20], counts: vec![vec![7.4, 8.4, 5.3, 6.3, 3.2, 4.2, 1.1, 2.1]]},
+        &PolygonsRS {size: vec![20, 20], counts: vec![vec![1.1, 2.1, 3.2, 4.2, 5.3, 6.3, 7.4, 8.4]]},
+        &PolygonsRS {size: vec![20, 20], counts: vec![vec![7.4, 8.4, 5.3, 6.3, 3.2, 4.2, 1.1, 2.1]]},
     )]
-    fn polygon_equality(#[case] poly1: &PolygonRS, #[case] poly2: &PolygonRS) {
+    fn polygon_equality(#[case] poly1: &PolygonsRS, #[case] poly2: &PolygonsRS) {
         assert_eq!(poly1, poly2);
     }
 
     #[rstest]
     #[case::different_length(
-        &PolygonRS {size: vec![20, 20], counts: vec![vec![1.1, 2.1, 3.2, 4.2, 5.3, 6.3, 7.4, 8.4]]},
-        &PolygonRS {size: vec![20, 20], counts: vec![vec![1.1, 2.1, 3.2, 4.2, 5.3, 6.3]]},
+        &PolygonsRS {size: vec![20, 20], counts: vec![vec![1.1, 2.1, 3.2, 4.2, 5.3, 6.3, 7.4, 8.4]]},
+        &PolygonsRS {size: vec![20, 20], counts: vec![vec![1.1, 2.1, 3.2, 4.2, 5.3, 6.3]]},
     )]
     #[case::different_digit(
-        &PolygonRS {size: vec![20, 20], counts: vec![vec![1.1, 2.1, 3.2, 4.2, 5.3, 6.3]]},
-        &PolygonRS {size: vec![20, 20], counts: vec![vec![2.1, 2.1, 3.2, 4.2, 5.3, 6.3]]},
+        &PolygonsRS {size: vec![20, 20], counts: vec![vec![1.1, 2.1, 3.2, 4.2, 5.3, 6.3]]},
+        &PolygonsRS {size: vec![20, 20], counts: vec![vec![2.1, 2.1, 3.2, 4.2, 5.3, 6.3]]},
     )]
     #[case::different_number_of_polygons(
-        &PolygonRS {size: vec![20, 20], counts: vec![vec![1.1, 2.1, 3.2, 4.2, 5.3, 6.3, 7.4, 8.4]]},
-        &PolygonRS {size: vec![20, 20], counts: vec![vec![1.1, 2.1, 3.2, 4.2, 5.3, 6.3, 7.4, 8.4], vec![7.4, 8.4, 9.5, 10.5, 11.6, 12.6]]},
+        &PolygonsRS {size: vec![20, 20], counts: vec![vec![1.1, 2.1, 3.2, 4.2, 5.3, 6.3, 7.4, 8.4]]},
+        &PolygonsRS {size: vec![20, 20], counts: vec![vec![1.1, 2.1, 3.2, 4.2, 5.3, 6.3, 7.4, 8.4], vec![7.4, 8.4, 9.5, 10.5, 11.6, 12.6]]},
     )]
     #[case::x_y_inverted(
-        &PolygonRS {size: vec![20, 20], counts: vec![vec![1.1, 2.1, 3.2, 4.2, 5.3, 6.3]]},
-        &PolygonRS {size: vec![20, 20], counts: vec![vec![2.1, 2.1, 4.2, 3.2, 6.3, 5.3]]},
+        &PolygonsRS {size: vec![20, 20], counts: vec![vec![1.1, 2.1, 3.2, 4.2, 5.3, 6.3]]},
+        &PolygonsRS {size: vec![20, 20], counts: vec![vec![2.1, 2.1, 4.2, 3.2, 6.3, 5.3]]},
     )]
-    fn polygon_inequality(#[case] poly1: &PolygonRS, #[case] poly2: &PolygonRS) {
+    fn polygon_inequality(#[case] poly1: &PolygonsRS, #[case] poly2: &PolygonsRS) {
         assert_ne!(poly1, poly2);
     }
 }
