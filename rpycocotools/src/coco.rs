@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use cocotools::annotations::coco;
 use cocotools::errors::CocoError;
-use cocotools::visualize::display::display_img;
+use cocotools::visualize::display;
 use cocotools::COCO;
 use pyo3::exceptions::{PyKeyError, PyValueError};
 use pyo3::prelude::*;
@@ -80,7 +80,7 @@ impl PyCOCO {
             .map_err(PyMissingIdError::from)?
             .file_name;
 
-        display_img(&img, file_name).unwrap();
+        display::img(&img, file_name).unwrap();
         Ok(())
     }
 }

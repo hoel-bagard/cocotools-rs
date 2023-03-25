@@ -10,7 +10,7 @@ mod errors;
 mod visualize;
 use crate::annotations::COCO;
 use crate::argparse::{Cli, Commands};
-use crate::visualize::display::display_img;
+use crate::visualize::display;
 
 fn main() -> Result<(), Box<dyn error::Error>> {
     let cli = Cli::parse();
@@ -24,11 +24,11 @@ fn main() -> Result<(), Box<dyn error::Error>> {
             let dataset = COCO::new(annotations_file, image_folder)?;
             if let Some(sample_id) = sample_id {
                 let img = dataset.draw_img_anns(*sample_id, true)?;
-                display_img(&img, &dataset.get_img(*sample_id)?.file_name)?;
+                display::img(&img, &dataset.get_img(*sample_id)?.file_name)?;
             } else {
                 for img_entry in dataset.get_imgs() {
                     let img = dataset.draw_img_anns(img_entry.id, true)?;
-                    display_img(&img, &img_entry.file_name)?;
+                    display::img(&img, &img_entry.file_name)?;
                 }
             }
         }

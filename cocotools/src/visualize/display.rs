@@ -16,7 +16,7 @@ use super::draw;
 /// # Errors
 ///
 /// Will return `Err` if `img_id` is not present in the dataset.
-pub fn show_img_anns(
+pub fn img_anns(
     dataset: &HashmapDataset,
     image_folder: &Path,
     img_id: u32,
@@ -25,7 +25,7 @@ pub fn show_img_anns(
     let img_name = &dataset.get_img(img_id)?.file_name;
     let img_path = image_folder.join(img_name);
 
-    show_anns(&img_path, &anns, true)?;
+    self::anns(&img_path, &anns, true)?;
 
     Ok(())
 }
@@ -66,7 +66,7 @@ pub fn load_img(img_path: &PathBuf) -> image::ImageBuffer<image::Rgb<u8>, Vec<u8
 /// # Errors
 ///
 /// Will return `Err` the window cannot be created / updated.
-pub fn display_img(
+pub fn img(
     img: &image::ImageBuffer<image::Rgb<u8>, Vec<u8>>,
     window_name: &str,
 ) -> Result<(), Box<dyn std::error::Error>> {
@@ -102,14 +102,14 @@ pub fn display_img(
 /// ## Errors
 ///
 /// Will return `Err` if the COCO segmentation mask decompression fails.
-pub fn show_anns(
+pub fn anns(
     img_path: &PathBuf,
     anns: &Vec<&Annotation>,
     draw_bbox: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mut img = load_img(img_path);
     draw::anns(&mut img, anns, draw_bbox)?;
-    display_img(
+    self::img(
         &img,
         img_path
             .file_name()
