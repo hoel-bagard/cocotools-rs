@@ -1,4 +1,5 @@
 //! Module containing the structs used to build a COCO format dataset.
+use std::collections::HashSet;
 use std::error::Error;
 use std::fs;
 use std::path::Path;
@@ -148,7 +149,7 @@ pub struct HashmapDataset {
     imgs: HashMap<u32, Image>,
     /// Hashmap that links an image id to the image's annotations
     // Use Rc to reference the annotations directly ?
-    img_to_anns: HashMap<u32, Vec<u32>>, // TODO: Use a HashSet instead of a Vec.
+    img_to_anns: HashMap<u32, HashSet<u32>>,
     pub image_folder: PathBuf,
 }
 
@@ -180,7 +181,7 @@ impl HashmapDataset {
             .collect();
 
         let mut anns: HashMap<u32, Annotation> = HashMap::new();
-        let mut img_to_anns: HashMap<u32, Vec<u32>> = HashMap::new();
+        let mut img_to_anns: HashMap<u32, HashSet<u32>> = HashMap::new();
 
         for mut annotation in dataset.annotations {
             let ann_id = annotation.id;
@@ -203,8 +204,8 @@ impl HashmapDataset {
             anns.insert(annotation.id, annotation);
             img_to_anns
                 .entry(img_id)
-                .or_insert_with(Vec::new)
-                .push(ann_id);
+                .or_insert_with(HashSet::new)
+                .insert(ann_id);
         }
 
         Ok(Self {

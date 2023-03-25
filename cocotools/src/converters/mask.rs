@@ -359,7 +359,7 @@ impl TryFrom<&coco::PolygonsRS> for Mask {
 ///
 /// ## Returns:
 /// - The decompressed mask.
-#[allow(clippy::cast_possible_truncation)]
+#[allow(clippy::cast_possible_truncation, clippy::module_name_repetitions)]
 pub fn mask_from_poly(poly: &coco::Polygons, width: u32, height: u32) -> Result<Mask, MaskError> {
     let mut points_poly: Vec<imageproc::point::Point<i32>> = Vec::new();
     for i in (0..poly[0].len()).step_by(2) {
