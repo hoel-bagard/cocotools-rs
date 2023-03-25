@@ -10,7 +10,7 @@ use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 
 use crate::errors::{self, LoadingError, MissingIdError};
-use crate::visualize::display::load_img;
+use crate::utils::load_img;
 use crate::visualize::draw;
 
 /// COCO dataset as-is, without additionnal functionalities.
@@ -290,7 +290,7 @@ impl HashmapDataset {
         draw_bbox: bool,
     ) -> Result<image::ImageBuffer<image::Rgb<u8>, Vec<u8>>, errors::CocoError> {
         let img_path = self.image_folder.join(&self.get_img(img_id)?.file_name);
-        let mut img = load_img(&img_path);
+        let mut img = load_img(&img_path)?;
         draw::anns(&mut img, &self.get_img_anns(img_id)?, draw_bbox)?;
         Ok(img)
     }
@@ -308,7 +308,7 @@ impl HashmapDataset {
         let img_path = self
             .image_folder
             .join(&self.get_img(ann.image_id)?.file_name);
-        let mut img = load_img(&img_path);
+        let mut img = load_img(&img_path)?;
         draw::anns(&mut img, &vec![ann], draw_bbox)?;
         Ok(())
     }

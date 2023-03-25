@@ -16,7 +16,7 @@ pub enum MissingIdError {
     // InvalidValue(#[from] anyhow::Error),
 }
 
-/// Error returned when a dataset cannot be loaded.
+/// Error returned when a json annotations file cannot be loaded/parsed or when an image cannot be loaded.
 #[derive(Error)]
 pub enum LoadingError {
     #[error("Failed to read the annotation file {1:?}.")]
@@ -25,6 +25,8 @@ pub enum LoadingError {
     Deserialize(#[source] serde_json::Error, PathBuf),
     #[error("Failed to parse the annotation file {1:?}. Found an annotation for an image id not in the dataset.")]
     Parsing(#[source] MissingIdError, PathBuf),
+    #[error(transparent)]
+    Image(#[from] anyhow::Error),
 }
 
 /// Error returned converting a segmentation mask to another format fails.

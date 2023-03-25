@@ -40,6 +40,7 @@
 pub mod annotations;
 pub mod converters;
 pub mod errors;
+pub(crate) mod utils;
 pub mod visualize;
 
 // #[doc(hidden)]
