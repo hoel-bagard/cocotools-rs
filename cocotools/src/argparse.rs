@@ -1,6 +1,8 @@
 use std::path::PathBuf;
 
-use clap::{Parser, Subcommand, ValueEnum};
+use clap::{Parser, Subcommand};
+
+use crate::converters::masks::Segmentation;
 
 #[derive(Parser)]
 #[command(author, version, about)]
@@ -33,11 +35,4 @@ pub enum Commands {
     },
     // Split a COCO dataset in two.
     // Convert to/from PascalVOC, SOLO.
-}
-
-#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
-pub enum Segmentation {
-    Polygon,
-    Rle,
-    EncodedRle,
 }

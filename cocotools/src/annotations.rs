@@ -1,3 +1,5 @@
+//! Module containing the data annotation formats.
+
 pub mod coco;
 #[cfg(feature = "pyo3")]
 pub mod coco_pyo3;

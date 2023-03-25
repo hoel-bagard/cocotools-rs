@@ -1,3 +1,4 @@
+//! Module containing the structs used to build a COCO format dataset.
 use std::error::Error;
 use std::fs;
 use std::path::Path;
@@ -9,31 +10,43 @@ use serde::{Deserialize, Serialize};
 
 use crate::errors::{self, LoadingError, MissingIdError};
 use crate::visualize::display::load_img;
-use crate::visualize::draw::draw_anns;
+use crate::visualize::draw;
 
-#[derive(Deserialize, Serialize, Debug)]
+/// COCO dataset as-is, without additionnal functionalities.
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct Dataset {
     pub images: Vec<Image>,
     pub annotations: Vec<Annotation>,
     pub categories: Vec<Category>,
 }
 
+/// Stores information relating to one image.
 #[cfg_attr(feature = "pyo3", pyclass(get_all))]
-#[derive(Deserialize, Serialize, Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
 pub struct Image {
     pub id: u32,
     pub width: u32,
     pub height: u32,
     pub file_name: String,
+    // "license": int,
+    // "flickr_url": str,
+    // "coco_url": str,
+    // "date_captured": datetime,
 }
 
+/// Object instance annotation for object detection.\
+///
+/// Each object instance annotation contains a series of fields, including the category id and segmentation mask of the object.\
+/// In [the original COCO dataset](https://cocodataset.org/#home), the segmentation format depends on whether the instance represents a single object (`iscrowd=0` in which case polygons are used) or a collection of objects (`iscrowd=1` in which case RLE is used). Note that a single object (iscrowd=0) may require multiple polygons, for example if occluded.\
+/// Crowd annotations (`iscrowd=1`) are used to label large groups of objects (e.g. a crowd of people). In addition, an enclosing bounding box is provided for each object (box coordinates are measured from the top left image corner and are 0-indexed).\
+/// Finally, the categories field of the annotation structure stores the mapping of category id to category and supercategory names.
 #[cfg_attr(feature = "pyo3", pyclass(get_all))]
-#[derive(Clone, Deserialize, Serialize, Debug)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct Annotation {
     pub id: u32,
     pub image_id: u32,
     pub category_id: u32,
-    /// Segmentation can be a polygon, RLE or encoded RLE.\
+    /// Segmentation in the annotation file can be a polygon, RLE or encoded RLE.\
     /// Examples of what each segmentation should look like in the JSON file:
     /// - [`Polygon`]: `"segmentation": [[510.66, 423.01, 511.72, 420.03, ..., 510.45, 423.01]]`
     /// - [`Rle`]: `"segmentation": {"size": [40, 40], "counts": [245, 5, 35, 5, ..., 5, 35, 5, 1190]}`
@@ -48,7 +61,7 @@ pub struct Annotation {
 }
 
 // #[cfg_attr(feature = "pyo3", pyclass)]
-#[derive(Clone, Deserialize, Serialize, Debug)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 #[serde(untagged)]
 pub enum Segmentation {
     Rle(Rle),
@@ -58,33 +71,57 @@ pub enum Segmentation {
     PolygonRS(PolygonRS),
 }
 
+/// Polygon(s) representing a segmentation mask.
+///
+/// A Segmentation mask might require multiple polygons if the mask is in multiple parts (in case of partial occlusion for example).
+///
+/// Each `Vec<f64>` represents an enclosed area belonging to the segmentation mask.
+/// The length of each vector must be even. Every 2*n value represents the x coordinates of the nth point, while the 2*n+1 represents its y coordinates.
+///
+/// # Example:
+/// ```rust
+/// # use cocotools::annotations::coco::Polygon;
+/// let poly: Polygon = vec![vec![510.66, 423.01, 511.72, 420.03, 510.45, 423.01], vec![10.0, 10.0, 15.0, 15.0, 10.0, 15.0]];
+/// assert_eq!(poly.len(), 2);
+/// assert_eq!(poly[0].len() % 2, 0);
+/// ```
 pub type Polygon = Vec<Vec<f64>>;
 
-/// Internal type used to represent a polygon. It contains the width and height of the image for easier handling, notably when using traits.
+/// Internal type used to represent polygons.
+///
+/// It contains the width and height of the image for easier handling, notably when using traits.
 #[cfg_attr(feature = "pyo3", pyclass(get_all))]
-#[derive(Clone, Deserialize, Serialize, Debug)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct PolygonRS {
+    /// Vector with two elements, the width and height of the image corresponding to the segmentation mask.
     pub size: Vec<u32>,
+    /// See [`Polygon`].
     pub counts: Vec<Vec<f64>>,
 }
 
-/// Size is [height, width]
+/// Segmentation mask compressed as a [Run-length encoding](https://en.wikipedia.org/wiki/Run-length_encoding).
 #[cfg_attr(feature = "pyo3", pyclass(get_all))]
-#[derive(Clone, Deserialize, Serialize, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, Deserialize, Serialize)]
 pub struct Rle {
+    /// Vector with two elements, the height and width of the image corresponding to the segmentation mask.
     pub size: Vec<u32>,
     pub counts: Vec<u32>,
 }
 
+/// Segmentation mask compressed as a [Run-length encoding](https://en.wikipedia.org/wiki/Run-length_encoding) and then encoded into a string.
+///
+/// For the encoding process, see [here](https://github.com/cocodataset/cocoapi/blob/master/common/maskApi.c#L204).
 #[cfg_attr(feature = "pyo3", pyclass(get_all))]
-#[derive(Clone, Deserialize, Serialize, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq, Deserialize, Serialize)]
 pub struct EncodedRle {
+    /// Vector with two elements, the height and width of the image corresponding to the segmentation mask.
     pub size: Vec<u32>,
     pub counts: String,
 }
 
+/// Bounding box enclosing an object.
 #[cfg_attr(feature = "pyo3", pyclass(get_all))]
-#[derive(Clone, Deserialize, Serialize, Debug)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct Bbox {
     pub left: f64,
     pub top: f64,
@@ -92,28 +129,31 @@ pub struct Bbox {
     pub height: f64,
 }
 
+/// Category of an annotation.
 #[cfg_attr(feature = "pyo3", pyclass(get_all))]
-#[derive(Deserialize, Serialize, Debug, Clone)]
+#[derive(Clone, Debug, Eq, PartialEq, Deserialize, Serialize)]
 pub struct Category {
     pub id: u32,
     pub name: String,
     pub supercategory: String,
 }
 
-/// Transforms the COCO dataset into a hashmap version where the ids are keys.
-#[derive(Debug)]
+/// COCO dataset represented as a hashmap where the hashmap's keys are the ids.
+///
+/// This struct provides methods to make working with the dataset easier and more efficient.
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct HashmapDataset {
     anns: HashMap<u32, Annotation>,
     cats: HashMap<u32, Category>,
     imgs: HashMap<u32, Image>,
     /// Hashmap that links an image id to the image's annotations
     // Use Rc to reference the annotations directly ?
-    img_to_anns: HashMap<u32, Vec<u32>>,
+    img_to_anns: HashMap<u32, Vec<u32>>, // TODO: Use a HashSet instead of a Vec.
     pub image_folder: PathBuf,
 }
 
 impl HashmapDataset {
-    /// Creates a `HashmapDataset` from a standard COCO one.
+    /// Loads a COCO dataset from the annotation file and the image folder.
     ///
     /// # Errors
     ///
@@ -127,9 +167,6 @@ impl HashmapDataset {
         let dataset: Dataset = serde_json::from_str(&annotations_file_content)
             .map_err(|err| LoadingError::Deserialize(err, annotations_path.clone()))?;
 
-        let mut anns: HashMap<u32, Annotation> = HashMap::new();
-        let mut img_to_anns: HashMap<u32, Vec<u32>> = HashMap::new();
-
         let cats = dataset
             .categories
             .into_iter()
@@ -141,6 +178,9 @@ impl HashmapDataset {
             .into_iter()
             .map(|image| (image.id, image))
             .collect();
+
+        let mut anns: HashMap<u32, Annotation> = HashMap::new();
+        let mut img_to_anns: HashMap<u32, Vec<u32>> = HashMap::new();
 
         for mut annotation in dataset.annotations {
             let ann_id = annotation.id;
@@ -176,7 +216,7 @@ impl HashmapDataset {
         })
     }
 
-    /// Return a result containing the annotation struct corresponding to the given id.
+    /// Return the annotation corresponding to the given annotation id.
     ///
     /// # Errors
     ///
@@ -193,15 +233,16 @@ impl HashmapDataset {
         self.img_to_anns
             .entry(ann.image_id)
             .or_insert_with(Vec::new)
-            .push(ann.id);
+            .push(ann.id); // TODO: This might lead in duplicated ann id. Use a set.
     }
 
+    /// Returns all the annotations of the dataset.
     #[must_use]
     pub fn get_anns(&self) -> Vec<&Annotation> {
         self.anns.values().collect()
     }
 
-    /// Return a result containing the category struct corresponding to the given id.
+    /// Return the category corresponding to the given category id.
     ///
     /// # Errors
     ///
@@ -212,6 +253,7 @@ impl HashmapDataset {
             .ok_or(MissingIdError::Category(cat_id))
     }
 
+    /// Returns all the categories of the dataset.
     #[must_use]
     pub fn get_cats(&self) -> Vec<&Category> {
         self.cats.values().collect()
@@ -226,11 +268,13 @@ impl HashmapDataset {
         self.imgs.get(&img_id).ok_or(MissingIdError::Image(img_id))
     }
 
+    /// Returns all the images of the dataset.
     #[must_use]
     pub fn get_imgs(&self) -> Vec<&Image> {
         self.imgs.values().collect()
     }
-    /// Return a result containing the annotations for the given image id.
+
+    /// Return the annotations for the given image id.
     ///
     /// # Errors
     ///
@@ -255,7 +299,7 @@ impl HashmapDataset {
     ) -> Result<image::ImageBuffer<image::Rgb<u8>, Vec<u8>>, errors::CocoError> {
         let img_path = self.image_folder.join(&self.get_img(img_id)?.file_name);
         let mut img = load_img(&img_path);
-        draw_anns(&mut img, &self.get_img_anns(img_id)?, draw_bbox)?;
+        draw::anns(&mut img, &self.get_img_anns(img_id)?, draw_bbox)?;
         Ok(img)
     }
 
@@ -273,7 +317,7 @@ impl HashmapDataset {
             .image_folder
             .join(&self.get_img(ann.image_id)?.file_name);
         let mut img = load_img(&img_path);
-        draw_anns(&mut img, &vec![ann], draw_bbox)?;
+        draw::anns(&mut img, &vec![ann], draw_bbox)?;
         Ok(())
     }
 
@@ -304,7 +348,7 @@ impl From<&HashmapDataset> for Dataset {
 }
 
 impl PartialEq for PolygonRS {
-    // Redo this function in a clearer way:
+    // TODO: redo this function in a clearer way:
     // - Search for the first point of self in other. If it's not there, then return false.
     // - Look left an right of other for the second point of self to know in which direction to rotate (if not there return false).
     // - Match elements one by one.

@@ -1,15 +1,25 @@
+use clap::ValueEnum;
 use image;
 use imageproc::contours;
 use imageproc::drawing;
 use ndarray::{s, Array2, ArrayViewMut, ShapeBuilder};
 
 use crate::annotations::coco;
-use crate::argparse::Segmentation;
 use crate::errors::MaskError;
 
 /// A boolean mask indicating for each pixel whether it belongs to the object or not.
 pub type Mask = Array2<u8>;
 
+/// Segmentation types.
+#[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
+pub enum Segmentation {
+    Polygon,
+    Rle,
+    EncodedRle,
+}
+
+/// Converts all the segmentation masks in the dataset to the desired type.
+///
 /// # Errors
 ///
 /// Will return `Err` if the conversion failed.
@@ -17,6 +27,7 @@ pub fn convert_coco_segmentation(
     dataset: &mut coco::HashmapDataset,
     target_segmentation: Segmentation,
 ) -> Result<(), MaskError> {
+    // TODO: Try to avoid the clonning and the add_ann
     let anns: Vec<coco::Annotation> = dataset.get_anns().into_iter().cloned().collect();
     for ann in anns {
         let converted_segmentation = match &ann.segmentation {
@@ -45,7 +56,7 @@ pub fn convert_coco_segmentation(
         };
         dataset.add_ann(&coco::Annotation {
             segmentation: converted_segmentation,
-            ..ann.clone()
+            ..ann
         });
     }
     Ok(())
@@ -265,7 +276,6 @@ impl From<&coco::Rle> for Mask {
 ///
 /// ## Returns:
 /// - The RLE corresponding to the mask.
-///
 // The implementation makes a clone of the mask, which is expensive. This could be avoided by taking a mutable reference and reversing the axes again after the for loop.
 // However asking for a mutable reference might be confusing.
 #[allow(clippy::cast_possible_truncation)]
