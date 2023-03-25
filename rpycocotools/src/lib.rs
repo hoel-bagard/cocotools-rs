@@ -21,6 +21,6 @@ fn anns(_py: Python<'_>, module: &PyModule) -> PyResult<()> {
 fn rpycocotools(_py: Python<'_>, module: &PyModule) -> PyResult<()> {
     module.add_class::<coco::PyCOCO>()?;
     module.add_wrapped(wrap_pymodule!(anns))?;
-    module.add_wrapped(wrap_pymodule!(mask::mask))?;
+    module.add_wrapped(wrap_pymodule!(mask::py_mask))?;
     Ok(())
 }

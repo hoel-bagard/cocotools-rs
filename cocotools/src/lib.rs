@@ -24,14 +24,14 @@
 //! ```
 //! # use std::path::PathBuf;
 //! use cocotools::COCO;
-//! use cocotools::converters::masks;
+//! use cocotools::converters::mask;
 //! use cocotools::annotations::coco;
 //!
 //! let annotations_file_path = PathBuf::from("../data_samples/coco_25k/annotations.json");
 //! let image_folder_path = PathBuf::from("../data_samples/coco_25k/images");
 //! let coco_dataset = COCO::new(&annotations_file_path, &image_folder_path)?;
 //! let anns = coco_dataset.get_img_anns(174482)?;
-//! let mask = masks::Mask::try_from(&anns[0].segmentation)?;
+//! let mask = mask::Mask::try_from(&anns[0].segmentation)?;
 //! assert_eq!(mask.ncols(), 388);
 //! assert_eq!(mask.nrows(), 640);
 //! # Ok::<(), Box<dyn std::error::Error>>(())

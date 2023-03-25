@@ -38,7 +38,7 @@ fn main() -> Result<(), Box<dyn error::Error>> {
             output_path,
         } => {
             let mut dataset = COCO::new(annotations_path, &PathBuf::from("N/A"))?;
-            converters::masks::convert_coco_segmentation(&mut dataset, *target_segmentation)?;
+            converters::mask::convert_coco_segmentation(&mut dataset, *target_segmentation)?;
             let output_path = output_path
                 .as_ref()
                 .map_or_else(|| annotations_path, |output_path| output_path);

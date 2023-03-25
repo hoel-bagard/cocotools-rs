@@ -5,7 +5,7 @@ use imageproc::{drawing::draw_hollow_rect_mut, rect::Rect};
 use rand::Rng;
 
 use crate::annotations::coco;
-use crate::converters::masks;
+use crate::converters::mask;
 use crate::errors::MaskError;
 
 /// Draw the bounding box on the image.
@@ -60,7 +60,7 @@ pub fn bbox(img: &mut image::RgbImage, bbox: &coco::Bbox, color: image::Rgb<u8>)
 /// draw::mask(&mut img, &mask, color);
 /// ```
 #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
-pub fn mask(img: &mut image::RgbImage, mask: &masks::Mask, color: image::Rgb<u8>) {
+pub fn mask(img: &mut image::RgbImage, mask: &mask::Mask, color: image::Rgb<u8>) {
     let mask_alpha: f64 = 0.4;
     let img_alpha = 1.0 - mask_alpha;
     for (image::Rgb([r, g, b]), mask_value) in zip(img.pixels_mut(), mask.iter()) {
@@ -140,7 +140,7 @@ pub fn anns(
         if draw_bbox {
             self::bbox(img, &ann.bbox, color);
         }
-        let mask = masks::Mask::try_from(&ann.segmentation)?;
+        let mask = mask::Mask::try_from(&ann.segmentation)?;
         self::mask(img, &mask, color);
     }
 

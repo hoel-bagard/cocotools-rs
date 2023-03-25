@@ -6,14 +6,14 @@ use pyo3::prelude::*;
 use pyo3::pyfunction;
 
 use cocotools::annotations::coco;
-use cocotools::converters::masks;
+use cocotools::converters::mask;
 
 use crate::errors::PyMaskError;
 
 fn decode<T>(py: Python<'_>, encoded_mask: T) -> Result<&PyArray2<u8>, PyMaskError>
 where
-    T: TryInto<masks::Mask>,
-    <T as TryInto<masks::Mask>>::Error: Into<PyMaskError>,
+    T: TryInto<mask::Mask>,
+    <T as TryInto<mask::Mask>>::Error: Into<PyMaskError>,
 {
     match encoded_mask.try_into() {
         Ok(mask) => {
@@ -30,7 +30,8 @@ where
 }
 
 #[pymodule]
-pub fn mask(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
+#[pyo3(name = "mask")]
+pub fn py_mask(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(decode_rle, m)?)?;
     m.add_function(wrap_pyfunction!(decode_encoded_rle, m)?)?;
     m.add_function(wrap_pyfunction!(decode_poly_rs, m)?)?;
@@ -60,7 +61,7 @@ fn decode_poly(
     width: u32,
     height: u32,
 ) -> PyResult<&PyArray2<u8>> {
-    let mask = masks::mask_from_poly(&poly, width, height).map_err(PyMaskError::from)?;
+    let mask = mask::mask_from_poly(&poly, width, height).map_err(PyMaskError::from)?;
     let shape = (mask.shape()[1], mask.shape()[0]);
     let mask = mask.into_shape(shape).unwrap();
     let mask =
