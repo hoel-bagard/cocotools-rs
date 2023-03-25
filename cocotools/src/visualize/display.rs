@@ -38,9 +38,7 @@ pub fn img(
 ) -> Result<(), Box<dyn std::error::Error>> {
     let img_width = img.width() as usize;
     let img_height = img.height() as usize;
-    let mut buffer: Vec<u32> = vec![0x00FF_FFFF; img_width * img_height];
-    img.to_buffer(&mut buffer);
-    // draw::rgb_to_buffer(img, &mut buffer);
+    let buffer = img.to_buffer();
     let mut window = Window::new(
         format!("{window_name} - Press Q or ESC to exit").as_str(),
         img_width,
