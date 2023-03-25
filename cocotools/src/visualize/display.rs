@@ -9,7 +9,7 @@ extern crate minifb;
 
 use minifb::{Key, Window, WindowOptions};
 
-use super::draw::{draw_anns, draw_rgb_to_buffer};
+use super::draw;
 
 /// Visualize the annotations for the given image id.
 ///
@@ -73,7 +73,7 @@ pub fn display_img(
     let img_width = img.width() as usize;
     let img_height = img.height() as usize;
     let mut buffer: Vec<u32> = vec![0x00FF_FFFF; img_width * img_height];
-    draw_rgb_to_buffer(img, &mut buffer);
+    draw::rgb_to_buffer(img, &mut buffer);
     let mut window = Window::new(
         format!("{window_name} - Press Q or ESC to exit").as_str(),
         img_width,
@@ -108,7 +108,7 @@ pub fn show_anns(
     draw_bbox: bool,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mut img = load_img(img_path);
-    draw_anns(&mut img, anns, draw_bbox)?;
+    draw::anns(&mut img, anns, draw_bbox)?;
     display_img(
         &img,
         img_path

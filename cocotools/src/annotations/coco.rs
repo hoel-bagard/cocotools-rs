@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::errors::{self, LoadingError, MissingIdError};
 use crate::visualize::display::load_img;
-use crate::visualize::draw::draw_anns;
+use crate::visualize::draw;
 
 /// COCO dataset as-is, without additionnal functionalities.
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
@@ -299,7 +299,7 @@ impl HashmapDataset {
     ) -> Result<image::ImageBuffer<image::Rgb<u8>, Vec<u8>>, errors::CocoError> {
         let img_path = self.image_folder.join(&self.get_img(img_id)?.file_name);
         let mut img = load_img(&img_path);
-        draw_anns(&mut img, &self.get_img_anns(img_id)?, draw_bbox)?;
+        draw::anns(&mut img, &self.get_img_anns(img_id)?, draw_bbox)?;
         Ok(img)
     }
 
@@ -317,7 +317,7 @@ impl HashmapDataset {
             .image_folder
             .join(&self.get_img(ann.image_id)?.file_name);
         let mut img = load_img(&img_path);
-        draw_anns(&mut img, &vec![ann], draw_bbox)?;
+        draw::anns(&mut img, &vec![ann], draw_bbox)?;
         Ok(())
     }
 

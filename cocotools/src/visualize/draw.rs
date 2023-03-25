@@ -18,16 +18,16 @@ use crate::errors::MaskError;
 /// ## Example
 ///
 /// ```rust
-/// # use cocotools::annotations::coco::Bbox;
-/// # use cocotools::visualize::draw::draw_bbox;
 /// # use image::RgbImage;
+/// # use cocotools::annotations::coco::Bbox;
+/// use cocotools::visualize::draw;
 /// let mut img = RgbImage::new(60, 60);
 /// let bbox = Bbox{left: 40.0, top: 40.0, width: 10.0, height: 10.0};
 /// let color = image::Rgb([255, 0, 0]);
-/// draw_bbox(&mut img, &bbox, color);
+/// bbox(&mut img, &bbox, color);
 /// ```
 #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
-pub fn draw_bbox(img: &mut image::RgbImage, bbox: &coco::Bbox, color: image::Rgb<u8>) {
+pub fn bbox(img: &mut image::RgbImage, bbox: &coco::Bbox, color: image::Rgb<u8>) {
     let rect =
         Rect::at(bbox.left as i32, bbox.top as i32).of_size(bbox.width as u32, bbox.height as u32);
 
@@ -44,10 +44,10 @@ pub fn draw_bbox(img: &mut image::RgbImage, bbox: &coco::Bbox, color: image::Rgb
 /// ## Example
 ///
 /// ```rust
-/// # use cocotools::annotations::coco::Bbox;
-/// # use cocotools::visualize::draw::draw_mask;
 /// # use image::RgbImage;
 /// # use ndarray::array;
+/// # use cocotools::annotations::coco::Bbox;
+/// use cocotools::visualize::draw;
 /// let mask = &array![[0, 0, 0, 0, 0, 0, 0],
 ///                    [0, 0, 1, 1, 1, 0, 0],
 ///                    [0, 0, 1, 1, 1, 0, 0],
@@ -57,10 +57,10 @@ pub fn draw_bbox(img: &mut image::RgbImage, bbox: &coco::Bbox, color: image::Rgb
 ///                    [0, 0, 0, 0, 0, 0, 0]];
 /// let mut img = RgbImage::new(7, 7);
 /// let color = image::Rgb([255, 0, 0]);
-/// draw_mask(&mut img, &mask, color);
+/// mask(&mut img, &mask, color);
 /// ```
 #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
-pub fn draw_mask(img: &mut image::RgbImage, mask: &masks::Mask, color: image::Rgb<u8>) {
+pub fn mask(img: &mut image::RgbImage, mask: &masks::Mask, color: image::Rgb<u8>) {
     let mask_alpha: f64 = 0.4;
     let img_alpha = 1.0 - mask_alpha;
     for (image::Rgb([r, g, b]), mask_value) in zip(img.pixels_mut(), mask.iter()) {
@@ -83,8 +83,8 @@ pub fn draw_mask(img: &mut image::RgbImage, mask: &masks::Mask, color: image::Rg
 ///
 /// ```rust
 /// # use cocotools::annotations::coco;
-/// # use cocotools::visualize::draw::draw_anns;
 /// # use image::RgbImage;
+/// use cocotools::visualize::draw;
 /// let mut img = RgbImage::new(40, 40);
 /// let anns = vec![
 ///     coco::Annotation {
@@ -123,13 +123,13 @@ pub fn draw_mask(img: &mut image::RgbImage, mask: &masks::Mask, color: image::Rg
 ///         iscrowd: 0,
 ///     },
 /// ];
-/// draw_anns(&mut img, &anns.iter().collect(), true);
+/// draw::anns(&mut img, &anns.iter().collect(), true);
 /// ```
 ///
 /// ## Errors
 ///
 /// Will return `Err` if the segmentation annotations could not be decompressed.
-pub fn draw_anns(
+pub fn anns(
     img: &mut image::ImageBuffer<image::Rgb<u8>, Vec<u8>>,
     anns: &Vec<&coco::Annotation>,
     draw_bbox: bool,
@@ -138,10 +138,10 @@ pub fn draw_anns(
     for ann in anns {
         let color = image::Rgb([rng.gen::<u8>(), rng.gen::<u8>(), rng.gen::<u8>()]);
         if draw_bbox {
-            self::draw_bbox(img, &ann.bbox, color);
+            self::bbox(img, &ann.bbox, color);
         }
         let mask = masks::Mask::try_from(&ann.segmentation)?;
-        draw_mask(img, &mask, color);
+        self::mask(img, &mask, color);
     }
 
     Ok(())
@@ -153,15 +153,15 @@ pub fn draw_anns(
 /// ## Example
 ///
 /// ```ignore
-/// # use cocotools::visualize::draw::draw_rgb_to_buffer;
+/// # use cocotools::visualize::draw::rgb_to_buffer;
 /// # use image::RgbImage;
 /// let img = RgbImage::new(40, 40);
 /// let img_width = img.width() as usize;
 /// let img_height = img.height() as usize;
 /// let mut buffer: Vec<u32> = vec![0x00FF_FFFF; img_width * img_height];
-/// draw_rgb_to_buffer(img, &mut buffer);
+/// rgb_to_buffer(img, &mut buffer);
 /// ```
-pub(super) fn draw_rgb_to_buffer(img: &image::RgbImage, dst: &mut [u32]) {
+pub(super) fn rgb_to_buffer(img: &image::RgbImage, dst: &mut [u32]) {
     for x in 0..img.width() {
         for y in 0..img.height() {
             let pixel = img.get_pixel(x, y);

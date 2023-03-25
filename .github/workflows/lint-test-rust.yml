@@ -62,7 +62,7 @@ jobs:
           -W clippy::nursery \
           -W clippy::unwrap_used \
           -W clippy::expect_used  \
-          -A clippy::module_name_repetitions \
+          # -A clippy::module_name_repetitions \
           -A dead_code
       # - name: Run miri
       #   run: |
