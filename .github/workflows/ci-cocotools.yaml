@@ -1,15 +1,16 @@
 name: Rust continuous integration
 
 on:
+  workflow_dispatch:
   push:
     branches: [ master ]
     paths:
       - cocotools/**
-      - .github/workflows/lint-test-rust.yml
+      - .github/workflows/ci-cocotools.yaml
   pull_request:
     paths:
       - cocotools/**
-      - .github/workflows/lint-test-rust.yml
+      - .github/workflows/ci-cocotools.yaml
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
