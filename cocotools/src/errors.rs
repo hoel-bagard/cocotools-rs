@@ -39,6 +39,8 @@ pub enum MaskError {
     StrConversion(#[source] std::str::Utf8Error, Vec<u8>),
     #[error("Failed to convert an image mask to an ndarray version of it.")]
     ImageToNDArrayConversion(#[source] ndarray::ShapeError),
+    #[error(transparent)]
+    Other(#[from] anyhow::Error),
 }
 
 /// Enum grouping all the error types from the crate.

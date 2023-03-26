@@ -1,3 +1,5 @@
+use anyhow::{Context, Result};
+use cocotools::errors::MaskError;
 use numpy::ndarray::Array;
 use numpy::ndarray::ShapeBuilder;
 use numpy::IntoPyArray;
@@ -12,16 +14,27 @@ use crate::errors::PyMaskError;
 
 fn decode<T>(py: Python<'_>, encoded_mask: T) -> Result<&PyArray2<u8>, PyMaskError>
 where
-    T: TryInto<mask::Mask>,
-    <T as TryInto<mask::Mask>>::Error: Into<PyMaskError>,
+    mask::Mask: TryFrom<T>,
+    <mask::Mask as TryFrom<T>>::Error: Into<PyMaskError>,
 {
     match mask::Mask::try_from(encoded_mask) {
         Ok(mask) => {
             let shape = (mask.shape()[1], mask.shape()[0]);
-            let mask = mask.into_shape(shape).unwrap();
-            let mask =
-                Array::from_shape_vec(mask.raw_dim().f(), mask.t().iter().copied().collect())
-                    .unwrap();
+            let mask = mask
+                .into_shape(shape)
+                .with_context(|| {
+                        "Could not reshape the mask from shape when doing post process to convert to numpy array.".to_string()
+                })
+                .map_err(MaskError::Other)?;
+            let mask = Array::from_shape_vec(
+                mask.raw_dim().f(),
+                mask.t().iter().copied().collect(),
+            )
+            .with_context(|| {
+                "Could not convert the mask to fortran array when converting to numpy array."
+                    .to_string()
+            })
+            .map_err(MaskError::Other)?;
             let mask = mask.into_pyarray(py);
             Ok(mask)
         }
@@ -60,11 +73,18 @@ fn decode_poly(
     poly: coco::Polygons,
     width: u32,
     height: u32,
-) -> PyResult<&PyArray2<u8>> {
+) -> Result<&PyArray2<u8>, PyMaskError> {
     let mask = mask::mask_from_poly(&poly, width, height).map_err(PyMaskError::from)?;
     let shape = (mask.shape()[1], mask.shape()[0]);
-    let mask = mask.into_shape(shape).unwrap();
-    let mask =
-        Array::from_shape_vec(mask.raw_dim().f(), mask.t().iter().copied().collect()).unwrap();
+    let mask = mask.into_shape(shape).with_context(|| {
+            "Could not reshape the mask from shape when doing post process to convert to numpy array.".to_string()
+        })
+        .map_err(MaskError::Other)?;
+    let mask = Array::from_shape_vec(mask.raw_dim().f(), mask.t().iter().copied().collect())
+        .with_context(|| {
+            "Could not convert the mask to fortran array when converting to numpy array."
+                .to_string()
+        })
+        .map_err(MaskError::Other)?;
     Ok(mask.into_pyarray(py))
 }

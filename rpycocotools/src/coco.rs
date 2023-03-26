@@ -64,6 +64,11 @@ impl PyCOCO {
             .collect())
     }
 
+    /// Visualize an image and its annotations.
+    ///
+    /// ## Errors
+    ///
+    /// TODO
     pub fn visualize_img(&self, img_id: u32) -> PyResult<()> {
         let img = self
             .0
