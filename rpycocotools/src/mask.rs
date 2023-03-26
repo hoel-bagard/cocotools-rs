@@ -42,6 +42,7 @@ where
     }
 }
 
+#[allow(clippy::module_name_repetitions, clippy::missing_errors_doc)]
 #[pymodule]
 #[pyo3(name = "mask")]
 pub fn py_mask(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
@@ -67,6 +68,7 @@ fn decode_poly_rs(py: Python<'_>, encoded_mask: coco::PolygonsRS) -> PyResult<&P
     Ok(decode(py, &coco::Segmentation::PolygonsRS(encoded_mask))?)
 }
 
+#[allow(clippy::needless_pass_by_value)]
 #[pyfunction]
 fn decode_poly(
     py: Python<'_>,
