@@ -15,7 +15,7 @@ where
     T: TryInto<mask::Mask>,
     <T as TryInto<mask::Mask>>::Error: Into<PyMaskError>,
 {
-    match encoded_mask.try_into() {
+    match mask::Mask::try_from(encoded_mask) {
         Ok(mask) => {
             let shape = (mask.shape()[1], mask.shape()[0]);
             let mask = mask.into_shape(shape).unwrap();
