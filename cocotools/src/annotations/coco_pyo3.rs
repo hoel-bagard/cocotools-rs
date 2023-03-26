@@ -129,14 +129,14 @@ impl EncodedRle {
 }
 
 #[pymethods]
-impl PolygonRS {
+impl PolygonsRS {
     #[new]
     fn new(size: Vec<u32>, counts: Vec<Vec<f64>>) -> Self {
         Self { size, counts }
     }
 
     fn __repr__(&self) -> String {
-        format!("PolygonRS(counts={:?})", self.counts)
+        format!("PolygonsRS(counts={:?})", self.counts)
     }
 }
 
@@ -145,8 +145,8 @@ impl Segmentation {
         match self {
             Segmentation::Rle(rle) => rle.__repr__(),
             Segmentation::EncodedRle(encoded_rle) => encoded_rle.__repr__(),
-            Segmentation::Polygon(poly) => format!("Polygon(counts={:?})", poly),
-            Segmentation::PolygonRS(poly) => poly.__repr__(),
+            Segmentation::Polygons(poly) => format!("Polygons(counts={:?})", poly),
+            Segmentation::PolygonsRS(poly) => poly.__repr__(),
         }
     }
 }
@@ -156,8 +156,8 @@ impl IntoPy<PyObject> for Segmentation {
         match self {
             Segmentation::Rle(rle) => rle.into_py(py),
             Segmentation::EncodedRle(encoded_rle) => encoded_rle.into_py(py),
-            Segmentation::Polygon(poly) => poly.into_py(py),
-            Segmentation::PolygonRS(poly) => poly.into_py(py),
+            Segmentation::Polygons(poly) => poly.into_py(py),
+            Segmentation::PolygonsRS(poly) => poly.into_py(py),
         }
     }
 }

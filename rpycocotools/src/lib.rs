@@ -10,7 +10,7 @@ fn anns(_py: Python<'_>, module: &PyModule) -> PyResult<()> {
     module.add_class::<cocotools::annotations::coco::Annotation>()?;
     module.add_class::<cocotools::annotations::coco::Bbox>()?;
     module.add_class::<cocotools::annotations::coco::Category>()?;
-    module.add_class::<cocotools::annotations::coco::PolygonRS>()?;
+    module.add_class::<cocotools::annotations::coco::PolygonsRS>()?;
     module.add_class::<cocotools::annotations::coco::Rle>()?;
     module.add_class::<cocotools::annotations::coco::EncodedRle>()?;
     module.add_class::<cocotools::annotations::coco::Image>()?;
@@ -21,6 +21,6 @@ fn anns(_py: Python<'_>, module: &PyModule) -> PyResult<()> {
 fn rpycocotools(_py: Python<'_>, module: &PyModule) -> PyResult<()> {
     module.add_class::<coco::PyCOCO>()?;
     module.add_wrapped(wrap_pymodule!(anns))?;
-    module.add_wrapped(wrap_pymodule!(mask::mask))?;
+    module.add_wrapped(wrap_pymodule!(mask::py_mask))?;
     Ok(())
 }

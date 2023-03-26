@@ -22,48 +22,52 @@ impl PyCOCO {
         annotations_path: &PyUnicode,
         image_folder_path: &PyUnicode,
     ) -> PyResult<Self> {
-        let annotations_path = PathBuf::from(annotations_path.to_str().unwrap());
-        let image_folder_path = PathBuf::from(image_folder_path.to_str().unwrap());
+        let annotations_path = PathBuf::from(annotations_path.to_str()?);
+        let image_folder_path = PathBuf::from(image_folder_path.to_str()?);
         let dataset =
             COCO::new(annotations_path, image_folder_path).map_err(PyLoadingError::from)?;
         Ok(Self(dataset))
     }
 
     /// Order is non-deterministic
-    fn get_imgs(&self, py: Python<'_>) -> Vec<Py<coco::Image>> {
+    fn get_imgs(&self, py: Python<'_>) -> PyResult<Vec<Py<coco::Image>>> {
         self.0
             .get_imgs()
             .into_iter()
-            .map(|img| Py::new(py, img.clone()).unwrap())
+            .map(|img| Py::new(py, img.clone()))
             .collect()
     }
 
-    fn get_anns(&self, py: Python<'_>) -> Vec<Py<coco::Annotation>> {
+    fn get_anns(&self, py: Python<'_>) -> PyResult<Vec<Py<coco::Annotation>>> {
         self.0
             .get_anns()
             .into_iter()
-            .map(|ann| Py::new(py, ann.clone()).unwrap())
+            .map(|ann| Py::new(py, ann.clone()))
             .collect()
     }
 
-    fn get_cats(&self, py: Python<'_>) -> Vec<Py<coco::Category>> {
+    fn get_cats(&self, py: Python<'_>) -> PyResult<Vec<Py<coco::Category>>> {
         self.0
             .get_cats()
             .into_iter()
-            .map(|cat| Py::new(py, cat.clone()).unwrap())
+            .map(|cat| Py::new(py, cat.clone()))
             .collect()
     }
 
     fn get_img_anns(&self, img_id: u32, py: Python<'_>) -> PyResult<Vec<Py<coco::Annotation>>> {
-        Ok(self
-            .0
+        self.0
             .get_img_anns(img_id)
             .map_err(PyMissingIdError::from)?
             .into_iter()
-            .map(|ann| Py::new(py, ann.clone()).unwrap())
-            .collect())
+            .map(|ann| Py::new(py, ann.clone()))
+            .collect()
     }
 
+    /// Visualize an image and its annotations.
+    ///
+    /// ## Errors
+    ///
+    /// Will return `Err` if the image cannot be drawn (potentially due to it not being in the dataset) or cannot be displayed.
     pub fn visualize_img(&self, img_id: u32) -> PyResult<()> {
         let img = self
             .0
@@ -80,7 +84,8 @@ impl PyCOCO {
             .map_err(PyMissingIdError::from)?
             .file_name;
 
-        display::img(&img, file_name).unwrap();
+        display::img(&img, file_name)
+            .map_err(|err| PyValueError::new_err(format!("Failed to display the image: {err}")))?;
         Ok(())
     }
 }

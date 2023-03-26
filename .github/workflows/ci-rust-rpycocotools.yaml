@@ -1,0 +1,52 @@
+name: rpycocotools CI
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ master ]
+    paths:
+      - rpycocotools/**
+      - .github/workflows/ci-rust-rpycocotools.yaml
+  pull_request:
+    paths:
+      - rpycocotools/**
+      - .github/workflows/ci-rust-rpycocotools.yaml
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: rpycocotools
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Cache Rust
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: rpycocotools
+
+      - name: Run rustfmt
+        run: cargo fmt --all -- --check
+
+      - name: Run clippy
+        env:
+          RUSTFLAGS: -C debuginfo=0  # Do not produce debug symbols to keep memory usage down
+        run : |
+          cargo clippy -- -D warnings \
+          -W clippy::pedantic \
+          -W clippy::nursery \
+          -W clippy::unwrap_used \
+          -W clippy::expect_used  \
+          -A dead_code \
+          -A clippy::redundant_pub_crate

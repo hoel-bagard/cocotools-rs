@@ -5,7 +5,7 @@ use imageproc::{drawing::draw_hollow_rect_mut, rect::Rect};
 use rand::Rng;
 
 use crate::annotations::coco;
-use crate::converters::masks;
+use crate::converters::mask;
 use crate::errors::MaskError;
 
 /// Draw the bounding box on the image.
@@ -60,7 +60,7 @@ pub fn bbox(img: &mut image::RgbImage, bbox: &coco::Bbox, color: image::Rgb<u8>)
 /// draw::mask(&mut img, &mask, color);
 /// ```
 #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
-pub fn mask(img: &mut image::RgbImage, mask: &masks::Mask, color: image::Rgb<u8>) {
+pub fn mask(img: &mut image::RgbImage, mask: &mask::Mask, color: image::Rgb<u8>) {
     let mask_alpha: f64 = 0.4;
     let img_alpha = 1.0 - mask_alpha;
     for (image::Rgb([r, g, b]), mask_value) in zip(img.pixels_mut(), mask.iter()) {
@@ -109,7 +109,7 @@ pub fn mask(img: &mut image::RgbImage, mask: &masks::Mask, color: image::Rgb<u8>
 ///         id: 2,
 ///         image_id: 1,
 ///         category_id: 2,
-///         segmentation: coco::Segmentation::PolygonRS(coco::PolygonRS {
+///         segmentation: coco::Segmentation::PolygonsRS(coco::PolygonsRS {
 ///             size: vec![40, 40],
 ///             counts: vec![vec![4.0, 4.0, 24.0, 4.0, 24.0, 24.0, 4.0, 24.0]],
 ///         }),
@@ -140,15 +140,18 @@ pub fn anns(
         if draw_bbox {
             self::bbox(img, &ann.bbox, color);
         }
-        let mask = masks::Mask::try_from(&ann.segmentation)?;
+        let mask = mask::Mask::try_from(&ann.segmentation)?;
         self::mask(img, &mask, color);
     }
 
     Ok(())
 }
 
-// TODO: implement this as a trait when adding support for grayscale.
-/// Writes `img` into a a buffer.
+pub(super) trait ToBuffer {
+    fn to_buffer(&self) -> Vec<u32>;
+}
+
+/// Write `img` into a a buffer (vector) and returns it.
 ///
 /// ## Example
 ///
@@ -156,25 +159,26 @@ pub fn anns(
 /// # use cocotools::visualize::draw::rgb_to_buffer;
 /// # use image::RgbImage;
 /// let img = RgbImage::new(40, 40);
-/// let img_width = img.width() as usize;
-/// let img_height = img.height() as usize;
-/// let mut buffer: Vec<u32> = vec![0x00FF_FFFF; img_width * img_height];
-/// rgb_to_buffer(img, &mut buffer);
+/// let buffer = img.to_buffer()
 /// ```
-pub(super) fn rgb_to_buffer(img: &image::RgbImage, dst: &mut [u32]) {
-    for x in 0..img.width() {
-        for y in 0..img.height() {
-            let pixel = img.get_pixel(x, y);
+impl ToBuffer for image::ImageBuffer<image::Rgb<u8>, Vec<u8>> {
+    fn to_buffer(&self) -> Vec<u32> {
+        let mut buffer: Vec<u32> = vec![0x00FF_FFFF; (self.width() * self.height()) as usize];
+        for x in 0..self.width() {
+            for y in 0..self.height() {
+                let pixel = self.get_pixel(x, y);
 
-            // Convert pixel to 0RGB
-            let raw = 0xFF00_0000
-                | (u32::from(pixel[0]) << 16)
-                | (u32::from(pixel[1]) << 8)
-                | u32::from(pixel[2]);
+                // Convert pixel to 0RGB
+                let raw = 0xFF00_0000
+                    | (u32::from(pixel[0]) << 16)
+                    | (u32::from(pixel[1]) << 8)
+                    | u32::from(pixel[2]);
 
-            // Calculate the index in the 1D dist buffer.
-            let index = x + y * img.width();
-            dst[index as usize] = raw;
+                // Calculate the index in the 1D dist buffer.
+                let index = x + y * self.width();
+                buffer[index as usize] = raw;
+            }
         }
+        buffer
     }
 }
