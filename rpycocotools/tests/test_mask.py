@@ -47,6 +47,5 @@ def test_decode_rle(rle: rpycocotools.anns.Rle, expected_mask: npt.NDArray[np.ui
     assert np.all(decoded_mask == expected_mask)
 
 
-@pytest.mark.xfail(reason="Not fixed yet.")
 def test_import() -> None:
     from rpycocotools.mask import decode_encoded_rle
