@@ -6,5 +6,13 @@
 #
 maturin==0.14.10
     # via rpycocotools (pyproject.toml)
+numpy==1.24.2
+    # via
+    #   rpycocotools (pyproject.toml)
+    #   rpycocotools-stubs
+rpycocotools-stubs==0.0.3
+    # via rpycocotools (pyproject.toml)
 tomli==2.0.1
     # via maturin
+typing-extensions==4.5.0
+    # via rpycocotools-stubs
