@@ -1,7 +1,6 @@
-import pytest
+import rpycocotools
 from hypothesis import given
 from hypothesis import strategies as st
-import rpycocotools
 
 u32_max = 4_294_967_295
 u32_st =  st.integers(min_value=0, max_value=u32_max)
@@ -55,7 +54,7 @@ def test_get_img_anns(coco_dataset: rpycocotools.COCO) -> None:
 @given(u32_st, u32_st, u32_st, u32_st)
 def test_bbox_create(left: int, top: int, width: int, height: int) -> None:
     bbox = rpycocotools.anns.Bbox(left, top, width, height)
-    # assert bbox == bbox
+    assert isinstance(bbox, rpycocotools.anns.Bbox)
 
 
 @given(u32_st, u32_st, u32_st, u32_st)
