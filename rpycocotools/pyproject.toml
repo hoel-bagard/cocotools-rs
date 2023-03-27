@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "rpycocotools"
-version = "0.0.2"
+version = "0.0.3"
 authors = [{name="Bagard Hoel"}]
 description = "Package providing utilities to load, manipulate, convert and visualize COCO format datasets."
 keywords = ["COCO", "COCO dataset"]
@@ -23,7 +23,7 @@ classifiers = [
     "Programming Language :: Python :: Implementation :: PyPy",
 ]
 license = {text="MIT"}
-dependencies = ["numpy", "rpycocotools-stubs"]
+dependencies = ["numpy", "rpycocotools-stubs==0.0.3"]
 requires-python = ">=3.8"
 
 [project.urls]
@@ -37,7 +37,7 @@ sdist-include = ["LICENSE", "README.md"]
 [project.optional-dependencies]
 build = ["maturin"]
 test = ["pytest", "hypothesis"]
-dev = ["pip-tools", "pre-commit", "ruff"]
+dev = ["pip-tools", "ruff", "pyright"]
 
 [tool.pytest.ini_options]
 # https://docs.pytest.org/en/7.1.x/explanation/goodpractices.html

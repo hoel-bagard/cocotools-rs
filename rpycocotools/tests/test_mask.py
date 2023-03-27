@@ -1,9 +1,9 @@
-import rpycocotools
-import pytest
 import numpy as np
 import numpy.typing as npt
-from rpycocotools import mask
+import pytest
+import rpycocotools
 from hypothesis import strategies as st
+from rpycocotools import mask
 
 u32_max = 4_294_967_295
 u32_st =  st.integers(min_value=0, max_value=u32_max)
@@ -14,6 +14,7 @@ def test_access_mask(coco_dataset: rpycocotools.COCO) -> None:
     assert isinstance(ann.segmentation, rpycocotools.anns.PolygonsRS)
     mask = rpycocotools.mask.decode_poly_rs(ann.segmentation)
     assert np.sum(mask) == 423
+
 
 def test_create_mask() -> None:
     rpycocotools.anns.Rle(size=[4,4], counts=[5, 2, 2, 2, 5])
@@ -40,7 +41,7 @@ def test_convert_mask(rle: rpycocotools.anns.Rle, expected_encoded_rle: rpycocot
                                        [0, 0, 1, 1, 1, 0, 0],
                                        [0, 0, 1, 1, 1, 0, 0],
                                        [0, 0, 1, 1, 1, 0, 0],
-                                       [0, 0, 0, 0, 0, 0, 0]]))
+                                       [0, 0, 0, 0, 0, 0, 0]])),
                           ])
 def test_decode_rle(rle: rpycocotools.anns.Rle, expected_mask: npt.NDArray[np.uint8]) -> None:
     decoded_mask = mask.decode_rle(rle)
@@ -48,4 +49,4 @@ def test_decode_rle(rle: rpycocotools.anns.Rle, expected_mask: npt.NDArray[np.ui
 
 
 def test_import() -> None:
-    from rpycocotools.mask import decode_encoded_rle  # pyright: ignore[reportUnusedImport]
+    from rpycocotools.mask import decode_encoded_rle  # noqa: F401 # pyright: ignore[reportUnusedImport]

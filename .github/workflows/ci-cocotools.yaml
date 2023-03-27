@@ -1,4 +1,4 @@
-name: Rust continuous integration
+name: cocotools CI
 
 on:
   workflow_dispatch:

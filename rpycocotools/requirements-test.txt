@@ -17,16 +17,20 @@ hypothesis==6.70.0
 iniconfig==2.0.0
     # via pytest
 numpy==1.24.2
-    # via rpycocotools (pyproject.toml)
+    # via
+    #   rpycocotools (pyproject.toml)
+    #   rpycocotools-stubs
 packaging==23.0
     # via pytest
 pluggy==1.0.0
     # via pytest
 pytest==7.2.1
     # via rpycocotools (pyproject.toml)
-rpycocotools-stubs==0.0.1
+rpycocotools-stubs==0.0.3
     # via rpycocotools (pyproject.toml)
 sortedcontainers==2.4.0
     # via hypothesis
 tomli==2.0.1
     # via pytest
+typing-extensions==4.5.0
+    # via rpycocotools-stubs
