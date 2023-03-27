@@ -10,6 +10,7 @@ fn anns(_py: Python<'_>, module: &PyModule) -> PyResult<()> {
     module.add_class::<cocotools::annotations::coco::Annotation>()?;
     module.add_class::<cocotools::annotations::coco::Bbox>()?;
     module.add_class::<cocotools::annotations::coco::Category>()?;
+    module.add_class::<coco::PyPolygons>()?;
     module.add_class::<cocotools::annotations::coco::PolygonsRS>()?;
     module.add_class::<cocotools::annotations::coco::Rle>()?;
     module.add_class::<cocotools::annotations::coco::EncodedRle>()?;

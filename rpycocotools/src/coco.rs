@@ -119,3 +119,19 @@ impl PyCOCO {
         Ok(())
     }
 }
+
+#[pyclass(name = "Polygons", module = "rpycocotools.anns")]
+#[derive(Debug)]
+pub struct PyPolygons(cocotools::annotations::coco::Polygons);
+
+#[pymethods]
+impl PyPolygons {
+    #[new]
+    fn new(counts: Vec<Vec<f64>>) -> Self {
+        Self(counts)
+    }
+
+    fn __repr__(&self) -> String {
+        format!("Polygons(counts={:?})", self.0)
+    }
+}
