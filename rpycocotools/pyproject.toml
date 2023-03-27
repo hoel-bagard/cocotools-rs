@@ -37,7 +37,7 @@ sdist-include = ["LICENSE", "README.md"]
 [project.optional-dependencies]
 build = ["maturin"]
 test = ["pytest", "hypothesis"]
-dev = ["pip-tools", "pre-commit", "ruff"]
+dev = ["pip-tools", "ruff", "pyright"]
 
 [tool.pytest.ini_options]
 # https://docs.pytest.org/en/7.1.x/explanation/goodpractices.html
