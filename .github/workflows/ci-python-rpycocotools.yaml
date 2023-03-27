@@ -1,0 +1,43 @@
+name: Python CI
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ master ]
+    paths:
+      - "rpycocotools/**.py"
+      - .github/workflows/ci-python-rpycocotools.yaml
+      - rpycocotools/pyproject.toml
+  pull_request:
+    paths:
+      - "rpycocotools/**.py"
+      - .github/workflows/ci-python-rpycocotools.yaml
+      - rpycocotools/pyproject.toml
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python-lint:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: rpycocotools
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+          cache: "pip"
+      - uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles("requirements-dev.txt", "requirements-test.txt") }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      - run: pip install -r requirements-dev.txt -r requirements-test.txt
+      - run: ruff .
+      - run: pyright .
+      - run: python -m pytest . -vv
