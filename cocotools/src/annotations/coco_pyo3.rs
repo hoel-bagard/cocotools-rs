@@ -46,6 +46,42 @@ impl Category {
     }
 }
 
+#[pymethods]
+impl Image {
+    #[new]
+    fn new(id: u32, width: u32, height: u32, file_name: String) -> Self {
+        Self {
+            id,
+            width,
+            height,
+            file_name,
+        }
+    }
+
+    fn __repr__(&self) -> String {
+        format!(
+            "Image(id={}, width='{}', height='{}', file_name='{}')",
+            self.id, self.width, self.height, self.file_name
+        )
+    }
+
+    fn __richcmp__(&self, other: &Self, op: CompareOp, py: Python<'_>) -> PyObject {
+        match op {
+            CompareOp::Eq => (self.id == other.id
+                && self.width == other.width
+                && self.height == other.height
+                && self.file_name == other.file_name)
+                .into_py(py),
+            CompareOp::Ne => (self.id != other.id
+                || self.width != other.width
+                || self.height != other.height
+                || self.file_name != other.file_name)
+                .into_py(py),
+            _ => py.NotImplemented(),
+        }
+    }
+}
+
 #[pyclass]
 struct BboxIter {
     inner: std::vec::IntoIter<f64>,

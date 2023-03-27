@@ -29,6 +29,36 @@ impl PyCOCO {
         Ok(Self(dataset))
     }
 
+    fn get_img(&self, py: Python<'_>, img_id: u32) -> PyResult<Py<coco::Image>> {
+        Py::new(
+            py,
+            self.0
+                .get_img(img_id)
+                .map_err(PyMissingIdError::from)?
+                .clone(),
+        )
+    }
+
+    fn get_ann(&self, py: Python<'_>, ann_id: u32) -> PyResult<Py<coco::Annotation>> {
+        Py::new(
+            py,
+            self.0
+                .get_ann(ann_id)
+                .map_err(PyMissingIdError::from)?
+                .clone(),
+        )
+    }
+
+    fn get_cat(&self, py: Python<'_>, cat_id: u32) -> PyResult<Py<coco::Category>> {
+        Py::new(
+            py,
+            self.0
+                .get_cat(cat_id)
+                .map_err(PyMissingIdError::from)?
+                .clone(),
+        )
+    }
+
     /// Order is non-deterministic
     fn get_imgs(&self, py: Python<'_>) -> PyResult<Vec<Py<coco::Image>>> {
         self.0
@@ -87,5 +117,21 @@ impl PyCOCO {
         display::img(&img, file_name)
             .map_err(|err| PyValueError::new_err(format!("Failed to display the image: {err}")))?;
         Ok(())
+    }
+}
+
+#[pyclass(name = "Polygons", module = "rpycocotools.anns")]
+#[derive(Debug)]
+pub struct PyPolygons(cocotools::annotations::coco::Polygons);
+
+#[pymethods]
+impl PyPolygons {
+    #[new]
+    fn new(counts: Vec<Vec<f64>>) -> Self {
+        Self(counts)
+    }
+
+    fn __repr__(&self) -> String {
+        format!("Polygons(counts={:?})", self.0)
     }
 }
