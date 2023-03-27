@@ -43,5 +43,6 @@ jobs:
       - run: pip install -r requirements-build.txt -r requirements-dev.txt -r requirements-test.txt
       - run: ruff .
       - run: pyright .
-      - run: maturin develop
+      - run: maturin build
+      - run: pip install target/wheels/*.whl
       - run: python -m pytest . -vv
