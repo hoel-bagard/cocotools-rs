@@ -6,11 +6,13 @@ on:
     branches: [ master ]
     paths:
       - "rpycocotools/**.py"
+      - "rpycocotools/**.rs"
       - .github/workflows/ci-python-rpycocotools.yaml
       - rpycocotools/pyproject.toml
   pull_request:
     paths:
       - "rpycocotools/**.py"
+      - "rpycocotools/**.rs"
       - .github/workflows/ci-python-rpycocotools.yaml
       - rpycocotools/pyproject.toml
 
