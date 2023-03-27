@@ -1,4 +1,4 @@
-name: rpycocotools python CI
+name: rpycocotools rust CI
 
 on:
   workflow_dispatch:
