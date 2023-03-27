@@ -40,7 +40,8 @@ jobs:
       #     key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements-dev.txt', '**/requirements-test.txt') }}
       #     restore-keys: |
       #       ${{ runner.os }}-pip-
-      - run: pip install -r requirements-dev.txt -r requirements-test.txt
+      - run: pip install -r requirements-build.txt -r requirements-dev.txt -r requirements-test.txt
       - run: ruff .
       - run: pyright .
+      - run: maturin develop
       - run: python -m pytest . -vv
