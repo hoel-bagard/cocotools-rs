@@ -6,5 +6,10 @@ __pycache__/
 # Python testing
 .hypothesis/
 
+# Docs
+docs/_build
+docs/_static
+docs/_templates
+
 venv
 target
