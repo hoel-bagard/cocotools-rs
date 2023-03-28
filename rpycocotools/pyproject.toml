@@ -38,6 +38,7 @@ sdist-include = ["LICENSE", "README.md"]
 build = ["maturin"]
 test = ["pytest", "hypothesis"]
 dev = ["pip-tools", "ruff", "pyright"]
+doc = ["sphinx"]
 
 [tool.pytest.ini_options]
 # https://docs.pytest.org/en/7.1.x/explanation/goodpractices.html
