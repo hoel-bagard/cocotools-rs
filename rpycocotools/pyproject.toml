@@ -38,6 +38,7 @@ sdist-include = ["LICENSE", "README.md"]
 build = ["maturin"]
 test = ["pytest", "hypothesis"]
 dev = ["pip-tools", "ruff", "pyright"]
+doc = ["sphinx", "sphinx-rtd-theme", "sphinx-hoverxref", "sphinx-codeautolink"]
 
 [tool.pytest.ini_options]
 # https://docs.pytest.org/en/7.1.x/explanation/goodpractices.html
@@ -49,6 +50,7 @@ addopts = [
 [tool.ruff]
 select = ["A", "B", "C4", "D", "E", "F", "N", "I", "Q", "UP", "ANN", "S", "BLE", "COM", "DTZ", "PIE", "PT", "RSE", "SIM", "ARG", "PTH", "PL", "TRY", "NPY", "RUF", "W"]
 ignore = ["D1", "D401", "D204", "D203", "D213", "S101", "PLR2004"]
+exclude = ["docs/conf.py"]
 line-length = 120
 
 [tool.ruff.isort]

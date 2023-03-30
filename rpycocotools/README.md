@@ -1,4 +1,4 @@
-# Rpycocotools
+# rpycocotools
 
 [![PyPI](https://img.shields.io/pypi/v/rpycocotools?style=flat)](https://pypi.org/project/rpycocotools)
 [![PyPI - Implementation](https://img.shields.io/pypi/implementation/rpycocotools?style=flat)](https://pypi.org/project/rpycocotools)
@@ -6,8 +6,9 @@
 [![PyPI - Downloads](https://img.shields.io/pypi/dm/rpycocotools?style=flat-square)](https://pypistats.org/packages/rpycocotools)
 [![PyPI - License](https://img.shields.io/pypi/l/rpycocotools?style=flat)](https://opensource.org/licenses/MIT)
 
-Tool to handle COCO-like data in python. This repo is very much a wip.
+The `rpycocotools` package provides tools to load, manipulate, convert and visualize COCO format datasets.
 
+This package aims to provide similar functionalities to the [pycocotools package](https://pypi.org/project/pycocotools/) / [cocoapi](https://github.com/cocodataset/cocoapi) with additionnal utilities such as conversion between dataset formats. It also aims to have a better documentation and a more readable implementation.
 
 ### Build
 
