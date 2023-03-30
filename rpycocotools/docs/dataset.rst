@@ -190,7 +190,7 @@ COCO
     A Segmentation mask might require multiple polygons if the mask is in multiple parts (in case of partial occlusion for example).
 
     :param list[int] size: List with two elements, the height and width of the image associated to the segmentation mask.
-    :param list[list[float]] counts:
+    :param list[list[float]] counts`:
       Each list[float] represents an enclosed area belonging to the segmentation mask.
       The length of each list must be even. Every 2*n value represents the x coordinates of the nth point, while the 2*n+1 represents its y coordinates.
 
@@ -206,9 +206,9 @@ COCO
 
         :type: list[list[float]]
 
-.. class:: Rle(size: list[int], counts: list[int]) -> None
+.. class:: RLE(size: list[int], counts: list[int]) -> None
 
-    Segmentation mask compressed as a [Run-length encoding](https://en.wikipedia.org/wiki/Run-length_encoding).
+    Segmentation mask compressed as a [Run-Length Encoding](https://en.wikipedia.org/wiki/Run-length_encoding).
 
     :param list[int] size: List with two elements, the height and width of the image corresponding to the segmentation mask.
     :param list[int] counts: The rle representation of the mask.
@@ -225,9 +225,9 @@ COCO
 
         :type: list[int]
 
-.. class:: EncodedRle(size: list[int], counts: str) -> None
+.. class:: EncodedRLE(size: list[int], counts: str) -> None
 
-    Segmentation mask compressed as a [Run-length encoding](https://en.wikipedia.org/wiki/Run-length_encoding) and then encoded into a string.
+    Segmentation mask compressed as a [Run-Length Encoding](https://en.wikipedia.org/wiki/Run-length_encoding) and then encoded into a string.
 
     :param list[int] size: List with two elements, the height and width of the image corresponding to the segmentation mask.
     :param str counts: The encoded RLE representation of the mask.
