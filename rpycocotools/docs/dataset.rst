@@ -1,7 +1,7 @@
 COCO
 ====
 
-.. class:: COCO(annotation_path: str, image_folder_path: str) -> None
+.. class:: rpycocotools.COCO(annotation_path: str, image_folder_path: str) -> None
 
     Create the COCO dataset object from the annotation file and the image folder.
 
@@ -75,7 +75,7 @@ COCO
     :raises ValueError: If the image cannot be drawn (potentially due to it not being in the dataset) or cannot be displayed.
 
 
-.. class:: Annotation(id: int, image_id: int, category_id: int, segmentation: Polygons | PolygonsRS | Rle | EncodedRle, area: float, bbox: Bbox, iscrowd: int) -> None
+.. class:: rpycocotools.anns.Annotation(id: int, image_id: int, category_id: int, segmentation: Polygons | PolygonsRS | Rle | EncodedRle, area: float, bbox: Bbox, iscrowd: int) -> None
 
     Create an annotation used for object detection tasks.
 
@@ -92,7 +92,7 @@ COCO
     :param Bbox bbox: The bounding box of the annotation.
     :param int iscrowd: The iscrowd flag for the annotation, which indicates if the annotation represents a group of objects or not.
 
-.. class:: Category(id: int, name: str, supercategory: str) -> None
+.. class:: rpycocotools.anns.Category(id: int, name: str, supercategory: str) -> None
 
     Creates a category used for COCO object detection tasks.
 
@@ -118,7 +118,7 @@ COCO
 
         :type: str
 
-.. class:: Bbox(left: float, top: float, width: float, height: float) -> None
+.. class:: rpycocotools.anns.Bbox(left: float, top: float, width: float, height: float) -> None
 
     A bounding box used for object detection tasks.
 
@@ -151,7 +151,7 @@ COCO
 
         :type: float
 
-.. class:: Image(id: int, width: int, height: int, file_name: str) -> None
+.. class:: rpycocotools.anns.Image(id: int, width: int, height: int, file_name: str) -> None
 
     A COCO image entry.
 
@@ -184,7 +184,7 @@ COCO
 
         :type: str
 
-.. class:: PolygonsRS(size: list[int], counts: list[list[float]]) -> None
+.. class:: rpycocotools.anns.PolygonsRS(size: list[int], counts: list[list[float]]) -> None
 
     Polygon(s) representing a segmentation mask.
     A Segmentation mask might require multiple polygons if the mask is in multiple parts (in case of partial occlusion for example).
@@ -206,7 +206,7 @@ COCO
 
         :type: list[list[float]]
 
-.. class:: RLE(size: list[int], counts: list[int]) -> None
+.. class:: rpycocotools.anns.RLE(size: list[int], counts: list[int]) -> None
 
     Segmentation mask compressed as a [Run-Length Encoding](https://en.wikipedia.org/wiki/Run-length_encoding).
 
@@ -225,7 +225,7 @@ COCO
 
         :type: list[int]
 
-.. class:: EncodedRLE(size: list[int], counts: str) -> None
+.. class:: rpycocotools.anns.EncodedRLE(size: list[int], counts: str) -> None
 
     Segmentation mask compressed as a [Run-Length Encoding](https://en.wikipedia.org/wiki/Run-length_encoding) and then encoded into a string.
 

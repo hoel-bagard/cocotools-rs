@@ -90,3 +90,29 @@ fn decode_poly(
         .map_err(MaskError::Other)?;
     Ok(mask.into_pyarray(py))
 }
+
+// TODO: Go back to wrapping all the cocotools structs in order to be able to implement traits ?
+// pub trait Decode {
+//     fn decode(self, py: Python<'_>) -> Result<&PyArray2<u8>, PyMaskError>;
+// }
+
+// #[pymethods]
+// impl Decode for coco::Rle {
+//     fn decode(self, py: Python<'_>) -> Result<&PyArray2<u8>, PyMaskError> {
+//         Ok(decode(py, &coco::Segmentation::Rle(self))?)
+//     }
+// }
+
+// #[pymethods]
+// impl Decode for coco::EncodedRle {
+//     fn decode(self, py: Python<'_>) -> Result<&PyArray2<u8>, PyMaskError> {
+//         Ok(decode(py, &coco::Segmentation::EncodedRle(self))?)
+//     }
+// }
+
+// #[pymethods]
+// impl Decode for coco::PolygonsRS {
+//     fn decode(self, py: Python<'_>) -> Result<&PyArray2<u8>, PyMaskError> {
+//         Ok(decode(py, &coco::Segmentation::PolygonsRS(self))?)
+//     }
+// }

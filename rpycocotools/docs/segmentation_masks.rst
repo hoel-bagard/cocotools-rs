@@ -20,36 +20,36 @@ The advantage of this format if that he polygons can be decoded into a mask of t
 Mask conversions
 ----------------
 
-.. function:: decode_rle(encoded_mask: Rle) -> npt.NDArray[np.uint8]
+.. function:: rpycocotools.mask.decode_rle(encoded_mask: Rle) -> npt.NDArray[np.uint8]
 
-  Decode an RLE mask to a numpy array.
+  Decode an RLE mask to a :class:`numpy.ndarray`.
 
   :param Rle encoded_mask: The run-length encoded mask.
   :return: The decoded mask as a NumPy array.
-  :rtype: npt.NDArray[np.uint8]
+  :rtype: ``npt.NDArray[np.uint8]``
 
-.. function:: decode_encoded_rle(encoded_mask: EncodedRle) -> npt.NDArray[np.uint8]
+.. function:: rpycocotools.mask.decode_encoded_rle(encoded_mask: EncodedRle) -> npt.NDArray[np.uint8]
 
-  Decode an encoded RLE mask to a numpy array.
+  Decode an encoded RLE mask to a :class:`numpy.ndarray`.
 
   :param EncodedRle encoded_mask: The encoded run-length encoded mask.
   :return: The decoded mask as a NumPy array.
-  :rtype: npt.NDArray[np.uint8]
+  :rtype: ``npt.NDArray[np.uint8]``
 
-.. function:: decode_poly_rs(encoded_mask: PolygonsRS) -> npt.NDArray[np.uint8]
+.. function:: rpycocotools.mask.decode_poly_rs(encoded_mask: PolygonsRS) -> npt.NDArray[np.uint8]
 
-  Decode a polygons mask (including image size) representation to a numpy array.
+  Decode a polygons mask (including image size) representation to a :class:`numpy.ndarray`.
 
-  :param PolygonsRS encoded_mask: The polygon in RLE format.
+  :param PolygonsRS encoded_mask: The polygon in :class:`RLE` format.
   :return: The decoded mask as a NumPy array.
-  :rtype: npt.NDArray[np.uint8]
+  :rtype: ``npt.NDArray[np.uint8]``
 
-.. function:: decode_poly(poly: Polygons, width: int, height: int) -> npt.NDArray[np.uint8]
+.. function:: rpycocotools.mask.decode_poly(poly: Polygons, width: int, height: int) -> npt.NDArray[np.uint8]
 
-  Decode a polygons mask representation to a numpy array.
+  Decode a polygons mask representation to a :class:`numpy.ndarray`.
 
   :param Polygons poly: The `Polygons` to composing the mask.
   :param int width: The width of the image corresponding to the polygons
   :param int height: The height of the image corresponding to the polygons
   :return: The binary mask of the decoded `Polygons`.
-  :rtype: npt.NDArray[np.uint8]
+  :rtype: ``npt.NDArray[np.uint8]``
