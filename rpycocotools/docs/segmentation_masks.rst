@@ -25,6 +25,7 @@ Mask conversions
   Decode an RLE mask to a :class:`numpy.ndarray`.
 
   :param Rle encoded_mask: The run-length encoded mask.
+  :raise ValueError: If the mask conversion failed.
   :return: The decoded mask as a NumPy array.
   :rtype: ``npt.NDArray[np.uint8]``
 
@@ -33,6 +34,7 @@ Mask conversions
   Decode an encoded RLE mask to a :class:`numpy.ndarray`.
 
   :param EncodedRle encoded_mask: The encoded run-length encoded mask.
+  :raise ValueError: If the mask conversion failed.
   :return: The decoded mask as a NumPy array.
   :rtype: ``npt.NDArray[np.uint8]``
 
@@ -41,6 +43,7 @@ Mask conversions
   Decode a polygons mask (including image size) representation to a :class:`numpy.ndarray`.
 
   :param PolygonsRS encoded_mask: The polygon in :class:`RLE` format.
+  :raise ValueError: If the mask conversion failed.
   :return: The decoded mask as a NumPy array.
   :rtype: ``npt.NDArray[np.uint8]``
 
@@ -51,5 +54,6 @@ Mask conversions
   :param Polygons poly: The `Polygons` to composing the mask.
   :param int width: The width of the image corresponding to the polygons
   :param int height: The height of the image corresponding to the polygons
+  :raise ValueError: If the mask conversion failed.
   :return: The binary mask of the decoded `Polygons`.
   :rtype: ``npt.NDArray[np.uint8]``

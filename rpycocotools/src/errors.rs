@@ -1,4 +1,5 @@
 // TODO: Try to do a macro to avoid all the boiler plate.
+// TODO: Expose the errors to the python api ? https://pyo3.rs/main/exception
 use pyo3::exceptions::{PyKeyError, PyValueError};
 use pyo3::prelude::*;
 
