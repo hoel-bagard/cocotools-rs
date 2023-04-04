@@ -27,30 +27,26 @@ pub fn convert_coco_segmentation(
     dataset: &mut coco::HashmapDataset,
     target_segmentation: Segmentation,
 ) -> Result<(), MaskError> {
+    use coco::Segmentation::{EncodedRle, Polygons, PolygonsRS, Rle};
+    use Segmentation as S;
     for ann in dataset.anns.values_mut() {
         let converted_segmentation = match &ann.segmentation {
-            coco::Segmentation::Rle(rle) => match target_segmentation {
-                Segmentation::Rle => coco::Segmentation::Rle(rle.clone()),
-                Segmentation::EncodedRle => {
-                    coco::Segmentation::EncodedRle(coco::EncodedRle::try_from(rle)?)
-                }
-                Segmentation::Polygons => coco::Segmentation::Polygons(coco::Polygons::from(rle)),
+            Rle(rle) => match target_segmentation {
+                S::Rle => Rle(rle.clone()),
+                S::EncodedRle => EncodedRle(coco::EncodedRle::try_from(rle)?),
+                S::Polygons => Polygons(coco::Polygons::from(rle)),
             },
-            coco::Segmentation::EncodedRle(encoded_rle) => match target_segmentation {
-                Segmentation::Rle => coco::Segmentation::Rle(coco::Rle::from(encoded_rle)),
-                Segmentation::EncodedRle => coco::Segmentation::EncodedRle(encoded_rle.clone()),
-                Segmentation::Polygons => coco::Segmentation::Polygons(coco::Polygons::from(
-                    &coco::Rle::from(encoded_rle),
-                )),
+            EncodedRle(encoded_rle) => match target_segmentation {
+                S::Rle => Rle(coco::Rle::from(encoded_rle)),
+                S::EncodedRle => EncodedRle(encoded_rle.clone()),
+                S::Polygons => Polygons(coco::Polygons::from(&coco::Rle::from(encoded_rle))),
             },
-            coco::Segmentation::PolygonsRS(poly) => match target_segmentation {
-                Segmentation::Rle => coco::Segmentation::Rle(coco::Rle::try_from(poly)?),
-                Segmentation::EncodedRle => coco::Segmentation::EncodedRle(
-                    coco::EncodedRle::try_from(&coco::Rle::from(&Mask::try_from(poly)?))?,
-                ),
-                Segmentation::Polygons => coco::Segmentation::Polygons(poly.counts.clone()),
+            PolygonsRS(poly) => match target_segmentation {
+                S::Rle => Rle(coco::Rle::try_from(poly)?),
+                S::EncodedRle => EncodedRle(coco::EncodedRle::try_from(poly)?),
+                S::Polygons => Polygons(poly.counts.clone()),
             },
-            coco::Segmentation::Polygons(_) => unimplemented!(),
+            Polygons(_) => unimplemented!(),
         };
         ann.segmentation = converted_segmentation;
     }
@@ -121,6 +117,13 @@ impl TryFrom<&coco::PolygonsRS> for coco::Rle {
     // It would also avoid having slightly different results from the reference implementation.
     fn try_from(poly: &coco::PolygonsRS) -> Result<Self, Self::Error> {
         Ok(Self::from(&Mask::try_from(poly)?))
+    }
+}
+
+impl TryFrom<&coco::PolygonsRS> for coco::EncodedRle {
+    type Error = MaskError;
+    fn try_from(poly: &coco::PolygonsRS) -> Result<Self, Self::Error> {
+        Self::try_from(&coco::Rle::from(&Mask::try_from(poly)?))
     }
 }
 
