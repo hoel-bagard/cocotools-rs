@@ -8,11 +8,14 @@
 
 The `rpycocotools` package provides tools to load, manipulate, convert and visualize COCO format datasets.
 
-This package aims to provide similar functionalities to the [pycocotools package](https://pypi.org/project/pycocotools/) / [cocoapi](https://github.com/cocodataset/cocoapi) with additionnal utilities such as conversion between dataset formats. It also aims to have a better documentation and a more readable implementation.
+### Installation
 
-### Build
+You can install the package through pip:
+```
+pip install rpycocotools
+```
 
-Build and install into local virtualenv with `maturin develop`.
+You can also build and install it into a virtualenv with `maturin develop`.
 
 ### Usage example
 
@@ -32,15 +35,9 @@ import rpycocotools
 coco_dataset = rpycocotools.COCO("../data_samples/coco_25k/annotations.json", "../data_samples/coco_25k/images")
 anns = coco_dataset.get_img_anns(174482)
 mask = rpycocotools.mask.decode_poly_rs(anns[0].segmentation)
-mask = 255 * mask
 ```
 The mask is a numpy array and can be visualized (for example with opencv):
 
 <p align="center">
   <img alt="bike_segmentation" src="https://user-images.githubusercontent.com/34478245/226691842-8a11cde1-905d-434e-b287-0c3c685e01d1.png">
 </p>
-
-### Run the tests
-```
-python -m pytest . -vv
-```
