@@ -176,12 +176,18 @@ impl HashmapDataset {
 
         let imgs: HashMap<u32, Image> = dataset
             .images
+            .clone()
             .into_iter()
             .map(|image| (image.id, image))
             .collect();
 
         let mut anns: HashMap<u32, Annotation> = HashMap::new();
-        let mut img_to_anns: HashMap<u32, HashSet<u32>> = HashMap::new();
+        // Have (at least) an empty set for each image to avoid getting an error in the case where an image does not have any annotation.
+        let mut img_to_anns: HashMap<u32, HashSet<u32>> = dataset
+            .images
+            .into_iter()
+            .map(|image| (image.id, HashSet::new()))
+            .collect();
 
         for mut annotation in dataset.annotations {
             let ann_id = annotation.id;
