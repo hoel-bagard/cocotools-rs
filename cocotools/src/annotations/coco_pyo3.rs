@@ -148,7 +148,7 @@ impl Rle {
     }
 
     fn __repr__(&self) -> String {
-        format!("RLE(counts={:?}, size={:?})", self.counts, self.size)
+        format!("Rle(counts={:?}, size={:?})", self.counts, self.size)
     }
 }
 
@@ -160,7 +160,7 @@ impl EncodedRle {
     }
 
     fn __repr__(&self) -> String {
-        format!("EncodedRLE(counts={:?}, size={:?})", self.counts, self.size)
+        format!("EncodedRle(counts={:?}, size={:?})", self.counts, self.size)
     }
 }
 
