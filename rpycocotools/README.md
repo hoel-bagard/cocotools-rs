@@ -41,3 +41,8 @@ The mask is a numpy array and can be visualized (for example with opencv):
 <p align="center">
   <img alt="bike_segmentation" src="https://user-images.githubusercontent.com/34478245/226691842-8a11cde1-905d-434e-b287-0c3c685e01d1.png">
 </p>
+
+
+## TODO list:
+- Make it possible to get the dataset as a json (in order to be able to save/print it).
+- Make it possible to get the visualization image as a numpy array.
