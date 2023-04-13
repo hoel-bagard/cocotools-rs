@@ -22,7 +22,7 @@ pub struct Dataset {
 }
 
 /// Stores information relating to one image.
-#[cfg_attr(feature = "pyo3", pyclass(get_all))]
+#[cfg_attr(feature = "pyo3", pyclass(get_all, module = "rpycocotools.anns"))]
 #[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
 pub struct Image {
     pub id: u32,
@@ -41,7 +41,7 @@ pub struct Image {
 /// In [the original COCO dataset](https://cocodataset.org/#home), the segmentation format depends on whether the instance represents a single object (`iscrowd=0` in which case polygons are used) or a collection of objects (`iscrowd=1` in which case RLE is used). Note that a single object (iscrowd=0) may require multiple polygons, for example if occluded.\
 /// Crowd annotations (`iscrowd=1`) are used to label large groups of objects (e.g. a crowd of people). In addition, an enclosing bounding box is provided for each object (box coordinates are measured from the top left image corner and are 0-indexed).\
 /// Finally, the categories field of the annotation structure stores the mapping of category id to category and supercategory names.
-#[cfg_attr(feature = "pyo3", pyclass(get_all))]
+#[cfg_attr(feature = "pyo3", pyclass(get_all, module = "rpycocotools.anns"))]
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct Annotation {
     pub id: u32,
@@ -91,7 +91,7 @@ pub type Polygons = Vec<Vec<f64>>;
 /// Internal type used to represent polygons.
 ///
 /// It contains the width and height of the image for easier handling, notably when using traits.
-#[cfg_attr(feature = "pyo3", pyclass(get_all))]
+#[cfg_attr(feature = "pyo3", pyclass(get_all, module = "rpycocotools.anns"))]
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct PolygonsRS {
     /// Vector with two elements, the width and height of the image corresponding to the segmentation mask.
@@ -101,7 +101,7 @@ pub struct PolygonsRS {
 }
 
 /// Segmentation mask compressed as a [Run-length encoding](https://en.wikipedia.org/wiki/Run-length_encoding).
-#[cfg_attr(feature = "pyo3", pyclass(get_all))]
+#[cfg_attr(feature = "pyo3", pyclass(get_all, module = "rpycocotools.anns"))]
 #[derive(Clone, Debug, Eq, PartialEq, Deserialize, Serialize)]
 pub struct Rle {
     /// Vector with two elements, the height and width of the image corresponding to the segmentation mask.
@@ -112,7 +112,7 @@ pub struct Rle {
 /// Segmentation mask compressed as a [Run-length encoding](https://en.wikipedia.org/wiki/Run-length_encoding) and then encoded into a string.
 ///
 /// For the encoding process, see [here](https://github.com/cocodataset/cocoapi/blob/master/common/maskApi.c#L204).
-#[cfg_attr(feature = "pyo3", pyclass(get_all))]
+#[cfg_attr(feature = "pyo3", pyclass(get_all, module = "rpycocotools.anns"))]
 #[derive(Clone, Debug, Eq, PartialEq, Deserialize, Serialize)]
 pub struct EncodedRle {
     /// Vector with two elements, the height and width of the image corresponding to the segmentation mask.
@@ -121,7 +121,7 @@ pub struct EncodedRle {
 }
 
 /// Bounding box enclosing an object.
-#[cfg_attr(feature = "pyo3", pyclass(get_all))]
+#[cfg_attr(feature = "pyo3", pyclass(get_all, module = "rpycocotools.anns"))]
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct Bbox {
     pub left: f64,
@@ -131,7 +131,7 @@ pub struct Bbox {
 }
 
 /// Category of an annotation.
-#[cfg_attr(feature = "pyo3", pyclass(get_all))]
+#[cfg_attr(feature = "pyo3", pyclass(get_all, module = "rpycocotools.anns"))]
 #[derive(Clone, Debug, Eq, PartialEq, Deserialize, Serialize)]
 pub struct Category {
     pub id: u32,
