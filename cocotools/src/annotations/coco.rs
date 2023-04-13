@@ -101,7 +101,10 @@ pub struct PolygonsRS {
 }
 
 /// Segmentation mask compressed as a [Run-length encoding](https://en.wikipedia.org/wiki/Run-length_encoding).
-#[cfg_attr(feature = "pyo3", pyclass(get_all, module = "rpycocotools.anns"))]
+#[cfg_attr(
+    feature = "pyo3",
+    pyclass(get_all, name = "RLE", module = "rpycocotools.anns")
+)]
 #[derive(Clone, Debug, Eq, PartialEq, Deserialize, Serialize)]
 pub struct Rle {
     /// Vector with two elements, the height and width of the image corresponding to the segmentation mask.
@@ -112,7 +115,10 @@ pub struct Rle {
 /// Segmentation mask compressed as a [Run-length encoding](https://en.wikipedia.org/wiki/Run-length_encoding) and then encoded into a string.
 ///
 /// For the encoding process, see [here](https://github.com/cocodataset/cocoapi/blob/master/common/maskApi.c#L204).
-#[cfg_attr(feature = "pyo3", pyclass(get_all, module = "rpycocotools.anns"))]
+#[cfg_attr(
+    feature = "pyo3",
+    pyclass(get_all, name = "EncodedRLE", module = "rpycocotools.anns")
+)]
 #[derive(Clone, Debug, Eq, PartialEq, Deserialize, Serialize)]
 pub struct EncodedRle {
     /// Vector with two elements, the height and width of the image corresponding to the segmentation mask.
@@ -121,7 +127,10 @@ pub struct EncodedRle {
 }
 
 /// Bounding box enclosing an object.
-#[cfg_attr(feature = "pyo3", pyclass(get_all, module = "rpycocotools.anns"))]
+#[cfg_attr(
+    feature = "pyo3",
+    pyclass(get_all, name = "BBox", module = "rpycocotools.anns")
+)]
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct Bbox {
     pub left: f64,

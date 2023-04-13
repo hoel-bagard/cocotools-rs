@@ -111,7 +111,7 @@ impl Bbox {
 
     fn __repr__(&self) -> String {
         format!(
-            "Bbox(left={}, top={}, width={}, height={})",
+            "BBox(left={}, top={}, width={}, height={})",
             self.left, self.top, self.width, self.height
         )
     }
@@ -148,7 +148,7 @@ impl Rle {
     }
 
     fn __repr__(&self) -> String {
-        format!("Rle(counts={:?}, size={:?})", self.counts, self.size)
+        format!("RLE(counts={:?}, size={:?})", self.counts, self.size)
     }
 }
 
@@ -160,7 +160,7 @@ impl EncodedRle {
     }
 
     fn __repr__(&self) -> String {
-        format!("EncodedRle(counts={:?}, size={:?})", self.counts, self.size)
+        format!("EncodedRLE(counts={:?}, size={:?})", self.counts, self.size)
     }
 }
 
