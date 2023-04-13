@@ -31,6 +31,7 @@ requires-python = ">=3.8"
 
 [tool.maturin]
 sdist-include = ["LICENSE", "README.md"]
+python-source = "python"
 # bindings = "cffi"
 # compatibility = "linux"
 
