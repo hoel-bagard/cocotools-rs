@@ -4,6 +4,7 @@ use numpy::ndarray::Array;
 use numpy::ndarray::ShapeBuilder;
 use numpy::IntoPyArray;
 use numpy::PyArray2;
+use numpy::PyReadonlyArray2;
 use pyo3::prelude::*;
 use pyo3::pyfunction;
 
@@ -50,6 +51,7 @@ pub fn py_mask(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(decode_encoded_rle, m)?)?;
     m.add_function(wrap_pyfunction!(decode_poly_rs, m)?)?;
     m.add_function(wrap_pyfunction!(decode_poly, m)?)?;
+    m.add_function(wrap_pyfunction!(encode_to_rle, m)?)?;
     Ok(())
 }
 
@@ -91,28 +93,9 @@ fn decode_poly(
     Ok(mask.into_pyarray(py))
 }
 
-// TODO: Go back to wrapping all the cocotools structs in order to be able to implement traits ?
-// pub trait Decode {
-//     fn decode(self, py: Python<'_>) -> Result<&PyArray2<u8>, PyMaskError>;
-// }
-
-// #[pymethods]
-// impl Decode for coco::Rle {
-//     fn decode(self, py: Python<'_>) -> Result<&PyArray2<u8>, PyMaskError> {
-//         Ok(decode(py, &coco::Segmentation::Rle(self))?)
-//     }
-// }
-
-// #[pymethods]
-// impl Decode for coco::EncodedRle {
-//     fn decode(self, py: Python<'_>) -> Result<&PyArray2<u8>, PyMaskError> {
-//         Ok(decode(py, &coco::Segmentation::EncodedRle(self))?)
-//     }
-// }
-
-// #[pymethods]
-// impl Decode for coco::PolygonsRS {
-//     fn decode(self, py: Python<'_>) -> Result<&PyArray2<u8>, PyMaskError> {
-//         Ok(decode(py, &coco::Segmentation::PolygonsRS(self))?)
-//     }
-// }
+#[pyfunction]
+fn encode_to_rle(py: Python<'_>, mask: PyReadonlyArray2<u8>) -> PyResult<Py<coco::Rle>> {
+    let mask = mask.to_owned_array();
+    let encoded_mask = coco::Rle::from(&mask);
+    Py::new(py, encoded_mask)
+}
