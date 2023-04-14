@@ -2,7 +2,7 @@ from typing import Literal
 import numpy as np
 import numpy.typing as npt
 
-from rpycocotools.rpycocotools import anns, mask as _mask
+from rpycocotools._rpycocotools import anns, mask as _mask
 
 
 def decode(encoded_mask: anns.RLE | anns.EncodedRLE | anns.PolygonsRS | anns.Polygons,

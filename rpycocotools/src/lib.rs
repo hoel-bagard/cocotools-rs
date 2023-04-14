@@ -20,7 +20,7 @@ fn anns(_py: Python<'_>, module: &PyModule) -> PyResult<()> {
 }
 
 #[pymodule]
-fn rpycocotools(py: Python<'_>, module: &PyModule) -> PyResult<()> {
+fn _rpycocotools(py: Python<'_>, module: &PyModule) -> PyResult<()> {
     module.add_class::<coco::PyCOCO>()?;
     module.add_wrapped(wrap_pymodule!(anns))?;
     module.add_wrapped(wrap_pymodule!(mask::py_mask))?;
@@ -29,8 +29,8 @@ fn rpycocotools(py: Python<'_>, module: &PyModule) -> PyResult<()> {
     // e.g. from rpycocotools.mask import decode_rle
     let sys = PyModule::import(py, "sys")?;
     let sys_modules: &PyDict = sys.getattr("modules")?.downcast()?;
-    sys_modules.set_item("rpycocotools.mask", module.getattr("mask")?)?;
-    sys_modules.set_item("rpycocotools.anns", module.getattr("anns")?)?;
+    sys_modules.set_item("_rpycocotools.mask", module.getattr("mask")?)?;
+    sys_modules.set_item("_rpycocotools.anns", module.getattr("anns")?)?;
 
     Ok(())
 }

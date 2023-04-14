@@ -1,2 +1,2 @@
-from rpycocotools.rpycocotools import *
-import python.rpycocotools.mask as mask
+from ._rpycocotools import anns, COCO
+from . import mask

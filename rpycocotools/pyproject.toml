@@ -32,6 +32,7 @@ requires-python = ">=3.8"
 [tool.maturin]
 sdist-include = ["LICENSE", "README.md"]
 python-source = "python"
+module-name = "rpycocotools._rpycocotools"
 # bindings = "cffi"
 # compatibility = "linux"
 
