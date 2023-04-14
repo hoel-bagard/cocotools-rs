@@ -148,7 +148,7 @@ impl Rle {
     }
 
     fn __repr__(&self) -> String {
-        format!("RLE(counts={:?}, size={:?})", self.counts, self.size)
+        format!("RLE(size={:?}, counts={:?})", self.size, self.counts)
     }
 }
 
@@ -160,7 +160,7 @@ impl EncodedRle {
     }
 
     fn __repr__(&self) -> String {
-        format!("EncodedRLE(counts={:?}, size={:?})", self.counts, self.size)
+        format!("EncodedRLE(size={:?}, counts={:?})", self.size, self.counts)
     }
 }
 
@@ -172,7 +172,7 @@ impl PolygonsRS {
     }
 
     fn __repr__(&self) -> String {
-        format!("PolygonsRS(counts={:?})", self.counts)
+        format!("PolygonsRS(size={:?}, counts={:?})", self.size, self.counts)
     }
 }
 
