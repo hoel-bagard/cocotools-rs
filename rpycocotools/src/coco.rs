@@ -122,7 +122,7 @@ impl PyCOCO {
 
 #[pyclass(name = "Polygons", module = "rpycocotools.anns")]
 #[derive(Debug)]
-pub struct PyPolygons(cocotools::annotations::coco::Polygons);
+pub struct PyPolygons(pub cocotools::annotations::coco::Polygons);
 
 #[pymethods]
 impl PyPolygons {

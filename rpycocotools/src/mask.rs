@@ -11,6 +11,7 @@ use pyo3::pyfunction;
 use cocotools::annotations::coco;
 use cocotools::converters::mask;
 
+use crate::coco::PyPolygons;
 use crate::errors::PyMaskError;
 
 fn decode<T>(py: Python<'_>, encoded_mask: T) -> Result<&PyArray2<u8>, PyMaskError>
@@ -97,5 +98,35 @@ fn decode_poly(
 fn encode_to_rle(py: Python<'_>, mask: PyReadonlyArray2<u8>) -> PyResult<Py<coco::Rle>> {
     let mask = mask.to_owned_array();
     let encoded_mask = coco::Rle::from(&mask);
+    Py::new(py, encoded_mask)
+}
+
+#[pyfunction]
+fn encode_to_encoded_rle(
+    py: Python<'_>,
+    mask: PyReadonlyArray2<u8>,
+) -> PyResult<Py<coco::EncodedRle>> {
+    let mask = mask.to_owned_array();
+    let encoded_mask = coco::EncodedRle::try_from(&mask).map_err(PyMaskError::from)?;
+    Ok(Py::new(py, encoded_mask)?)
+}
+
+#[pyfunction]
+fn encode_to_polygon(
+    py: Python<'_>,
+    uncompressed_mask: PyReadonlyArray2<u8>,
+) -> PyResult<Py<PyPolygons>> {
+    let uncompressed_mask = uncompressed_mask.to_owned_array();
+    let encoded_mask = PyPolygons(mask::poly_from_mask(&uncompressed_mask));
+    Py::new(py, encoded_mask)
+}
+
+#[pyfunction]
+fn encode_to_polygon_rs(
+    py: Python<'_>,
+    mask: PyReadonlyArray2<u8>,
+) -> PyResult<Py<coco::PolygonsRS>> {
+    let mask = mask.to_owned_array();
+    let encoded_mask = coco::PolygonsRS::from(&mask);
     Py::new(py, encoded_mask)
 }
