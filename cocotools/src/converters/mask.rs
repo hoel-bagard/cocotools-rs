@@ -53,64 +53,6 @@ pub fn convert_coco_segmentation(
     Ok(())
 }
 
-#[allow(clippy::expect_used)]
-impl From<&coco::Rle> for coco::Polygons {
-    fn from(rle: &coco::Rle) -> Self {
-        let mask = Mask::from(rle);
-        let mask_img = mask
-            .as_slice_memory_order()
-            .map(|slice| {
-                image::GrayImage::from_raw(rle.size[1], rle.size[0], slice.to_owned()).expect(
-                    "Buffer already contains a mask created using the rle sizes and is threfore big enough."
-                )
-            })
-            .expect("The mask is created just above and should therefore be continuous in memory.");
-
-        let contours = contours::find_contours::<u32>(&mask_img);
-
-        // find_contours returns all the points defining the contours, the following for loop removes all the points formings lines as they are not needed.
-        let mut counts: Self = Self::new();
-        let mut prev_prev_x: u32;
-        let mut prev_prev_y: u32;
-        let mut prev_x: u32;
-        let mut prev_y: u32;
-        for (i, contour) in contours.iter().enumerate() {
-            // Valid polygons must have at least 3 points.
-            // The case of having less than 3 points is not expected to occur on real data, hence the silent failt if it occurs.
-            if contour.points.len() > 3 {
-                counts.push(Vec::with_capacity(2 * contour.points.len()));
-
-                counts[i].push(f64::from(contour.points[0].y));
-                counts[i].push(f64::from(contour.points[0].x));
-                prev_prev_x = contour.points[0].x;
-                prev_prev_y = contour.points[0].y;
-                prev_x = contour.points[1].x;
-                prev_y = contour.points[1].y;
-                for point in &contour.points {
-                    if !((prev_prev_x == prev_x && prev_x == point.x)
-                        || (prev_prev_y == prev_y && prev_y == point.y))
-                    {
-                        counts[i].push(f64::from(prev_y));
-                        counts[i].push(f64::from(prev_x));
-                    }
-                    prev_prev_x = prev_x;
-                    prev_prev_y = prev_y;
-                    prev_x = point.x;
-                    prev_y = point.y;
-                }
-
-                if !((prev_prev_x == prev_x && prev_x == contour.points[0].x)
-                    || (prev_prev_y == prev_y && prev_y == contour.points[0].y))
-                {
-                    counts[i].push(f64::from(prev_y));
-                    counts[i].push(f64::from(prev_x));
-                }
-            }
-        }
-        counts
-    }
-}
-
 impl TryFrom<&coco::PolygonsRS> for coco::Rle {
     type Error = MaskError;
     // It might be more efficient to do it like this: https://github.com/cocodataset/cocoapi/blob/master/common/maskApi.c#L162
@@ -120,10 +62,35 @@ impl TryFrom<&coco::PolygonsRS> for coco::Rle {
     }
 }
 
-impl TryFrom<&coco::PolygonsRS> for coco::EncodedRle {
-    type Error = MaskError;
-    fn try_from(poly: &coco::PolygonsRS) -> Result<Self, Self::Error> {
-        Self::try_from(&coco::Rle::from(&Mask::try_from(poly)?))
+/// Convert a mask into its RLE form.
+///
+/// ## Args:
+/// - mask: A binary mask indicating for each pixel whether it belongs to the object or not.
+///
+/// ## Returns:
+/// - The RLE corresponding to the mask.
+// The implementation makes a clone of the mask, which is expensive. This could be avoided by taking a mutable reference and reversing the axes again after the for loop.
+// However asking for a mutable reference might be confusing.
+#[allow(clippy::cast_possible_truncation)]
+impl From<&Mask> for coco::Rle {
+    fn from(mask: &Mask) -> Self {
+        let mut previous_value = 0;
+        let mut count = 0;
+        let mut counts = Vec::new();
+        for value in mask.clone().reversed_axes().iter() {
+            if *value != previous_value {
+                counts.push(count);
+                previous_value = *value;
+                count = 0;
+            }
+            count += 1;
+        }
+        counts.push(count);
+
+        Self {
+            size: vec![mask.nrows() as u32, mask.ncols() as u32],
+            counts,
+        }
     }
 }
 
@@ -239,6 +206,89 @@ impl TryFrom<&coco::Rle> for coco::EncodedRle {
     }
 }
 
+impl TryFrom<&coco::PolygonsRS> for coco::EncodedRle {
+    type Error = MaskError;
+    fn try_from(poly: &coco::PolygonsRS) -> Result<Self, Self::Error> {
+        Self::try_from(&coco::Rle::from(&Mask::try_from(poly)?))
+    }
+}
+
+#[allow(clippy::cast_possible_truncation)]
+impl TryFrom<&Mask> for coco::EncodedRle {
+    type Error = MaskError;
+    fn try_from(mask: &Mask) -> Result<Self, Self::Error> {
+        Self::try_from(&coco::Rle::from(mask))
+    }
+}
+
+#[allow(clippy::expect_used)]
+impl From<&coco::Rle> for coco::Polygons {
+    fn from(rle: &coco::Rle) -> Self {
+        let mask = Mask::from(rle);
+        let mask_img = mask
+            .as_slice_memory_order()
+            .map(|slice| {
+                image::GrayImage::from_raw(rle.size[1], rle.size[0], slice.to_owned()).expect(
+                    "Buffer already contains a mask created using the rle sizes and is threfore big enough."
+                )
+            })
+            .expect("The mask is created just above and should therefore be continuous in memory.");
+
+        let contours = contours::find_contours::<u32>(&mask_img);
+
+        // find_contours returns all the points defining the contours, the following for loop removes all the points formings lines as they are not needed.
+        let mut counts: Self = Self::new();
+        let mut prev_prev_x: u32;
+        let mut prev_prev_y: u32;
+        let mut prev_x: u32;
+        let mut prev_y: u32;
+        for (i, contour) in contours.iter().enumerate() {
+            // Valid polygons must have at least 3 points.
+            // The case of having less than 3 points is not expected to occur on real data, hence the silent failt if it occurs.
+            if contour.points.len() > 3 {
+                counts.push(Vec::with_capacity(2 * contour.points.len()));
+
+                counts[i].push(f64::from(contour.points[0].y));
+                counts[i].push(f64::from(contour.points[0].x));
+                prev_prev_x = contour.points[0].x;
+                prev_prev_y = contour.points[0].y;
+                prev_x = contour.points[1].x;
+                prev_y = contour.points[1].y;
+                for point in &contour.points {
+                    if !((prev_prev_x == prev_x && prev_x == point.x)
+                        || (prev_prev_y == prev_y && prev_y == point.y))
+                    {
+                        counts[i].push(f64::from(prev_y));
+                        counts[i].push(f64::from(prev_x));
+                    }
+                    prev_prev_x = prev_x;
+                    prev_prev_y = prev_y;
+                    prev_x = point.x;
+                    prev_y = point.y;
+                }
+
+                if !((prev_prev_x == prev_x && prev_x == contour.points[0].x)
+                    || (prev_prev_y == prev_y && prev_y == contour.points[0].y))
+                {
+                    counts[i].push(f64::from(prev_y));
+                    counts[i].push(f64::from(prev_x));
+                }
+            }
+        }
+        counts
+    }
+}
+
+#[allow(clippy::cast_possible_truncation)]
+impl From<&Mask> for coco::PolygonsRS {
+    fn from(mask: &Mask) -> Self {
+        Self {
+            size: vec![mask.shape()[0] as u32, mask.shape()[1] as u32],
+            counts: coco::Polygons::from(&coco::Rle::from(mask)),
+        }
+    }
+}
+
 #[allow(clippy::expect_used)]
 impl From<&coco::Rle> for Mask {
     /// Converts a RLE to its uncompressed mask.
@@ -264,38 +314,6 @@ impl From<&coco::Rle> for Mask {
             current_position += *nb_pixels as usize;
         }
         mask
-    }
-}
-
-/// Convert a mask into its RLE form.
-///
-/// ## Args:
-/// - mask: A binary mask indicating for each pixel whether it belongs to the object or not.
-///
-/// ## Returns:
-/// - The RLE corresponding to the mask.
-// The implementation makes a clone of the mask, which is expensive. This could be avoided by taking a mutable reference and reversing the axes again after the for loop.
-// However asking for a mutable reference might be confusing.
-#[allow(clippy::cast_possible_truncation)]
-impl From<&Mask> for coco::Rle {
-    fn from(mask: &Mask) -> Self {
-        let mut previous_value = 0;
-        let mut count = 0;
-        let mut counts = Vec::new();
-        for value in mask.clone().reversed_axes().iter() {
-            if *value != previous_value {
-                counts.push(count);
-                previous_value = *value;
-                count = 0;
-            }
-            count += 1;
-        }
-        counts.push(count);
-
-        Self {
-            size: vec![mask.nrows() as u32, mask.ncols() as u32],
-            counts,
-        }
     }
 }
 
@@ -376,6 +394,11 @@ pub fn mask_from_poly(poly: &coco::Polygons, width: u32, height: u32) -> Result<
 
     Mask::from_shape_vec((height as usize, width as usize), mask.into_raw())
         .map_err(MaskError::ImageToNDArrayConversion)
+}
+
+#[allow(clippy::cast_possible_truncation, clippy::module_name_repetitions)]
+pub fn poly_from_mask(mask: &Mask) -> coco::Polygons {
+    coco::Polygons::from(&coco::Rle::from(mask))
 }
 
 #[cfg(test)]
