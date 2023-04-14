@@ -33,7 +33,7 @@ def decode(encoded_mask: anns.RLE | anns.EncodedRLE | anns.PolygonsRS | anns.Pol
 
 
 def encode(mask: npt.NDArray[np.uint8],
-           target = Literal["rle", "coco_rle", "polygons", "polygon_rs"],
+           target = Literal["rle", "encoded_rle", "polygons", "polygon_rs"],
            ) -> anns.RLE | anns.EncodedRLE | anns.PolygonsRS | anns.Polygons:
     """Decode an encoded mask.
 
@@ -46,11 +46,11 @@ def encode(mask: npt.NDArray[np.uint8],
     """
     match target:
         case "rle":
-            encoded_mask =_mask.encode_to_rle(mask)
-        case "coco_rle":
-            pass
+            encoded_mask = _mask.encode_to_rle(mask)
+        case "encoded_rle":
+            encoded_mask = _mask.encode_to_encoded_rle(mask)
         case "polygons":
-            pass
-        case "polygons_rs":
-            pass
+            encoded_mask = _mask.encode_to_polygons(mask)
+        case _:  # "polygons_rs"
+            encoded_mask = _mask.encode_to_polygons_rs(mask)
     return encoded_mask

@@ -53,6 +53,9 @@ pub fn py_mask(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(decode_poly_rs, m)?)?;
     m.add_function(wrap_pyfunction!(decode_poly, m)?)?;
     m.add_function(wrap_pyfunction!(encode_to_rle, m)?)?;
+    m.add_function(wrap_pyfunction!(encode_to_encoded_rle, m)?)?;
+    m.add_function(wrap_pyfunction!(encode_to_polygons, m)?)?;
+    m.add_function(wrap_pyfunction!(encode_to_polygons_rs, m)?)?;
     Ok(())
 }
 
@@ -112,7 +115,7 @@ fn encode_to_encoded_rle(
 }
 
 #[pyfunction]
-fn encode_to_polygon(
+fn encode_to_polygons(
     py: Python<'_>,
     uncompressed_mask: PyReadonlyArray2<u8>,
 ) -> PyResult<Py<PyPolygons>> {
@@ -122,7 +125,7 @@ fn encode_to_polygon(
 }
 
 #[pyfunction]
-fn encode_to_polygon_rs(
+fn encode_to_polygons_rs(
     py: Python<'_>,
     mask: PyReadonlyArray2<u8>,
 ) -> PyResult<Py<coco::PolygonsRS>> {
