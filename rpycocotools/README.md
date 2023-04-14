@@ -15,7 +15,7 @@ You can install the package through pip:
 pip install rpycocotools
 ```
 
-You can also build and install it into a virtualenv with `maturin develop`.
+You can also build and install it into a virtualenv with `pip install .` (do not use `maturin develop`, the imports will not work).
 
 ### Usage example
 
