@@ -767,6 +767,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "nshare"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4447657cd40e3107416ec4f2ac3e61a18781b00061789e3b8f4bbcbccb26c4c6"
+dependencies = [
+ "image",
+ "nalgebra",
+ "ndarray",
+]
+
+[[package]]
 name = "num"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1242,6 +1253,8 @@ version = "0.0.3"
 dependencies = [
  "anyhow",
  "cocotools",
+ "ndarray",
+ "nshare",
  "numpy",
  "pyo3",
  "serde",

@@ -4,6 +4,9 @@ use cocotools::annotations::coco;
 use cocotools::errors::CocoError;
 use cocotools::visualize::display;
 use cocotools::COCO;
+use nshare::ToNdarray3;
+use numpy::IntoPyArray;
+use numpy::PyArray3;
 use pyo3::exceptions::{PyKeyError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::PyUnicode;
@@ -117,6 +120,28 @@ impl PyCOCO {
         display::img(&img, file_name)
             .map_err(|err| PyValueError::new_err(format!("Failed to display the image: {err}")))?;
         Ok(())
+    }
+
+    /// Draw the annotations on the image and returns it as a (RGB) numpy array.
+    ///
+    /// ## Errors
+    ///
+    /// Will return `Err` if the image cannot be drawn (potentially due to it not being in the dataset).
+    pub fn draw_anns<'a>(&self, py: Python<'a>, img_id: u32) -> PyResult<&'a PyArray3<u8>> {
+        let img = self
+            .0
+            .draw_img_anns(img_id, true)
+            .map_err(|err| match err {
+                CocoError::MissingId(err) => PyKeyError::new_err(err.to_string()),
+                CocoError::Mask(err) => PyValueError::new_err(err.to_string()),
+                CocoError::Loading(err) => PyValueError::new_err(err.to_string()),
+            })?;
+
+        let img = img
+            .into_ndarray3()
+            .permuted_axes([1, 2, 0])
+            .into_pyarray(py);
+        Ok(img)
     }
 }
 
