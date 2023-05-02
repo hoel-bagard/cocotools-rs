@@ -28,10 +28,12 @@ use crate::errors::MaskError;
 /// ```
 #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
 pub fn bbox(img: &mut image::RgbImage, bbox: &coco::Bbox, color: image::Rgb<u8>) {
-    let rect =
-        Rect::at(bbox.left as i32, bbox.top as i32).of_size(bbox.width as u32, bbox.height as u32);
+    if bbox.width > 0.0 && bbox.height > 0.0 {
+        let rect = Rect::at(bbox.left as i32, bbox.top as i32)
+            .of_size(bbox.width as u32, bbox.height as u32);
 
-    draw_hollow_rect_mut(img, rect, color);
+        draw_hollow_rect_mut(img, rect, color);
+    }
 }
 
 /// Draw the max on the image.
