@@ -127,10 +127,15 @@ impl PyCOCO {
     /// ## Errors
     ///
     /// Will return `Err` if the image cannot be drawn (potentially due to it not being in the dataset).
-    pub fn draw_anns<'a>(&self, py: Python<'a>, img_id: u32) -> PyResult<&'a PyArray3<u8>> {
+    pub fn draw_anns<'a>(
+        &self,
+        py: Python<'a>,
+        img_id: u32,
+        draw_bboxes: bool,
+    ) -> PyResult<&'a PyArray3<u8>> {
         let img = self
             .0
-            .draw_img_anns(img_id, true)
+            .draw_img_anns(img_id, draw_bboxes)
             .map_err(|err| match err {
                 CocoError::MissingId(err) => PyKeyError::new_err(err.to_string()),
                 CocoError::Mask(err) => PyValueError::new_err(err.to_string()),
