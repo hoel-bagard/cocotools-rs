@@ -32,6 +32,10 @@ impl PyCOCO {
         Ok(Self(dataset))
     }
 
+    fn __len__(&self) -> usize {
+        self.0.get_imgs().len()
+    }
+
     fn get_img(&self, py: Python<'_>, img_id: u32) -> PyResult<Py<coco::Image>> {
         Py::new(
             py,
