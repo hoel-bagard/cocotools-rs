@@ -1,5 +1,6 @@
 use pyo3::class::basic::CompareOp;
 use pyo3::prelude::*;
+use pyo3::types::PySlice;
 
 use crate::annotations::coco::*;
 
@@ -97,6 +98,7 @@ impl BboxIter {
         slf.inner.next()
     }
 }
+
 #[pymethods]
 impl Bbox {
     #[new]
@@ -114,6 +116,16 @@ impl Bbox {
             "BBox(left={}, top={}, width={}, height={})",
             self.left, self.top, self.width, self.height
         )
+    }
+
+    fn __len__(&self) -> usize {
+        4
+    }
+
+    fn __getitem__(&self, idx: usize) -> f64 {
+        // https://pyo3.rs/main/doc/pyo3/types/struct.pysequence
+        // https://docs.rs/pyo3/0.14.3/pyo3/class/sequence/trait.PySequenceProtocol.html
+        [self.left, self.top, self.width, self.height][idx]
     }
 
     fn __iter__(slf: PyRef<'_, Self>) -> PyResult<Py<BboxIter>> {

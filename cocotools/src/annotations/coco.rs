@@ -129,7 +129,7 @@ pub struct EncodedRle {
 /// Bounding box enclosing an object.
 #[cfg_attr(
     feature = "pyo3",
-    pyclass(get_all, name = "BBox", module = "rpycocotools.anns")
+    pyclass(sequence, get_all, name = "BBox", module = "rpycocotools.anns")
 )]
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct Bbox {
