@@ -13,7 +13,7 @@ use crate::errors::MaskError;
 pub enum Segmentation {
     Polygons,
     Rle,
-    EncodedRle,
+    CocoRle,
 }
 
 /// Converts all the segmentation masks in the dataset to the desired type.
@@ -25,25 +25,25 @@ pub fn convert_coco_segmentation(
     dataset: &mut object_detection::HashmapDataset,
     target_segmentation: Segmentation,
 ) -> Result<(), MaskError> {
-    use object_detection::Segmentation::{EncodedRle, Polygons, PolygonsRS, Rle};
+    use object_detection::Segmentation::{CocoRle, Polygons, PolygonsRS, Rle};
     use Segmentation as S;
     for ann in dataset.anns.values_mut() {
         let converted_segmentation = match &ann.segmentation {
             Rle(rle) => match target_segmentation {
                 S::Rle => Rle(rle.clone()),
-                S::EncodedRle => EncodedRle(object_detection::EncodedRle::try_from(rle)?),
+                S::CocoRle => CocoRle(object_detection::CocoRle::try_from(rle)?),
                 S::Polygons => Polygons(object_detection::Polygons::from(rle)),
             },
-            EncodedRle(encoded_rle) => match target_segmentation {
-                S::Rle => Rle(object_detection::Rle::from(encoded_rle)),
-                S::EncodedRle => EncodedRle(encoded_rle.clone()),
+            CocoRle(coco_rle) => match target_segmentation {
+                S::Rle => Rle(object_detection::Rle::from(coco_rle)),
+                S::CocoRle => CocoRle(coco_rle.clone()),
                 S::Polygons => Polygons(object_detection::Polygons::from(
-                    &object_detection::Rle::from(encoded_rle),
+                    &object_detection::Rle::from(coco_rle),
                 )),
             },
             PolygonsRS(poly) => match target_segmentation {
                 S::Rle => Rle(object_detection::Rle::try_from(poly)?),
-                S::EncodedRle => EncodedRle(object_detection::EncodedRle::try_from(poly)?),
+                S::CocoRle => CocoRle(object_detection::CocoRle::try_from(poly)?),
                 S::Polygons => Polygons(poly.counts.clone()),
             },
             Polygons(_) => unimplemented!(),
@@ -94,7 +94,7 @@ impl From<&Mask> for object_detection::Rle {
     }
 }
 
-/// Decode encoded rle segmentation information into a rle.
+/// Decode COCO RLE segmentation information into RLE.
 
 /// See the (hard to read) implementation:
 /// <https://github.com/cocodataset/cocoapi/blob/master/common/maskApi.c#L218>
@@ -104,19 +104,19 @@ impl From<&Mask> for object_detection::Rle {
 /// It is similar to LEB128, but here shift is incremented by 5 instead of 7 because the implementation uses
 /// 6 bits per byte instead of 8. (no idea why, I guess it's more efficient for the COCO dataset?)
 #[allow(clippy::cast_sign_loss, clippy::cast_possible_wrap)]
-impl From<&object_detection::EncodedRle> for object_detection::Rle {
+impl From<&object_detection::CocoRle> for object_detection::Rle {
     /// Converts a compressed RLE to its uncompressed version.
-    fn from(encoded_rle: &object_detection::EncodedRle) -> Self {
+    fn from(coco_rle: &object_detection::CocoRle) -> Self {
         assert!(
-            encoded_rle.counts.is_ascii(),
-            "Encoded RLE is not in valid ascii."
+            coco_rle.counts.is_ascii(),
+            "COCO RLE is not in valid ascii."
         );
 
-        let bytes_rle = encoded_rle.counts.as_bytes();
+        let bytes_rle = coco_rle.counts.as_bytes();
 
         let mut current_count_idx: usize = 0;
         let mut current_byte_idx: usize = 0;
-        let mut counts: Vec<u32> = vec![0; encoded_rle.counts.len()];
+        let mut counts: Vec<u32> = vec![0; coco_rle.counts.len()];
         while current_byte_idx < bytes_rle.len() {
             let mut continuous_pixels: i32 = 0;
             let mut shift = 0;
@@ -160,20 +160,20 @@ impl From<&object_detection::EncodedRle> for object_detection::Rle {
         }
 
         Self {
-            size: encoded_rle.size.clone(),
+            size: coco_rle.size.clone(),
             counts,
         }
     }
 }
 
-impl TryFrom<&object_detection::Rle> for object_detection::EncodedRle {
+impl TryFrom<&object_detection::Rle> for object_detection::CocoRle {
     type Error = MaskError;
 
-    // Get compressed string representation of encoded mask.
+    // Get COCO compressed string representation of RLE.
     fn try_from(rle: &object_detection::Rle) -> Result<Self, Self::Error> {
         let mut high_order_bit: bool;
         let mut byte: u8;
-        let mut encoded_counts: Vec<u8> = Vec::new();
+        let mut coco_counts: Vec<u8> = Vec::new();
 
         for i in 0..rle.counts.len() {
             let mut continuous_pixels = i64::from(rle.counts[i]);
@@ -194,19 +194,19 @@ impl TryFrom<&object_detection::Rle> for object_detection::EncodedRle {
                     byte |= 0x20;
                 };
                 byte += 48;
-                encoded_counts.push(byte);
+                coco_counts.push(byte);
             }
         }
         Ok(Self {
             size: rle.size.clone(),
-            counts: std::str::from_utf8(&encoded_counts)
-                .map_err(|err| MaskError::StrConversion(err, encoded_counts.clone()))?
+            counts: std::str::from_utf8(&coco_counts)
+                .map_err(|err| MaskError::StrConversion(err, coco_counts.clone()))?
                 .to_string(),
         })
     }
 }
 
-impl TryFrom<&object_detection::PolygonsRS> for object_detection::EncodedRle {
+impl TryFrom<&object_detection::PolygonsRS> for object_detection::CocoRle {
     type Error = MaskError;
     fn try_from(poly: &object_detection::PolygonsRS) -> Result<Self, Self::Error> {
         Self::try_from(&object_detection::Rle::from(&Mask::try_from(poly)?))
@@ -214,7 +214,7 @@ impl TryFrom<&object_detection::PolygonsRS> for object_detection::EncodedRle {
 }
 
 #[allow(clippy::cast_possible_truncation)]
-impl TryFrom<&Mask> for object_detection::EncodedRle {
+impl TryFrom<&Mask> for object_detection::CocoRle {
     type Error = MaskError;
     fn try_from(mask: &Mask) -> Result<Self, Self::Error> {
         Self::try_from(&object_detection::Rle::from(mask))
@@ -323,8 +323,8 @@ impl TryFrom<&object_detection::Segmentation> for Mask {
     fn try_from(coco_segmentation: &object_detection::Segmentation) -> Result<Self, Self::Error> {
         let mask = match coco_segmentation {
             object_detection::Segmentation::Rle(rle) => Self::from(rle),
-            object_detection::Segmentation::EncodedRle(encoded_rle) => {
-                Self::from(&object_detection::Rle::from(encoded_rle))
+            object_detection::Segmentation::CocoRle(coco_rle) => {
+                Self::from(&object_detection::Rle::from(coco_rle))
             }
             object_detection::Segmentation::PolygonsRS(poly) => Self::try_from(poly)?,
             object_detection::Segmentation::Polygons(_) => {
@@ -409,7 +409,7 @@ pub fn poly_from_mask(mask: &Mask) -> object_detection::Polygons {
 #[cfg(test)]
 #[allow(clippy::unwrap_used)]
 mod tests {
-    use super::object_detection::{EncodedRle, Polygons, PolygonsRS, Rle};
+    use super::object_detection::{CocoRle, Polygons, PolygonsRS, Rle};
     use super::*;
     use ndarray::array;
     use proptest::prelude::*;
@@ -443,8 +443,8 @@ mod tests {
     proptest! {
         #[test]
         fn rle_decode_inverts_encode(rle in generate_rle(50, 20)){
-            let encoded_rle = EncodedRle::try_from(&rle).unwrap();
-            let decoded_rle = Rle::from(&encoded_rle);
+            let coco_rle = CocoRle::try_from(&rle).unwrap();
+            let decoded_rle = Rle::from(&coco_rle);
             prop_assert_eq!(decoded_rle, rle);
         }
     }
@@ -560,15 +560,15 @@ mod tests {
     #[rstest]
     #[case::square(
         &Rle {size: vec![4, 4], counts: vec![5, 2, 2, 2, 5]},
-        &EncodedRle { size: vec![4, 4], counts: "52203".to_string() })]
+        &CocoRle { size: vec![4, 4], counts: "52203".to_string() })]
     #[case::square2(
         &Rle {counts: vec![6, 1, 40, 4, 5, 4, 5, 4, 21], size: vec![9, 10]},
-        &EncodedRle {size: vec![9, 10], counts: "61X13mN000`0".to_string()})]
+        &CocoRle {size: vec![9, 10], counts: "61X13mN000`0".to_string()})]
     #[case::test1(
         &Rle {counts: vec![245, 5, 35, 5, 35, 5, 35, 5, 35, 5, 1190], size: vec![40, 40]},
-        &EncodedRle {size: vec![40, 40], counts: "e75S10000000ST1".to_string()})]
-    fn encode_rle(#[case] rle: &Rle, #[case] expected_encoded_rle: &EncodedRle) {
-        let encoded_rle = EncodedRle::try_from(rle).unwrap();
-        assert_eq!(&encoded_rle, expected_encoded_rle);
+        &CocoRle {size: vec![40, 40], counts: "e75S10000000ST1".to_string()})]
+    fn encode_rle(#[case] rle: &Rle, #[case] expected_coco_rle: &CocoRle) {
+        let coco_rle = CocoRle::try_from(rle).unwrap();
+        assert_eq!(&coco_rle, expected_coco_rle);
     }
 }

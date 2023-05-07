@@ -47,11 +47,11 @@ pub struct Annotation {
     pub id: u32,
     pub image_id: u32,
     pub category_id: u32,
-    /// Segmentation in the annotation file can be a polygon, RLE or encoded RLE.\
+    /// Segmentation in the annotation file can be a polygon, RLE or COCO RLE.\
     /// Examples of what each segmentation should look like in the JSON file:
     /// - [`Polygons`]: `"segmentation": [[510.66, 423.01, 511.72, 420.03, ..., 510.45, 423.01]]`
     /// - [`Rle`]: `"segmentation": {"size": [40, 40], "counts": [245, 5, 35, 5, ..., 5, 35, 5, 1190]}`
-    /// - [`EncodedRle`]: `"segmentation": {"size": [480, 640], "counts": "aUh2b0X...BgRU4"}`
+    /// - [`CocoRle`]: `"segmentation": {"size": [480, 640], "counts": "aUh2b0X...BgRU4"}`
     pub segmentation: Segmentation,
     pub area: f64,
     /// The COCO bounding box format is `[top left x position, top left y position, width, height]`.\
@@ -66,7 +66,7 @@ pub struct Annotation {
 #[serde(untagged)]
 pub enum Segmentation {
     Rle(Rle),
-    EncodedRle(EncodedRle),
+    CocoRle(CocoRle),
     Polygons(Polygons),
     #[serde(skip)]
     PolygonsRS(PolygonsRS),
@@ -112,15 +112,15 @@ pub struct Rle {
     pub counts: Vec<u32>,
 }
 
-/// Segmentation mask compressed as a [Run-length encoding](https://en.wikipedia.org/wiki/Run-length_encoding) and then encoded into a string.
+/// Segmentation mask compressed as a [Run-length encoding](https://en.wikipedia.org/wiki/Run-length_encoding) and then further compressed into a string.
 ///
 /// For the encoding process, see [here](https://github.com/cocodataset/cocoapi/blob/master/common/maskApi.c#L204).
 #[cfg_attr(
     feature = "pyo3",
-    pyclass(get_all, name = "EncodedRLE", module = "rpycocotools.anns")
+    pyclass(get_all, name = "COCO_RLE", module = "rpycocotools.anns")
 )]
 #[derive(Clone, Debug, Eq, PartialEq, Deserialize, Serialize)]
-pub struct EncodedRle {
+pub struct CocoRle {
     /// Vector with two elements, the height and width of the image corresponding to the segmentation mask.
     pub size: Vec<u32>,
     pub counts: String,

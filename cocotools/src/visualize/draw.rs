@@ -93,7 +93,7 @@ pub fn mask(img: &mut image::RgbImage, mask: &mask::Mask, color: image::Rgb<u8>)
 ///         id: 1,
 ///         image_id: 1,
 ///         category_id: 1,
-///         segmentation: object_detection::Segmentation::EncodedRle(object_detection::EncodedRle {
+///         segmentation: object_detection::Segmentation::CocoRle(object_detection::CocoRle {
 ///             size: vec![40, 40],
 ///             counts: "e75S10000000ST1".to_string(),
 ///         }),

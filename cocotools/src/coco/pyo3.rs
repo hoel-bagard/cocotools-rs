@@ -165,14 +165,14 @@ impl Rle {
 }
 
 #[pymethods]
-impl EncodedRle {
+impl CocoRle {
     #[new]
     fn new(size: Vec<u32>, counts: String) -> Self {
         Self { size, counts }
     }
 
     fn __repr__(&self) -> String {
-        format!("EncodedRLE(size={:?}, counts={:?})", self.size, self.counts)
+        format!("COCO_RLE(size={:?}, counts={:?})", self.size, self.counts)
     }
 }
 
@@ -192,7 +192,7 @@ impl Segmentation {
     fn __repr__(&self) -> String {
         match self {
             Segmentation::Rle(rle) => rle.__repr__(),
-            Segmentation::EncodedRle(encoded_rle) => encoded_rle.__repr__(),
+            Segmentation::CocoRle(coco_rle) => coco_rle.__repr__(),
             Segmentation::Polygons(poly) => format!("Polygons(counts={:?})", poly),
             Segmentation::PolygonsRS(poly) => poly.__repr__(),
         }
@@ -203,7 +203,7 @@ impl IntoPy<PyObject> for Segmentation {
     fn into_py(self, py: Python<'_>) -> PyObject {
         match self {
             Segmentation::Rle(rle) => rle.into_py(py),
-            Segmentation::EncodedRle(encoded_rle) => encoded_rle.into_py(py),
+            Segmentation::CocoRle(coco_rle) => coco_rle.into_py(py),
             Segmentation::Polygons(poly) => poly.into_py(py),
             Segmentation::PolygonsRS(poly) => poly.into_py(py),
         }
