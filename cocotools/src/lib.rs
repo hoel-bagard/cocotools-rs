@@ -38,8 +38,8 @@
 //! ```
 
 pub mod coco;
-pub mod converters;
 pub mod errors;
+pub mod mask;
 pub(crate) mod utils;
 pub mod visualize;
 

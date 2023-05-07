@@ -2,13 +2,11 @@ use clap::ValueEnum;
 use image;
 use imageproc::contours;
 use imageproc::drawing;
-use ndarray::{s, Array2, ArrayViewMut, ShapeBuilder};
+use ndarray::{s, ArrayViewMut, ShapeBuilder};
 
+use super::Mask;
 use crate::coco::object_detection;
 use crate::errors::MaskError;
-
-/// A boolean mask indicating for each pixel whether it belongs to the object or not.
-pub type Mask = Array2<u8>;
 
 /// Segmentation types.
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
@@ -403,6 +401,7 @@ pub fn mask_from_poly(
 }
 
 #[allow(clippy::cast_possible_truncation, clippy::module_name_repetitions)]
+#[must_use]
 pub fn poly_from_mask(mask: &Mask) -> object_detection::Polygons {
     object_detection::Polygons::from(&object_detection::Rle::from(mask))
 }

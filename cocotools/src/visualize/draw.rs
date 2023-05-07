@@ -5,8 +5,8 @@ use imageproc::{drawing::draw_hollow_rect_mut, rect::Rect};
 use rand::Rng;
 
 use crate::coco::object_detection;
-use crate::converters::mask;
 use crate::errors::MaskError;
+use crate::mask;
 
 /// Draw the bounding box on the image.
 ///
