@@ -6,7 +6,7 @@ import numpy.typing as npt
 from rpycocotools._rpycocotools import anns, mask as _mask
 
 
-def decode(encoded_mask: anns.RLE | anns.EncodedRLE | anns.PolygonsRS | anns.Polygons,
+def decode(encoded_mask: anns.RLE | anns.COCO_RLE | anns.PolygonsRS | anns.Polygons,
            width: None | int = None,
            height: None | int = None,
            ) -> npt.NDArray[np.uint8]:
@@ -24,8 +24,8 @@ def decode(encoded_mask: anns.RLE | anns.EncodedRLE | anns.PolygonsRS | anns.Pol
     """
     if isinstance(encoded_mask, anns.RLE):
         decoded_mask = _mask.decode_rle(encoded_mask)
-    elif isinstance(encoded_mask, anns.EncodedRLE):
-        decoded_mask = _mask.decode_encoded_rle(encoded_mask)
+    elif isinstance(encoded_mask, anns.COCO_RLE):
+        decoded_mask = _mask.decode_coco_rle(encoded_mask)
     elif isinstance(encoded_mask, anns.PolygonsRS):
         decoded_mask = _mask.decode_poly_rs(encoded_mask)
     else:
@@ -34,8 +34,8 @@ def decode(encoded_mask: anns.RLE | anns.EncodedRLE | anns.PolygonsRS | anns.Pol
 
 
 def encode(mask: npt.NDArray[np.uint8],
-           target = Literal["rle", "encoded_rle", "polygons", "polygon_rs"],
-           ) -> anns.RLE | anns.EncodedRLE | anns.PolygonsRS | anns.Polygons:
+           target = Literal["rle", "coco_rle", "polygons", "polygon_rs"],
+           ) -> anns.RLE | anns.COCO_RLE | anns.PolygonsRS | anns.Polygons:
     """Decode an encoded mask.
 
     Args:
@@ -48,8 +48,8 @@ def encode(mask: npt.NDArray[np.uint8],
     match target:
         case "rle":
             encoded_mask = _mask.encode_to_rle(mask)
-        case "encoded_rle":
-            encoded_mask = _mask.encode_to_encoded_rle(mask)
+        case "coco_rle":
+            encoded_mask = _mask.encode_to_coco_rle(mask)
         case "polygons":
             encoded_mask = _mask.encode_to_polygons(mask)
         case _:  # "polygons_rs"

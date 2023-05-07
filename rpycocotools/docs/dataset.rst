@@ -75,7 +75,7 @@ COCO
     :raises ValueError: If the image cannot be drawn (potentially due to it not being in the dataset) or cannot be displayed.
 
 
-.. class:: rpycocotools.anns.Annotation(id: int, image_id: int, category_id: int, segmentation: Polygons | PolygonsRS | Rle | EncodedRle, area: float, bbox: Bbox, iscrowd: int) -> None
+.. class:: rpycocotools.anns.Annotation(id: int, image_id: int, category_id: int, segmentation: Polygons | PolygonsRS | Rle | CocoRle, area: float, bbox: Bbox, iscrowd: int) -> None
 
     Create an annotation used for object detection tasks.
 
@@ -87,7 +87,7 @@ COCO
     :param int id: The id of the annotation.
     :param int image_id: The id of the image corresponding to this annotation.
     :param int category_id: The id of the category corresponding to this annotation.
-    :param Polygons | PolygonsRS | Rle | EncodedRle segmentation: The segmentation data for the annotation, which can be of type Polygons, PolygonsRS, Rle or EncodedRle.
+    :param Polygons | PolygonsRS | Rle | CocoRle segmentation: The segmentation data for the annotation, which can be of type Polygons, PolygonsRS, Rle or CocoRle.
     :param float area: The area of the annotation bounding box.
     :param Bbox bbox: The bounding box of the annotation.
     :param int iscrowd: The iscrowd flag for the annotation, which indicates if the annotation represents a group of objects or not.
@@ -225,12 +225,12 @@ COCO
 
         :type: list[int]
 
-.. class:: rpycocotools.anns.EncodedRLE(size: list[int], counts: str) -> None
+.. class:: rpycocotools.anns.COCO_RLE(size: list[int], counts: str) -> None
 
-    Segmentation mask compressed as a [Run-Length Encoding](https://en.wikipedia.org/wiki/Run-length_encoding) and then encoded into a string.
+    Segmentation mask compressed as a [Run-Length Encoding](https://en.wikipedia.org/wiki/Run-length_encoding) and then further encoded into a string.
 
     :param list[int] size: List with two elements, the height and width of the image corresponding to the segmentation mask.
-    :param str counts: The encoded RLE representation of the mask.
+    :param str counts: The COCO RLE representation of the mask.
 
     .. attribute:: size
 
@@ -240,6 +240,6 @@ COCO
 
     .. attribute:: counts
 
-        The encoded RLE representation of the mask.
+        The COCO RLE representation of the mask.
 
         :type: str

@@ -18,19 +18,19 @@ def test_access_mask(coco_dataset: rpycocotools.COCO) -> None:
 
 def test_create_mask() -> None:
     rpycocotools.anns.Rle(size=[4,4], counts=[5, 2, 2, 2, 5])
-    rpycocotools.anns.EncodedRle(size=[4,4], counts="52203")
+    rpycocotools.anns.CocoRle(size=[4,4], counts="52203")
     rpycocotools.anns.PolygonsRS(size=[7, 7], counts=[[2.0, 1.0, 2.0, 5.0, 4.0, 5.0, 4.0, 1.0]])
     rpycocotools.anns.Polygons([[2.0, 1.0, 2.0, 5.0, 4.0, 5.0, 4.0, 1.0]])
 
 
 @pytest.mark.xfail(reason="Not implemented")
-@pytest.mark.parametrize(("rle", "expected_encoded_rle"),
+@pytest.mark.parametrize(("rle", "expected_coco_rle"),
                          [(rpycocotools.anns.Rle(size=[4,4], counts=[5, 2, 2, 2, 5]),
-                           rpycocotools.anns.EncodedRle(size=[4,4], counts="52203")),
+                           rpycocotools.anns.CocoRle(size=[4,4], counts="52203")),
                           ])
-def test_convert_mask(rle: rpycocotools.anns.Rle, expected_encoded_rle: rpycocotools.anns.EncodedRle) -> None:
-    encoded_rle = rle.to_encoded_rle()  # pyright: ignore
-    assert encoded_rle == expected_encoded_rle
+def test_convert_mask(rle: rpycocotools.anns.Rle, expected_coco_rle: rpycocotools.anns.CocoRle) -> None:
+    coco_rle = rle.to_coco_rle()  # pyright: ignore
+    assert coco_rle == expected_coco_rle
 
 
 @pytest.mark.parametrize(("rle", "expected_mask"),
@@ -49,4 +49,4 @@ def test_decode_rle(rle: rpycocotools.anns.Rle, expected_mask: npt.NDArray[np.ui
 
 
 def test_import() -> None:
-    from rpycocotools.mask import decode_encoded_rle  # noqa: F401 # pyright: ignore[reportUnusedImport]
+    from rpycocotools.mask import decode_coco_rle  # noqa: F401 # pyright: ignore[reportUnusedImport]

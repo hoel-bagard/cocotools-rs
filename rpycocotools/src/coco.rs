@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use cocotools::annotations::coco;
+use cocotools::coco::object_detection;
 use cocotools::errors::CocoError;
 use cocotools::visualize::display;
 use cocotools::COCO;
@@ -36,7 +36,7 @@ impl PyCOCO {
         self.0.get_imgs().len()
     }
 
-    fn get_img(&self, py: Python<'_>, img_id: u32) -> PyResult<Py<coco::Image>> {
+    fn get_img(&self, py: Python<'_>, img_id: u32) -> PyResult<Py<object_detection::Image>> {
         Py::new(
             py,
             self.0
@@ -46,7 +46,7 @@ impl PyCOCO {
         )
     }
 
-    fn get_ann(&self, py: Python<'_>, ann_id: u32) -> PyResult<Py<coco::Annotation>> {
+    fn get_ann(&self, py: Python<'_>, ann_id: u32) -> PyResult<Py<object_detection::Annotation>> {
         Py::new(
             py,
             self.0
@@ -56,7 +56,7 @@ impl PyCOCO {
         )
     }
 
-    fn get_cat(&self, py: Python<'_>, cat_id: u32) -> PyResult<Py<coco::Category>> {
+    fn get_cat(&self, py: Python<'_>, cat_id: u32) -> PyResult<Py<object_detection::Category>> {
         Py::new(
             py,
             self.0
@@ -67,7 +67,7 @@ impl PyCOCO {
     }
 
     /// Order is non-deterministic
-    fn get_imgs(&self, py: Python<'_>) -> PyResult<Vec<Py<coco::Image>>> {
+    fn get_imgs(&self, py: Python<'_>) -> PyResult<Vec<Py<object_detection::Image>>> {
         self.0
             .get_imgs()
             .into_iter()
@@ -75,7 +75,7 @@ impl PyCOCO {
             .collect()
     }
 
-    fn get_anns(&self, py: Python<'_>) -> PyResult<Vec<Py<coco::Annotation>>> {
+    fn get_anns(&self, py: Python<'_>) -> PyResult<Vec<Py<object_detection::Annotation>>> {
         self.0
             .get_anns()
             .into_iter()
@@ -83,7 +83,7 @@ impl PyCOCO {
             .collect()
     }
 
-    fn get_cats(&self, py: Python<'_>) -> PyResult<Vec<Py<coco::Category>>> {
+    fn get_cats(&self, py: Python<'_>) -> PyResult<Vec<Py<object_detection::Category>>> {
         self.0
             .get_cats()
             .into_iter()
@@ -91,7 +91,11 @@ impl PyCOCO {
             .collect()
     }
 
-    fn get_img_anns(&self, img_id: u32, py: Python<'_>) -> PyResult<Vec<Py<coco::Annotation>>> {
+    fn get_img_anns(
+        &self,
+        img_id: u32,
+        py: Python<'_>,
+    ) -> PyResult<Vec<Py<object_detection::Annotation>>> {
         self.0
             .get_img_anns(img_id)
             .map_err(PyMissingIdError::from)?
@@ -156,7 +160,7 @@ impl PyCOCO {
 
 #[pyclass(name = "Polygons", module = "rpycocotools.anns")]
 #[derive(Debug)]
-pub struct PyPolygons(pub cocotools::annotations::coco::Polygons);
+pub struct PyPolygons(pub cocotools::coco::object_detection::Polygons);
 
 #[pymethods]
 impl PyPolygons {
