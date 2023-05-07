@@ -5,7 +5,7 @@ extern crate minifb;
 use minifb::{Key, Window, WindowOptions};
 
 use super::draw::{self, ToBuffer};
-use crate::annotations::coco::{Annotation, HashmapDataset};
+use crate::coco::object_detection::{Annotation, HashmapDataset};
 use crate::utils;
 
 /// Visualize the annotations for the given image id.

@@ -3,14 +3,14 @@ use std::path::PathBuf;
 
 use clap::Parser;
 
-mod annotations;
 mod argparse;
+mod coco;
 mod converters;
 mod errors;
 mod utils;
 mod visualize;
-use crate::annotations::COCO;
 use crate::argparse::{Cli, Commands};
+use crate::coco::COCO;
 use crate::visualize::display;
 
 fn main() -> Result<(), Box<dyn error::Error>> {

@@ -25,7 +25,7 @@
 //! # use std::path::PathBuf;
 //! use cocotools::COCO;
 //! use cocotools::converters::mask;
-//! use cocotools::annotations::coco;
+//! use cocotools::coco::coco;
 //!
 //! let annotations_file_path = PathBuf::from("../data_samples/coco_25k/annotations.json");
 //! let image_folder_path = PathBuf::from("../data_samples/coco_25k/images");
@@ -37,11 +37,11 @@
 //! # Ok::<(), Box<dyn std::error::Error>>(())
 //! ```
 
-pub mod annotations;
+pub mod coco;
 pub mod converters;
 pub mod errors;
 pub(crate) mod utils;
 pub mod visualize;
 
 // #[doc(hidden)]
-pub use crate::annotations::COCO;
+pub use crate::coco::COCO;
