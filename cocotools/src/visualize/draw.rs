@@ -19,7 +19,7 @@ use crate::mask;
 ///
 /// ```rust
 /// # use image::RgbImage;
-/// # use cocotools::annotations::object_detection::Bbox;
+/// # use cocotools::coco::object_detection::Bbox;
 /// use cocotools::visualize::draw;
 /// let mut img = RgbImage::new(60, 60);
 /// let bbox = Bbox{left: 40.0, top: 40.0, width: 10.0, height: 10.0};
@@ -48,7 +48,7 @@ pub fn bbox(img: &mut image::RgbImage, bbox: &object_detection::Bbox, color: ima
 /// ```rust
 /// # use image::RgbImage;
 /// # use ndarray::array;
-/// # use cocotools::annotations::object_detection::Bbox;
+/// # use cocotools::coco::object_detection::Bbox;
 /// use cocotools::visualize::draw;
 /// let mask = &array![[0, 0, 0, 0, 0, 0, 0],
 ///                    [0, 0, 1, 1, 1, 0, 0],
@@ -84,7 +84,7 @@ pub fn mask(img: &mut image::RgbImage, mask: &mask::Mask, color: image::Rgb<u8>)
 /// # Example
 ///
 /// ```rust
-/// # use cocotools::annotations::coco;
+/// # use cocotools::coco::object_detection;
 /// # use image::RgbImage;
 /// use cocotools::visualize::draw;
 /// let mut img = RgbImage::new(40, 40);

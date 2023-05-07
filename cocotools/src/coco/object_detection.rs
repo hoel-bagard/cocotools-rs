@@ -81,7 +81,7 @@ pub enum Segmentation {
 ///
 /// # Example:
 /// ```rust
-/// # use cocotools::annotations::coco::Polygons;
+/// # use cocotools::coco::object_detection::Polygons;
 /// let poly: Polygons = vec![vec![510.66, 423.01, 511.72, 420.03, 510.45, 423.01], vec![10.0, 10.0, 15.0, 15.0, 10.0, 15.0]];
 /// assert_eq!(poly.len(), 2);
 /// assert_eq!(poly[0].len() % 2, 0);

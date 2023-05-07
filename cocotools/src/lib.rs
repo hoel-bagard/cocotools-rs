@@ -24,8 +24,9 @@
 //! ```
 //! # use std::path::PathBuf;
 //! use cocotools::COCO;
-//! use cocotools::converters::mask;
-//! use cocotools::coco::coco;
+//! use cocotools::mask;
+//! use cocotools::mask::conversions;
+//! use cocotools::coco::object_detection;
 //!
 //! let annotations_file_path = PathBuf::from("../data_samples/coco_25k/annotations.json");
 //! let image_folder_path = PathBuf::from("../data_samples/coco_25k/images");
