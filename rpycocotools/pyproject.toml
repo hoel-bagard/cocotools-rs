@@ -72,6 +72,7 @@ convention = "google"
 
 [tool.pyright]
 include = ["tests"]
+ignore = ["python"]
 pythonVersion = "3.11"
 pythonPlatform = "Linux"
 
