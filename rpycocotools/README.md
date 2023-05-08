@@ -44,5 +44,4 @@ The mask is a numpy array and can be visualized (for example with opencv):
 
 
 ## TODO list:
-- Make it possible to get the dataset as a json (in order to be able to save/print it).
-- Make it possible to get the visualization image as a numpy array.
+- [ ] Make it possible to get the dataset as a json (in order to be able to save/print it).

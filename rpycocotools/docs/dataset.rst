@@ -71,9 +71,16 @@ COCO
 
     Visualize an image and its annotations.
 
-    :param int img_id: The `id` of the `Image` to whose annotations should be visualized.
+    :param int img_id: The `id` of the `Image` whose annotations should be visualized.
     :raises ValueError: If the image cannot be drawn (potentially due to it not being in the dataset) or cannot be displayed.
 
+    .. method:: draw_anns(self: Self, img_id: int, draw_bboxes: bool) -> npt.NDArray[np.uint8]: ...
+
+    Draw the annotations on the image and returns it as a (RGB) numpy array.
+
+    :param int img_id: The `id` of the `Image` whose annotations should be visualized.
+    :param bool draw_bboxes: Whether to display bounding boxes or not (if `False`, only the masks will be drawn).
+    :raises ValueError: If the image cannot be drawn (potentially due to it not being in the dataset) or cannot be displayed.
 
 .. class:: rpycocotools.anns.Annotation(id: int, image_id: int, category_id: int, segmentation: Polygons | PolygonsRS | RLE | COCO_RLE, area: float, bbox: BBox, iscrowd: int) -> None
 
