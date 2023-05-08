@@ -13,6 +13,6 @@ build:
 
 python:
   install:
-    - requirements: rpycocotools/requirements-doc.txt
+    - requirements: rpycocotools/requirements/requirements-doc.txt
     - method: pip
       path: rpycocotools
