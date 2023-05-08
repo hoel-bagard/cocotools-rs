@@ -6,7 +6,7 @@
 [![PyPI - Downloads](https://img.shields.io/pypi/dm/rpycocotools?style=flat-square)](https://pypistats.org/packages/rpycocotools)
 [![PyPI - License](https://img.shields.io/pypi/l/rpycocotools?style=flat)](https://opensource.org/licenses/MIT)
 
-The `rpycocotools` package provides tools to load, manipulate, convert and visualize COCO format datasets.
+The `rpycocotools` package provides tools to load, manipulate, convert and visualize COCO format datasets. The documentation is available [here](https://cocotools-rs.readthedocs.io/en/latest/index.html).
 
 ### Installation
 
@@ -15,7 +15,12 @@ You can install the package through pip:
 pip install rpycocotools
 ```
 
-You can also build and install it into a virtualenv with `pip install .` (do not use `maturin develop`, the imports will not work).
+You can also git clone this repo and build it yourself with:
+```
+pip install -r requirements/requirements-build.txt
+pip install .
+```
+(do not use `maturin develop`, the imports will not work).
 
 ### Usage example
 
