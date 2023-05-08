@@ -161,6 +161,14 @@ impl Rle {
     fn __repr__(&self) -> String {
         format!("RLE(size={:?}, counts={:?})", self.size, self.counts)
     }
+
+    fn __richcmp__(&self, other: &Self, op: CompareOp, py: Python<'_>) -> PyObject {
+        match op {
+            CompareOp::Eq => (self.size == other.size && self.counts == other.counts).into_py(py),
+            CompareOp::Ne => (self.size != other.size || self.counts != other.counts).into_py(py),
+            _ => py.NotImplemented(),
+        }
+    }
 }
 
 #[pymethods]
@@ -173,6 +181,14 @@ impl CocoRle {
     fn __repr__(&self) -> String {
         format!("COCO_RLE(size={:?}, counts={:?})", self.size, self.counts)
     }
+
+    fn __richcmp__(&self, other: &Self, op: CompareOp, py: Python<'_>) -> PyObject {
+        match op {
+            CompareOp::Eq => (self.size == other.size && self.counts == other.counts).into_py(py),
+            CompareOp::Ne => (self.size != other.size || self.counts != other.counts).into_py(py),
+            _ => py.NotImplemented(),
+        }
+    }
 }
 
 #[pymethods]
@@ -184,6 +200,14 @@ impl PolygonsRS {
 
     fn __repr__(&self) -> String {
         format!("PolygonsRS(size={:?}, counts={:?})", self.size, self.counts)
+    }
+
+    fn __richcmp__(&self, other: &Self, op: CompareOp, py: Python<'_>) -> PyObject {
+        match op {
+            CompareOp::Eq => (self.size == other.size && self.counts == other.counts).into_py(py),
+            CompareOp::Ne => (self.size != other.size || self.counts != other.counts).into_py(py),
+            _ => py.NotImplemented(),
+        }
     }
 }
 
