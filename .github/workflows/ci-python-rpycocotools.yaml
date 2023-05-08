@@ -37,7 +37,7 @@ jobs:
       - run: pip install --upgrade pip
       - run: pip install -r requirements/requirements-dev.txt
       - run: ruff .
-      - run: pip install flake8 flake8-bugbear flake8-builtins flake8-comprehensions flake8-docstrings==1.7.0 flake8-quotes pep8-naming flake8-import-order flake8-noqa flake8-broken-line flake8-commas Flake8-pyproject
+      - run: pip install -r requirements/requirements-flake8.txt
       - run: flake8 .
 
   python-typing-lint:
