@@ -20,26 +20,17 @@ The advantage of this format if that he polygons can be decoded into a mask of t
 Decode masks
 ----------------
 
-.. function:: rpycocotools.mask.decode(encoded_mask: RLE | COCO_RLE) | PolygonsRS) -> npt.NDArray[np.uint8]
+.. function:: rpycocotools.mask.decode(encoded_mask: RLE | COCO_RLE | Polygons | PolygonsRS, width: None | int, height: None | int) -> npt.NDArray[np.uint8]
 
-  Decode an RLE mask to a :class:`numpy.ndarray`.
+  Decode a mask to a :class:`numpy.ndarray`.
 
-  :param RLE | COCO_RLE | PolygonsRS encoded_mask: The encoded mask.
+  :param RLE | COCO_RLE | Polygons | PolygonsRS encoded_mask: The encoded mask.
+  :param int width: Use only when the mask is a :py:class:`Polygon`. The width of the image corresponding to the polygons.
+  :param int height: Use only when the mask is a :py:class:`Polygon`. The height of the image corresponding to the polygons.
   :raise ValueError: If the mask conversion failed.
   :return: The decoded mask as a NumPy array.
   :rtype: ``npt.NDArray[np.uint8]``
 
-
-.. function:: rpycocotools.mask.decode(poly: Polygons, width: int, height: int) -> npt.NDArray[np.uint8]
-
-  Decode a polygons mask representation to a :class:`numpy.ndarray`.
-
-  :param Polygons poly: The `Polygons` to composing the mask.
-  :param int width: The width of the image corresponding to the polygons
-  :param int height: The height of the image corresponding to the polygons
-  :raise ValueError: If the mask conversion failed.
-  :return: The binary mask of the decoded `Polygons`.
-  :rtype: ``npt.NDArray[np.uint8]``
 
 Encode masks
 ----------------
