@@ -1,11 +1,11 @@
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 extern crate image;
 extern crate minifb;
 use minifb::{Key, Window, WindowOptions};
 
 use super::draw::{self, ToBuffer};
-use crate::annotations::coco::{Annotation, HashmapDataset};
+use crate::coco::object_detection::{Annotation, HashmapDataset};
 use crate::utils;
 
 /// Visualize the annotations for the given image id.
@@ -13,14 +13,10 @@ use crate::utils;
 /// # Errors
 ///
 /// Will return `Err` if `img_id` is not present in the dataset.
-pub fn img_anns(
-    dataset: &HashmapDataset,
-    image_folder: &Path,
-    img_id: u32,
-) -> Result<(), Box<dyn std::error::Error>> {
+pub fn img_anns(dataset: &HashmapDataset, img_id: u32) -> Result<(), Box<dyn std::error::Error>> {
     let anns = dataset.get_img_anns(img_id)?;
     let img_name = &dataset.get_img(img_id)?.file_name;
-    let img_path = image_folder.join(img_name);
+    let img_path = dataset.image_folder.join(img_name);
 
     self::anns(&img_path, &anns, true)?;
 

@@ -1,9 +1,12 @@
 use std::path::PathBuf;
 
-use cocotools::annotations::coco;
+use cocotools::coco::object_detection;
 use cocotools::errors::CocoError;
 use cocotools::visualize::display;
 use cocotools::COCO;
+use nshare::ToNdarray3;
+use numpy::IntoPyArray;
+use numpy::PyArray3;
 use pyo3::exceptions::{PyKeyError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::PyUnicode;
@@ -29,7 +32,11 @@ impl PyCOCO {
         Ok(Self(dataset))
     }
 
-    fn get_img(&self, py: Python<'_>, img_id: u32) -> PyResult<Py<coco::Image>> {
+    fn __len__(&self) -> usize {
+        self.0.get_imgs().len()
+    }
+
+    fn get_img(&self, py: Python<'_>, img_id: u32) -> PyResult<Py<object_detection::Image>> {
         Py::new(
             py,
             self.0
@@ -39,7 +46,7 @@ impl PyCOCO {
         )
     }
 
-    fn get_ann(&self, py: Python<'_>, ann_id: u32) -> PyResult<Py<coco::Annotation>> {
+    fn get_ann(&self, py: Python<'_>, ann_id: u32) -> PyResult<Py<object_detection::Annotation>> {
         Py::new(
             py,
             self.0
@@ -49,7 +56,7 @@ impl PyCOCO {
         )
     }
 
-    fn get_cat(&self, py: Python<'_>, cat_id: u32) -> PyResult<Py<coco::Category>> {
+    fn get_cat(&self, py: Python<'_>, cat_id: u32) -> PyResult<Py<object_detection::Category>> {
         Py::new(
             py,
             self.0
@@ -60,7 +67,7 @@ impl PyCOCO {
     }
 
     /// Order is non-deterministic
-    fn get_imgs(&self, py: Python<'_>) -> PyResult<Vec<Py<coco::Image>>> {
+    fn get_imgs(&self, py: Python<'_>) -> PyResult<Vec<Py<object_detection::Image>>> {
         self.0
             .get_imgs()
             .into_iter()
@@ -68,7 +75,7 @@ impl PyCOCO {
             .collect()
     }
 
-    fn get_anns(&self, py: Python<'_>) -> PyResult<Vec<Py<coco::Annotation>>> {
+    fn get_anns(&self, py: Python<'_>) -> PyResult<Vec<Py<object_detection::Annotation>>> {
         self.0
             .get_anns()
             .into_iter()
@@ -76,7 +83,7 @@ impl PyCOCO {
             .collect()
     }
 
-    fn get_cats(&self, py: Python<'_>) -> PyResult<Vec<Py<coco::Category>>> {
+    fn get_cats(&self, py: Python<'_>) -> PyResult<Vec<Py<object_detection::Category>>> {
         self.0
             .get_cats()
             .into_iter()
@@ -84,7 +91,11 @@ impl PyCOCO {
             .collect()
     }
 
-    fn get_img_anns(&self, img_id: u32, py: Python<'_>) -> PyResult<Vec<Py<coco::Annotation>>> {
+    fn get_img_anns(
+        &self,
+        img_id: u32,
+        py: Python<'_>,
+    ) -> PyResult<Vec<Py<object_detection::Annotation>>> {
         self.0
             .get_img_anns(img_id)
             .map_err(PyMissingIdError::from)?
@@ -118,11 +129,38 @@ impl PyCOCO {
             .map_err(|err| PyValueError::new_err(format!("Failed to display the image: {err}")))?;
         Ok(())
     }
+
+    /// Draw the annotations on the image and returns it as a (RGB) numpy array.
+    ///
+    /// ## Errors
+    ///
+    /// Will return `Err` if the image cannot be drawn (potentially due to it not being in the dataset).
+    pub fn draw_anns<'a>(
+        &self,
+        py: Python<'a>,
+        img_id: u32,
+        draw_bboxes: bool,
+    ) -> PyResult<&'a PyArray3<u8>> {
+        let img = self
+            .0
+            .draw_img_anns(img_id, draw_bboxes)
+            .map_err(|err| match err {
+                CocoError::MissingId(err) => PyKeyError::new_err(err.to_string()),
+                CocoError::Mask(err) => PyValueError::new_err(err.to_string()),
+                CocoError::Loading(err) => PyValueError::new_err(err.to_string()),
+            })?;
+
+        let img = img
+            .into_ndarray3()
+            .permuted_axes([1, 2, 0])
+            .into_pyarray(py);
+        Ok(img)
+    }
 }
 
 #[pyclass(name = "Polygons", module = "rpycocotools.anns")]
 #[derive(Debug)]
-pub struct PyPolygons(cocotools::annotations::coco::Polygons);
+pub struct PyPolygons(pub cocotools::coco::object_detection::Polygons);
 
 #[pymethods]
 impl PyPolygons {

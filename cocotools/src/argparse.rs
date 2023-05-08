@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use clap::{Parser, Subcommand};
 
-use crate::converters::mask::Segmentation;
+use crate::mask::conversions::Segmentation;
 
 #[derive(Parser)]
 #[command(author, version, about)]

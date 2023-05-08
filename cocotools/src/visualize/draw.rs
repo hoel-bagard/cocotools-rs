@@ -4,9 +4,9 @@ use image;
 use imageproc::{drawing::draw_hollow_rect_mut, rect::Rect};
 use rand::Rng;
 
-use crate::annotations::coco;
-use crate::converters::mask;
+use crate::coco::object_detection;
 use crate::errors::MaskError;
+use crate::mask;
 
 /// Draw the bounding box on the image.
 ///
@@ -19,7 +19,7 @@ use crate::errors::MaskError;
 ///
 /// ```rust
 /// # use image::RgbImage;
-/// # use cocotools::annotations::coco::Bbox;
+/// # use cocotools::coco::object_detection::Bbox;
 /// use cocotools::visualize::draw;
 /// let mut img = RgbImage::new(60, 60);
 /// let bbox = Bbox{left: 40.0, top: 40.0, width: 10.0, height: 10.0};
@@ -27,11 +27,13 @@ use crate::errors::MaskError;
 /// draw::bbox(&mut img, &bbox, color);
 /// ```
 #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
-pub fn bbox(img: &mut image::RgbImage, bbox: &coco::Bbox, color: image::Rgb<u8>) {
-    let rect =
-        Rect::at(bbox.left as i32, bbox.top as i32).of_size(bbox.width as u32, bbox.height as u32);
+pub fn bbox(img: &mut image::RgbImage, bbox: &object_detection::Bbox, color: image::Rgb<u8>) {
+    if bbox.width > 0.0 && bbox.height > 0.0 {
+        let rect = Rect::at(bbox.left as i32, bbox.top as i32)
+            .of_size(bbox.width as u32, bbox.height as u32);
 
-    draw_hollow_rect_mut(img, rect, color);
+        draw_hollow_rect_mut(img, rect, color);
+    }
 }
 
 /// Draw the max on the image.
@@ -46,7 +48,7 @@ pub fn bbox(img: &mut image::RgbImage, bbox: &coco::Bbox, color: image::Rgb<u8>)
 /// ```rust
 /// # use image::RgbImage;
 /// # use ndarray::array;
-/// # use cocotools::annotations::coco::Bbox;
+/// # use cocotools::coco::object_detection::Bbox;
 /// use cocotools::visualize::draw;
 /// let mask = &array![[0, 0, 0, 0, 0, 0, 0],
 ///                    [0, 0, 1, 1, 1, 0, 0],
@@ -82,22 +84,22 @@ pub fn mask(img: &mut image::RgbImage, mask: &mask::Mask, color: image::Rgb<u8>)
 /// # Example
 ///
 /// ```rust
-/// # use cocotools::annotations::coco;
+/// # use cocotools::coco::object_detection;
 /// # use image::RgbImage;
 /// use cocotools::visualize::draw;
 /// let mut img = RgbImage::new(40, 40);
 /// let anns = vec![
-///     coco::Annotation {
+///     object_detection::Annotation {
 ///         id: 1,
 ///         image_id: 1,
 ///         category_id: 1,
-///         segmentation: coco::Segmentation::EncodedRle(coco::EncodedRle {
+///         segmentation: object_detection::Segmentation::CocoRle(object_detection::CocoRle {
 ///             size: vec![40, 40],
 ///             counts: "e75S10000000ST1".to_string(),
 ///         }),
 ///         // # the bounding box here does not correspond to the segmentation.
 ///         area: 1.0,
-///         bbox: coco::Bbox {
+///         bbox: object_detection::Bbox {
 ///             left: 10.0,
 ///             top: 10.0,
 ///             width: 20.0,
@@ -105,16 +107,16 @@ pub fn mask(img: &mut image::RgbImage, mask: &mask::Mask, color: image::Rgb<u8>)
 ///         },
 ///         iscrowd: 0,
 ///     },
-///     coco::Annotation {
+///     object_detection::Annotation {
 ///         id: 2,
 ///         image_id: 1,
 ///         category_id: 2,
-///         segmentation: coco::Segmentation::PolygonsRS(coco::PolygonsRS {
+///         segmentation: object_detection::Segmentation::PolygonsRS(object_detection::PolygonsRS {
 ///             size: vec![40, 40],
 ///             counts: vec![vec![4.0, 4.0, 24.0, 4.0, 24.0, 24.0, 4.0, 24.0]],
 ///         }),
 ///         area: 400.0,
-///         bbox: coco::Bbox {
+///         bbox: object_detection::Bbox {
 ///             left: 4.0,
 ///             top: 4.0,
 ///             width: 24.0,
@@ -131,7 +133,7 @@ pub fn mask(img: &mut image::RgbImage, mask: &mask::Mask, color: image::Rgb<u8>)
 /// Will return `Err` if the segmentation annotations could not be decompressed.
 pub fn anns(
     img: &mut image::ImageBuffer<image::Rgb<u8>, Vec<u8>>,
-    anns: &Vec<&coco::Annotation>,
+    anns: &Vec<&object_detection::Annotation>,
     draw_bbox: bool,
 ) -> Result<(), MaskError> {
     let mut rng = rand::thread_rng();

@@ -3,14 +3,14 @@ use std::path::PathBuf;
 
 use clap::Parser;
 
-mod annotations;
 mod argparse;
-mod converters;
+mod coco;
 mod errors;
+mod mask;
 mod utils;
 mod visualize;
-use crate::annotations::COCO;
 use crate::argparse::{Cli, Commands};
+use crate::coco::COCO;
 use crate::visualize::display;
 
 fn main() -> Result<(), Box<dyn error::Error>> {
@@ -39,7 +39,7 @@ fn main() -> Result<(), Box<dyn error::Error>> {
             output_path,
         } => {
             let mut dataset = COCO::new(annotations_path, &PathBuf::from("N/A"))?;
-            converters::mask::convert_coco_segmentation(&mut dataset, *target_segmentation)?;
+            mask::conversions::convert_coco_segmentation(&mut dataset, *target_segmentation)?;
             let output_path = output_path
                 .as_ref()
                 .map_or_else(|| annotations_path, |output_path| output_path);

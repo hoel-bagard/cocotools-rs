@@ -1,7 +1,7 @@
 use pyo3::class::basic::CompareOp;
 use pyo3::prelude::*;
 
-use crate::annotations::coco::*;
+use crate::coco::object_detection::*;
 
 #[pymethods]
 impl Annotation {
@@ -97,6 +97,7 @@ impl BboxIter {
         slf.inner.next()
     }
 }
+
 #[pymethods]
 impl Bbox {
     #[new]
@@ -111,9 +112,19 @@ impl Bbox {
 
     fn __repr__(&self) -> String {
         format!(
-            "Bbox(left={}, top={}, width={}, height={})",
+            "BBox(left={}, top={}, width={}, height={})",
             self.left, self.top, self.width, self.height
         )
+    }
+
+    fn __len__(&self) -> usize {
+        4
+    }
+
+    fn __getitem__(&self, idx: usize) -> f64 {
+        // https://pyo3.rs/main/doc/pyo3/types/struct.pysequence
+        // https://docs.rs/pyo3/0.14.3/pyo3/class/sequence/trait.PySequenceProtocol.html
+        [self.left, self.top, self.width, self.height][idx]
     }
 
     fn __iter__(slf: PyRef<'_, Self>) -> PyResult<Py<BboxIter>> {
@@ -148,19 +159,35 @@ impl Rle {
     }
 
     fn __repr__(&self) -> String {
-        format!("RLE(counts={:?}, size={:?})", self.counts, self.size)
+        format!("RLE(size={:?}, counts={:?})", self.size, self.counts)
+    }
+
+    fn __richcmp__(&self, other: &Self, op: CompareOp, py: Python<'_>) -> PyObject {
+        match op {
+            CompareOp::Eq => (self.size == other.size && self.counts == other.counts).into_py(py),
+            CompareOp::Ne => (self.size != other.size || self.counts != other.counts).into_py(py),
+            _ => py.NotImplemented(),
+        }
     }
 }
 
 #[pymethods]
-impl EncodedRle {
+impl CocoRle {
     #[new]
     fn new(size: Vec<u32>, counts: String) -> Self {
         Self { size, counts }
     }
 
     fn __repr__(&self) -> String {
-        format!("EncodedRLE(counts={:?}, size={:?})", self.counts, self.size)
+        format!("COCO_RLE(size={:?}, counts={:?})", self.size, self.counts)
+    }
+
+    fn __richcmp__(&self, other: &Self, op: CompareOp, py: Python<'_>) -> PyObject {
+        match op {
+            CompareOp::Eq => (self.size == other.size && self.counts == other.counts).into_py(py),
+            CompareOp::Ne => (self.size != other.size || self.counts != other.counts).into_py(py),
+            _ => py.NotImplemented(),
+        }
     }
 }
 
@@ -172,7 +199,15 @@ impl PolygonsRS {
     }
 
     fn __repr__(&self) -> String {
-        format!("PolygonsRS(counts={:?})", self.counts)
+        format!("PolygonsRS(size={:?}, counts={:?})", self.size, self.counts)
+    }
+
+    fn __richcmp__(&self, other: &Self, op: CompareOp, py: Python<'_>) -> PyObject {
+        match op {
+            CompareOp::Eq => (self.size == other.size && self.counts == other.counts).into_py(py),
+            CompareOp::Ne => (self.size != other.size || self.counts != other.counts).into_py(py),
+            _ => py.NotImplemented(),
+        }
     }
 }
 
@@ -180,7 +215,7 @@ impl Segmentation {
     fn __repr__(&self) -> String {
         match self {
             Segmentation::Rle(rle) => rle.__repr__(),
-            Segmentation::EncodedRle(encoded_rle) => encoded_rle.__repr__(),
+            Segmentation::CocoRle(coco_rle) => coco_rle.__repr__(),
             Segmentation::Polygons(poly) => format!("Polygons(counts={:?})", poly),
             Segmentation::PolygonsRS(poly) => poly.__repr__(),
         }
@@ -191,7 +226,7 @@ impl IntoPy<PyObject> for Segmentation {
     fn into_py(self, py: Python<'_>) -> PyObject {
         match self {
             Segmentation::Rle(rle) => rle.into_py(py),
-            Segmentation::EncodedRle(encoded_rle) => encoded_rle.into_py(py),
+            Segmentation::CocoRle(coco_rle) => coco_rle.into_py(py),
             Segmentation::Polygons(poly) => poly.into_py(py),
             Segmentation::PolygonsRS(poly) => poly.into_py(py),
         }
