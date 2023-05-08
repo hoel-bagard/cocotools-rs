@@ -75,7 +75,7 @@ COCO
     :raises ValueError: If the image cannot be drawn (potentially due to it not being in the dataset) or cannot be displayed.
 
 
-.. class:: rpycocotools.anns.Annotation(id: int, image_id: int, category_id: int, segmentation: Polygons | PolygonsRS | Rle | CocoRle, area: float, bbox: Bbox, iscrowd: int) -> None
+.. class:: rpycocotools.anns.Annotation(id: int, image_id: int, category_id: int, segmentation: Polygons | PolygonsRS | RLE | COCO_RLE, area: float, bbox: BBox, iscrowd: int) -> None
 
     Create an annotation used for object detection tasks.
 
@@ -87,9 +87,9 @@ COCO
     :param int id: The id of the annotation.
     :param int image_id: The id of the image corresponding to this annotation.
     :param int category_id: The id of the category corresponding to this annotation.
-    :param Polygons | PolygonsRS | Rle | CocoRle segmentation: The segmentation data for the annotation, which can be of type Polygons, PolygonsRS, Rle or CocoRle.
+    :param Polygons | PolygonsRS | RLE | COCO_RLE segmentation: The segmentation data for the annotation, which can be of type Polygons, PolygonsRS, RLE or COCO_RLE.
     :param float area: The area of the annotation bounding box.
-    :param Bbox bbox: The bounding box of the annotation.
+    :param BBox bbox: The bounding box of the annotation.
     :param int iscrowd: The iscrowd flag for the annotation, which indicates if the annotation represents a group of objects or not.
 
 .. class:: rpycocotools.anns.Category(id: int, name: str, supercategory: str) -> None
@@ -118,7 +118,7 @@ COCO
 
         :type: str
 
-.. class:: rpycocotools.anns.Bbox(left: float, top: float, width: float, height: float) -> None
+.. class:: rpycocotools.anns.BBox(left: float, top: float, width: float, height: float) -> None
 
     A bounding box used for object detection tasks.
 

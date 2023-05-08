@@ -15,4 +15,4 @@ Usage example
     coco_dataset = rpycocotools.COCO("../data_samples/coco_25k/annotations.json", "../data_samples/coco_25k/images")
     anns = coco_dataset.get_img_anns(174482)
     encoded_mask = anns[0].segmentation
-    mask = rpycocotools.mask.decode_poly_rs(encoded_mask)
+    mask = rpycocotools.mask.decode(encoded_mask)
