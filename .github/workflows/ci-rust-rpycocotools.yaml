@@ -48,5 +48,4 @@ jobs:
           -W clippy::nursery \
           -W clippy::unwrap_used \
           -W clippy::expect_used  \
-          -A dead_code \
-          -A clippy::redundant_pub_crate
+          -A dead_code

@@ -114,6 +114,7 @@ fn decode_poly(
 }
 
 #[pyfunction]
+#[allow(clippy::needless_pass_by_value)]
 fn encode_to_rle(
     py: Python<'_>,
     mask: PyReadonlyArray2<u8>,
@@ -124,16 +125,18 @@ fn encode_to_rle(
 }
 
 #[pyfunction]
+#[allow(clippy::needless_pass_by_value)]
 fn encode_to_coco_rle(
     py: Python<'_>,
     mask: PyReadonlyArray2<u8>,
 ) -> PyResult<Py<object_detection::CocoRle>> {
     let mask = mask.to_owned_array();
     let encoded_mask = object_detection::CocoRle::try_from(&mask).map_err(PyMaskError::from)?;
-    Ok(Py::new(py, encoded_mask)?)
+    Py::new(py, encoded_mask)
 }
 
 #[pyfunction]
+#[allow(clippy::needless_pass_by_value)]
 fn encode_to_polygons(
     py: Python<'_>,
     uncompressed_mask: PyReadonlyArray2<u8>,
@@ -144,6 +147,7 @@ fn encode_to_polygons(
 }
 
 #[pyfunction]
+#[allow(clippy::needless_pass_by_value)]
 fn encode_to_polygons_rs(
     py: Python<'_>,
     mask: PyReadonlyArray2<u8>,

@@ -1,3 +1,4 @@
+#![allow(clippy::redundant_pub_crate)]
 extern crate cocotools;
 use pyo3::types::PyDict;
 use pyo3::{prelude::*, wrap_pymodule};
