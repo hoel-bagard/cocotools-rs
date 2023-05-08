@@ -1,9 +1,11 @@
+"""Module providing functions to decode and encode masks."""
 from typing import Literal
 
 import numpy as np
 import numpy.typing as npt
 
-from rpycocotools._rpycocotools import anns, mask as _mask
+from rpycocotools._rpycocotools import anns
+from rpycocotools._rpycocotools import mask as _mask
 
 
 def decode(encoded_mask: anns.RLE | anns.COCO_RLE | anns.PolygonsRS | anns.Polygons,
@@ -34,7 +36,7 @@ def decode(encoded_mask: anns.RLE | anns.COCO_RLE | anns.PolygonsRS | anns.Polyg
 
 
 def encode(mask: npt.NDArray[np.uint8],
-           target = Literal["rle", "coco_rle", "polygons", "polygon_rs"],
+           target: Literal["rle", "coco_rle", "polygons", "polygon_rs"],
            ) -> anns.RLE | anns.COCO_RLE | anns.PolygonsRS | anns.Polygons:
     """Decode an encoded mask.
 
