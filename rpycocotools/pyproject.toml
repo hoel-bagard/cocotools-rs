@@ -41,6 +41,7 @@ build = ["maturin"]
 test = ["pytest", "hypothesis"]
 dev = ["pip-tools", "ruff", "pyright"]
 doc = ["sphinx", "sphinx-rtd-theme", "sphinx-hoverxref", "sphinx-codeautolink"]
+flake8 = ["flake8", "flake8-bugbear", "flake8-builtins", "flake8-comprehensions", "flake8-docstrings", "flake8-quotes", "pep8-naming", "flake8-import-order", "flake8-noqa", "flake8-broken-line", "flake8-commas", "Flake8-pyproject"]
 
 [tool.pytest.ini_options]
 # https://docs.pytest.org/en/7.1.x/explanation/goodpractices.html
@@ -107,9 +108,25 @@ reportUnusedExpression = "warning"
 reportUnnecessaryTypeIgnoreComment = "warning"
 reportMatchNotExhaustive = "warning"
 
+[tool.flake8]
+application_import_names = "rpycocotools"
+exclude = ["env", "venv", "docs"]
+max-line-length = 120
+docstring-convention = "google"
+import-order-style = "smarkets"
+inline-quotes = "double"
+# D1: Missing docstring
+# I100: Import statements are in the wrong order.
+# I201: Missing newline between import groups.
+# F401: imported but unused
+per-file-ignores = [
+    "tests/*.py:D1,I201,I100",
+    "python/rpycocotools/__init__.py:F401"
+]
+
 [tool.pylint.messages_control]
 max-line-length = 120
 disable = [
-    "no-member",
-    "import-outside-toplevel",
+    "import-error",
+    "no-name-in-module",
 ]

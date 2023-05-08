@@ -6,7 +6,7 @@ from hypothesis import strategies as st
 from rpycocotools import mask
 
 u32_max = 4_294_967_295
-u32_st =  st.integers(min_value=0, max_value=u32_max)
+u32_st = st.integers(min_value=0, max_value=u32_max)
 
 
 def test_access_mask(coco_dataset: rpycocotools.COCO) -> None:
@@ -17,16 +17,16 @@ def test_access_mask(coco_dataset: rpycocotools.COCO) -> None:
 
 
 def test_create_mask() -> None:
-    rpycocotools.anns.RLE(size=[4,4], counts=[5, 2, 2, 2, 5])
-    rpycocotools.anns.COCO_RLE(size=[4,4], counts="52203")
+    rpycocotools.anns.RLE(size=[4, 4], counts=[5, 2, 2, 2, 5])
+    rpycocotools.anns.COCO_RLE(size=[4, 4], counts="52203")
     rpycocotools.anns.PolygonsRS(size=[7, 7], counts=[[2.0, 1.0, 2.0, 5.0, 4.0, 5.0, 4.0, 1.0]])
     rpycocotools.anns.Polygons([[2.0, 1.0, 2.0, 5.0, 4.0, 5.0, 4.0, 1.0]])
 
 
 # @pytest.mark.xfail(reason="Not implemented")
 @pytest.mark.parametrize(("rle", "expected_coco_rle"),
-                         [(rpycocotools.anns.RLE(size=[4,4], counts=[5, 2, 2, 2, 5]),
-                           rpycocotools.anns.COCO_RLE(size=[4,4], counts="52203")),
+                         [(rpycocotools.anns.RLE(size=[4, 4], counts=[5, 2, 2, 2, 5]),
+                           rpycocotools.anns.COCO_RLE(size=[4, 4], counts="52203")),
                           ])
 def test_convert_mask(rle: rpycocotools.anns.RLE, expected_coco_rle: rpycocotools.anns.COCO_RLE) -> None:
     decoded_mask = mask.decode(rle)
