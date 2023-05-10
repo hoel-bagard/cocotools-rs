@@ -70,6 +70,7 @@ line-length = 120
 
 [tool.ruff.isort]
 order-by-type = false
+known-first-party = ["rpycocotools"]
 
 [tool.ruff.flake8-quotes]
 docstring-quotes = "double"

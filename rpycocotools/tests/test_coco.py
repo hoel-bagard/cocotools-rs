@@ -1,6 +1,7 @@
-import rpycocotools
 from hypothesis import given
 from hypothesis import strategies as st
+
+import rpycocotools
 
 u32_max = 4_294_967_295
 u32_st = st.integers(min_value=0, max_value=u32_max)

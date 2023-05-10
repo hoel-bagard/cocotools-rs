@@ -1,8 +1,9 @@
 import numpy as np
 import numpy.typing as npt
 import pytest
-import rpycocotools
 from hypothesis import strategies as st
+
+import rpycocotools
 from rpycocotools import mask
 
 u32_max = 4_294_967_295
