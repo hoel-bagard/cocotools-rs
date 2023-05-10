@@ -57,3 +57,43 @@ def encode(mask: npt.NDArray[np.uint8],
         case _:  # "polygons_rs"
             encoded_mask = _mask.encode_to_polygons_rs(mask)
     return encoded_mask
+
+
+def area(encoded_mask: anns.RLE | anns.COCO_RLE | anns.PolygonsRS | anns.Polygons) -> int:
+    """Compute the area of the given mask.
+
+    Args:
+        mask: The mask whose area should be computed.
+
+    Returns:
+        The area
+    """
+    if isinstance(encoded_mask, anns.RLE):
+        area = _mask.area_rle(encoded_mask)
+    elif isinstance(encoded_mask, anns.COCO_RLE):
+        area = _mask.area_coco_rle(encoded_mask)
+    elif isinstance(encoded_mask, anns.PolygonsRS):
+        area = _mask.area_poly_rs(encoded_mask)
+    else:
+        area = _mask.area_poly(encoded_mask)
+    return area
+
+
+def to_bbox(encoded_mask: anns.RLE | anns.COCO_RLE | anns.PolygonsRS | anns.Polygons) -> anns.BBox:
+    """Compute the bounding box of the given mask.
+
+    Args:
+        mask: The mask whose bounding box should be computed.
+
+    Returns:
+        The bounding box
+    """
+    if isinstance(encoded_mask, anns.RLE):
+        bbox = _mask.rle_to_bbox(encoded_mask)
+    elif isinstance(encoded_mask, anns.COCO_RLE):
+        bbox = _mask.coco_rle_to_bbox(encoded_mask)
+    elif isinstance(encoded_mask, anns.PolygonsRS):
+        bbox = _mask.poly_rs_to_bbox(encoded_mask)
+    else:
+        bbox = _mask.poly_to_bbox(encoded_mask)
+    return bbox

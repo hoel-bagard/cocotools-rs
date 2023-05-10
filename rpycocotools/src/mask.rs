@@ -1,5 +1,6 @@
 use anyhow::{Context, Result};
 use cocotools::errors::MaskError;
+use cocotools::mask::utils::Area;
 use numpy::ndarray::Array;
 use numpy::ndarray::ShapeBuilder;
 use numpy::IntoPyArray;
@@ -14,6 +15,29 @@ use cocotools::mask::conversions;
 
 use crate::coco::PyPolygons;
 use crate::errors::PyMaskError;
+
+#[allow(clippy::module_name_repetitions, clippy::missing_errors_doc)]
+#[pymodule]
+#[pyo3(name = "mask")]
+pub fn py_mask(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(decode_rle, m)?)?;
+    m.add_function(wrap_pyfunction!(decode_coco_rle, m)?)?;
+    m.add_function(wrap_pyfunction!(decode_poly_rs, m)?)?;
+    m.add_function(wrap_pyfunction!(decode_poly, m)?)?;
+    m.add_function(wrap_pyfunction!(encode_to_rle, m)?)?;
+    m.add_function(wrap_pyfunction!(encode_to_coco_rle, m)?)?;
+    m.add_function(wrap_pyfunction!(encode_to_polygons, m)?)?;
+    m.add_function(wrap_pyfunction!(encode_to_polygons_rs, m)?)?;
+    m.add_function(wrap_pyfunction!(area_rle, m)?)?;
+    m.add_function(wrap_pyfunction!(area_coco_rle, m)?)?;
+    m.add_function(wrap_pyfunction!(area_poly_rs, m)?)?;
+    m.add_function(wrap_pyfunction!(area_poly, m)?)?;
+    m.add_function(wrap_pyfunction!(rle_to_bbox, m)?)?;
+    m.add_function(wrap_pyfunction!(coco_rle_to_bbox, m)?)?;
+    m.add_function(wrap_pyfunction!(poly_rs_to_bbox, m)?)?;
+    m.add_function(wrap_pyfunction!(poly_to_bbox, m)?)?;
+    Ok(())
+}
 
 fn decode<T>(py: Python<'_>, encoded_mask: T) -> Result<&PyArray2<u8>, PyMaskError>
 where
@@ -43,21 +67,6 @@ where
         }
         Err(error) => Err(error.into()),
     }
-}
-
-#[allow(clippy::module_name_repetitions, clippy::missing_errors_doc)]
-#[pymodule]
-#[pyo3(name = "mask")]
-pub fn py_mask(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(decode_rle, m)?)?;
-    m.add_function(wrap_pyfunction!(decode_coco_rle, m)?)?;
-    m.add_function(wrap_pyfunction!(decode_poly_rs, m)?)?;
-    m.add_function(wrap_pyfunction!(decode_poly, m)?)?;
-    m.add_function(wrap_pyfunction!(encode_to_rle, m)?)?;
-    m.add_function(wrap_pyfunction!(encode_to_coco_rle, m)?)?;
-    m.add_function(wrap_pyfunction!(encode_to_polygons, m)?)?;
-    m.add_function(wrap_pyfunction!(encode_to_polygons_rs, m)?)?;
-    Ok(())
 }
 
 #[pyfunction]
@@ -155,4 +164,44 @@ fn encode_to_polygons_rs(
     let mask = mask.to_owned_array();
     let encoded_mask = object_detection::PolygonsRS::from(&mask);
     Py::new(py, encoded_mask)
+}
+
+#[pyfunction]
+fn area_rle(rle: object_detection::Rle) -> u32 {
+    rle.area()
+}
+
+#[pyfunction]
+fn area_coco_rle(coco_rle: object_detection::CocoRle) -> u32 {
+    coco_rle.area()
+}
+
+#[pyfunction]
+fn area_poly_rs(poly: object_detection::PolygonsRS) -> u32 {
+    poly.area()
+}
+
+#[pyfunction]
+fn area_poly(poly: object_detection::Polygons) -> u32 {
+    poly.area()
+}
+
+#[pyfunction]
+fn rle_to_bbox(rle: object_detection::Rle) -> object_detection::Bbox {
+    object_detection::Bbox::from(&rle)
+}
+
+#[pyfunction]
+fn coco_rle_to_bbox(coco_rle: object_detection::CocoRle) -> object_detection::Bbox {
+    object_detection::Bbox::from(&coco_rle)
+}
+
+#[pyfunction]
+fn poly_rs_to_bbox(poly: object_detection::PolygonsRS) -> object_detection::Bbox {
+    object_detection::Bbox::from(&poly)
+}
+
+#[pyfunction]
+fn poly_to_bbox(poly: object_detection::Polygons) -> object_detection::Bbox {
+    object_detection::Bbox::from(&poly)
 }
