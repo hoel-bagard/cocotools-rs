@@ -63,7 +63,7 @@ def area(encoded_mask: anns.RLE | anns.COCO_RLE | anns.PolygonsRS | anns.Polygon
     """Compute the area of the given mask.
 
     Args:
-        mask: The mask whose area should be computed.
+        encoded_mask: The mask whose area should be computed.
 
     Returns:
         The area
@@ -83,7 +83,7 @@ def to_bbox(encoded_mask: anns.RLE | anns.COCO_RLE | anns.PolygonsRS | anns.Poly
     """Compute the bounding box of the given mask.
 
     Args:
-        mask: The mask whose bounding box should be computed.
+        encoded_mask: The mask whose bounding box should be computed.
 
     Returns:
         The bounding box
