@@ -19,6 +19,7 @@ impl Area for CocoRle {
     }
 }
 
+#[allow(clippy::unwrap_used)]
 impl Area for PolygonsRS {
     fn area(&self) -> u32 {
         let rle = Rle::try_from(self).unwrap();
@@ -26,9 +27,17 @@ impl Area for PolygonsRS {
     }
 }
 
-#[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+#[allow(
+    clippy::cast_possible_truncation,
+    clippy::cast_sign_loss,
+    clippy::unwrap_used
+)]
 impl Area for Polygons {
     fn area(&self) -> u32 {
+        if self.len() <= 2 {
+            return 0;
+        }
+
         // TODO: https://en.wikipedia.org/wiki/Shoelace_formula
         let width = *self
             .iter()
@@ -105,32 +114,119 @@ impl From<&CocoRle> for Bbox {
 
 impl From<&PolygonsRS> for Bbox {
     fn from(poly: &PolygonsRS) -> Self {
-        let rle = Rle::try_from(poly).unwrap();
-        Self::from(&rle)
+        let left: f64 = *poly
+            .counts
+            .iter()
+            .map(|x| {
+                x.iter()
+                    .step_by(2)
+                    .min_by(|a, b| a.total_cmp(b))
+                    .unwrap_or(&0.0)
+            })
+            .min_by(|a, b| a.total_cmp(b))
+            .unwrap_or(&0.0);
+
+        let right = *poly
+            .counts
+            .iter()
+            .map(|x| {
+                x.iter()
+                    .step_by(2)
+                    .max_by(|a, b| a.total_cmp(b))
+                    .unwrap_or(&0.0)
+            })
+            .max_by(|a, b| a.total_cmp(b))
+            .unwrap_or(&0.0);
+
+        let top = *poly
+            .counts
+            .iter()
+            .map(|x| {
+                x[1..]
+                    .iter()
+                    .step_by(2)
+                    .min_by(|a, b| a.total_cmp(b))
+                    .unwrap_or(&0.0)
+            })
+            .min_by(|a, b| a.total_cmp(b))
+            .unwrap_or(&0.0);
+
+        let bot = *poly
+            .counts
+            .iter()
+            .map(|x| {
+                x[1..]
+                    .iter()
+                    .step_by(2)
+                    .max_by(|a, b| a.total_cmp(b))
+                    .unwrap_or(&0.0)
+            })
+            .max_by(|a, b| a.total_cmp(b))
+            .unwrap_or(&0.0);
+
+        Self {
+            left,
+            top,
+            width: right - left,
+            height: bot - top,
+        }
     }
 }
 
 #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
 impl From<&Polygons> for Bbox {
     fn from(poly: &Polygons) -> Self {
-        let width = *poly
-            .iter()
-            .map(|x| x.iter().step_by(2).max_by(|a, b| a.total_cmp(b)).unwrap())
-            .max_by(|a, b| a.total_cmp(b))
-            .unwrap() as u32;
-        let height = *poly
+        let left: f64 = *poly
             .iter()
             .map(|x| {
                 x.iter()
-                    .take(1)
+                    .step_by(2)
+                    .min_by(|a, b| a.total_cmp(b))
+                    .unwrap_or(&0.0)
+            })
+            .min_by(|a, b| a.total_cmp(b))
+            .unwrap_or(&0.0);
+
+        let right = *poly
+            .iter()
+            .map(|x| {
+                x.iter()
                     .step_by(2)
                     .max_by(|a, b| a.total_cmp(b))
-                    .unwrap()
+                    .unwrap_or(&0.0)
             })
             .max_by(|a, b| a.total_cmp(b))
-            .unwrap() as u32;
-        let mask = mask_from_poly(poly, width, height).unwrap();
-        let rle = Rle::from(&mask);
-        Self::from(&rle)
+            .unwrap_or(&0.0);
+
+        let top = *poly
+            .iter()
+            .map(|x| {
+                x[1..]
+                    .iter()
+                    .step_by(2)
+                    .min_by(|a, b| a.total_cmp(b))
+                    .unwrap_or(&0.0)
+            })
+            .min_by(|a, b| a.total_cmp(b))
+            .unwrap_or(&0.0);
+
+        let bot = *poly
+            .iter()
+            .map(|x| {
+                x[1..]
+                    .iter()
+                    .step_by(2)
+                    .max_by(|a, b| a.total_cmp(b))
+                    .unwrap_or(&0.0)
+            })
+            .max_by(|a, b| a.total_cmp(b))
+            .unwrap_or(&0.0);
+
+        Self {
+            left,
+            top,
+            width: right - left,
+            height: bot - top,
+        }
     }
 }
