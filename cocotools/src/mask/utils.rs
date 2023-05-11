@@ -8,27 +8,28 @@ pub trait Area {
 
 impl Area for Rle {
     fn area(&self) -> u32 {
-        self.counts.iter().take(1).step_by(2).sum()
+        self.counts[1..].iter().step_by(2).sum()
     }
 }
 
 impl Area for CocoRle {
     fn area(&self) -> u32 {
         let rle = Rle::from(self);
-        rle.counts.iter().take(1).step_by(2).sum()
+        rle.counts[1..].iter().step_by(2).sum()
     }
 }
 
 impl Area for PolygonsRS {
     fn area(&self) -> u32 {
         let rle = Rle::try_from(self).unwrap();
-        rle.counts.iter().take(1).step_by(2).sum()
+        rle.counts[1..].iter().step_by(2).sum()
     }
 }
 
 #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
 impl Area for Polygons {
     fn area(&self) -> u32 {
+        // TODO: https://en.wikipedia.org/wiki/Shoelace_formula
         let width = *self
             .iter()
             .map(|x| x.iter().step_by(2).max_by(|a, b| a.total_cmp(b)).unwrap())
@@ -47,15 +48,14 @@ impl Area for Polygons {
             .unwrap() as u32;
         let mask = mask_from_poly(self, width, height).unwrap();
         let rle = Rle::from(&mask);
-        rle.counts.iter().take(1).step_by(2).sum()
+        rle.counts[1..].iter().step_by(2).sum()
     }
 }
 
 #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
 impl From<&Rle> for Bbox {
     fn from(rle: &Rle) -> Self {
-        // || rle.counts.len() == 1
-        if rle.counts.is_empty() {
+        if rle.counts.len() <= 1 {
             return Self {
                 left: 0.0,
                 top: 0.0,
@@ -63,36 +63,35 @@ impl From<&Rle> for Bbox {
                 height: 0.0,
             };
         }
-        let height = rle.size[1];
-        let width = rle.size[0];
-        let mut xs = width;
-        let mut ys = height;
-        let mut xe: u32 = 0;
-        let mut ye: u32 = 0;
-        let mut cc: u32 = 0;
-        let mut xp: u32 = 0;
-        for i in 0..rle.counts.len() {
-            cc += rle.counts[i];
-            let t: u32 = cc - (i % 2) as u32;
-            let y = t % height;
-            let x = (t - y) / height;
-            if i % 2 == 0 {
-                xp = x;
-            } else if xp < x {
-                ys = 0;
-                ye = height - 1;
+        let height = rle.size[0];
+        let width = rle.size[1];
+        let mut pos: u32 = 0;
+        let mut current: u32;
+        let mut left: u32 = 0;
+        let mut right: u32 = 0;
+        let mut top = width;
+        let mut bot: u32 = 0;
+        for (i, count) in rle.counts[..rle.counts.len() - 1].iter().enumerate() {
+            pos += count;
+            current = pos - ((i % 2) as u32); // Do not count "current" pixel when adding mask pixels.
+
+            // In the lines below, left/right and top/bot might seem inverted, that's because the RLE corresponds to a fortran array.
+            if i == 0 {
+                left = current / height;
+            } else if i == rle.counts.len() - 2 {
+                right = current / height;
             }
-            xs = cmp::min(xs, x);
-            xe = cmp::min(xe, x);
-            ys = cmp::min(ys, y);
-            ye = cmp::min(ye, y);
+
+            let y = current % height;
+            top = cmp::min(top, y);
+            bot = cmp::max(bot, y);
         }
 
         Self {
-            left: f64::from(xs),
-            top: f64::from(xs - xe + 1),
-            width: f64::from(ys),
-            height: f64::from(ye - ys + 1),
+            left: f64::from(left),
+            top: f64::from(top),
+            width: f64::from(right - left),
+            height: f64::from(bot - top),
         }
     }
 }
