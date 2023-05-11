@@ -31,7 +31,7 @@ fn _rpycocotools(py: Python<'_>, module: &PyModule) -> PyResult<()> {
     let sys = PyModule::import(py, "sys")?;
     let sys_modules: &PyDict = sys.getattr("modules")?.downcast()?;
     sys_modules.set_item("_rpycocotools.mask", module.getattr("mask")?)?;
-    sys_modules.set_item("_rpycocotools.anns", module.getattr("anns")?)?;
+    sys_modules.set_item("rpycocotools.anns", module.getattr("anns")?)?;
 
     Ok(())
 }
