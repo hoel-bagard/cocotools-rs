@@ -39,7 +39,7 @@ coco_dataset.visualize_img(174482)
 import rpycocotools
 coco_dataset = rpycocotools.COCO("../data_samples/coco_25k/annotations.json", "../data_samples/coco_25k/images")
 anns = coco_dataset.get_img_anns(174482)
-mask = rpycocotools.mask.decode_poly_rs(anns[0].segmentation)
+mask = rpycocotools.mask.decode(anns[0].segmentation)
 ```
 The mask is a numpy array and can be visualized (for example with opencv):
 
