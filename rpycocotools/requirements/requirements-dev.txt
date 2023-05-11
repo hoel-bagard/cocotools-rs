@@ -64,9 +64,9 @@ pyright==1.1.306 \
     --hash=sha256:008eb2a29584ae274a154d749cf81476a3073fb562a462eac8d43a753378b9db \
     --hash=sha256:16d5d198be64de497d5f9002000a271176c381e21b977ca5566cf779b643c9ed
     # via rpycocotools (pyproject.toml)
-rpycocotools-stubs==0.0.4 \
-    --hash=sha256:7365cd07b99904f55ab41cc1ea6bd8828a08e9bd7eaa6989a7a74d85664bce1e \
-    --hash=sha256:f24151d78578d5ef180d30ab5820e098b9df283de878008fdbdb3d62ebdd8b11
+rpycocotools-stubs==0.0.5 \
+    --hash=sha256:7fa8935a1833bf98b27b39839ae07042175e31c04809a1842bde6ac988f8bcb7 \
+    --hash=sha256:8c5ddbad0b6ba72afa83dfe7b1cbaae5e8de12ae19a1694baeef8e1a586ef728
     # via rpycocotools (pyproject.toml)
 ruff==0.0.265 \
     --hash=sha256:1d5a8de2fbaf91ea5699451a06f4074e7a312accfa774ad9327cde3e4fda2081 \
