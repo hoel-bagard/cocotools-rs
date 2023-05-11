@@ -1,3 +1,4 @@
+#![allow(clippy::needless_pass_by_value)]
 use anyhow::{Context, Result};
 use cocotools::errors::MaskError;
 use cocotools::mask::utils::Area;
