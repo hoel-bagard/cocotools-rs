@@ -10,7 +10,7 @@ The `rpycocotools` package provides tools to load, manipulate, convert and visua
 
 ### Installation
 
-You can install the package through pip:
+The package is available on PyPI [here](https://pypi.org/project/rpycocotools/), and can installed with pip:
 ```
 pip install rpycocotools
 ```
