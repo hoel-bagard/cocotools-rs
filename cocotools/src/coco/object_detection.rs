@@ -94,7 +94,7 @@ pub type Polygons = Vec<Vec<f64>>;
 #[cfg_attr(feature = "pyo3", pyclass(get_all, module = "rpycocotools.anns"))]
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct PolygonsRS {
-    /// Vector with two elements, the width and height of the image corresponding to the segmentation mask.
+    /// Vector with two elements, the height and width of the image corresponding to the segmentation mask.
     pub size: Vec<u32>,
     /// See [`Polygons`].
     pub counts: Vec<Vec<f64>>,

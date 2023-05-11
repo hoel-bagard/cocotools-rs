@@ -136,15 +136,16 @@ impl Bbox {
 
     fn __richcmp__(&self, other: &Self, op: CompareOp, py: Python<'_>) -> PyObject {
         match op {
-            CompareOp::Eq => (self.left == other.left
-                && self.top == other.top
-                && self.width == other.width
-                && self.height == other.height)
+            // For some reason, the COCO dataset uses floats instead of ints, hence the < 0.01.
+            CompareOp::Eq => ((self.left - other.left).abs() < 0.01
+                && (self.top - other.top).abs() < 0.01
+                && (self.width - other.width).abs() < 0.01
+                && (self.height - other.height).abs() < 0.01)
                 .into_py(py),
-            CompareOp::Ne => (self.left != other.left
-                || self.top != other.top
-                || self.width != other.width
-                || self.height != other.height)
+            CompareOp::Ne => ((self.left - other.left).abs() > 0.01
+                || (self.top - other.top).abs() > 0.01
+                || (self.width - other.width).abs() > 0.01
+                || (self.height - other.height).abs() > 0.01)
                 .into_py(py),
             _ => py.NotImplemented(),
         }
@@ -204,6 +205,7 @@ impl PolygonsRS {
 
     fn __richcmp__(&self, other: &Self, op: CompareOp, py: Python<'_>) -> PyObject {
         match op {
+            // FIXME: `counts` are floats, don't compare them with "==".
             CompareOp::Eq => (self.size == other.size && self.counts == other.counts).into_py(py),
             CompareOp::Ne => (self.size != other.size || self.counts != other.counts).into_py(py),
             _ => py.NotImplemented(),

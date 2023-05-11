@@ -386,6 +386,7 @@ pub fn mask_from_poly(
     width: u32,
     height: u32,
 ) -> Result<Mask, MaskError> {
+    // FIXME TODO: handle more than one poly.
     let mut points_poly: Vec<imageproc::point::Point<i32>> = Vec::new();
     for i in (0..poly[0].len()).step_by(2) {
         points_poly.push(imageproc::point::Point::new(
@@ -467,6 +468,23 @@ mod tests {
         let mask = mask_from_poly(&poly, rle.size[1], rle.size[0]).unwrap();
         let result_rle = Rle::try_from(&mask).unwrap();
         assert_eq!(&result_rle, rle);
+    }
+
+    #[rstest]
+    #[case::horizontal_thick_line(
+        &PolygonsRS {size: vec![7, 7], counts: vec![vec![1.0, 2.0, 1.0, 4.0, 5.0, 4.0, 5.0, 2.0]]},
+        &array![[0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0],
+                [0, 1, 1, 1, 1, 1, 0],
+                [0, 1, 1, 1, 1, 1, 0],
+                [0, 1, 1, 1, 1, 1, 0],
+                [0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0]],
+    )]
+    // FIXME: Non-square tests seem to fail.
+    fn poly_rs_to_mask(#[case] poly: &PolygonsRS, #[case] expected_mask: &Mask) {
+        let mask = Mask::try_from(poly).unwrap();
+        assert_eq!(&mask, expected_mask);
     }
 
     #[rstest]
