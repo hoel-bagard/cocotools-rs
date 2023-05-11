@@ -361,7 +361,7 @@ impl TryFrom<&object_detection::PolygonsRS> for Mask {
         }
 
         Self::from_shape_vec(
-            (poly_ann.size[1] as usize, poly_ann.size[0] as usize),
+            (poly_ann.size[0] as usize, poly_ann.size[1] as usize),
             mask.into_raw(),
         )
         .map_err(MaskError::ImageToNDArrayConversion)
@@ -386,6 +386,7 @@ pub fn mask_from_poly(
     width: u32,
     height: u32,
 ) -> Result<Mask, MaskError> {
+    // FIXME TODO: handle more than one poly.
     let mut points_poly: Vec<imageproc::point::Point<i32>> = Vec::new();
     for i in (0..poly[0].len()).step_by(2) {
         points_poly.push(imageproc::point::Point::new(
@@ -467,6 +468,34 @@ mod tests {
         let mask = mask_from_poly(&poly, rle.size[1], rle.size[0]).unwrap();
         let result_rle = Rle::try_from(&mask).unwrap();
         assert_eq!(&result_rle, rle);
+    }
+
+    #[rstest]
+    #[case::horizontal_thick_line(
+        &PolygonsRS {size: vec![7, 8], counts: vec![vec![1.0, 2.0, 1.0, 4.0, 5.0, 4.0, 5.0, 2.0]]},
+        &array![[0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0],
+                [0, 1, 1, 1, 1, 1, 0],
+                [0, 1, 1, 1, 1, 1, 0],
+                [0, 1, 1, 1, 1, 1, 0],
+                [0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0]],
+    )]
+    #[case::floats(
+        &PolygonsRS {size: vec![9, 7], counts: vec![vec![0.0, 3.0, 0.0, 5.0, 1.0, 5.0, 1.0, 4.0, 3.0, 4.0, 4.0, 3.0, 7.0, 2.0, 2.0, 2.0, 2.0, 1.0, 1.0, 3.0]]},
+        &array![
+             [0, 0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 1, 0, 0, 0, 0, 0, 0],
+             [0, 0, 1, 1, 1, 1, 1, 1, 0],
+             [1, 1, 1, 1, 1, 1, 0, 0, 0],
+             [1, 1, 1, 1, 0, 0, 0, 0, 0],
+             [1, 1, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0, 0]],
+    )]
+    fn poly_rs_to_mask(#[case] poly: &PolygonsRS, #[case] expected_mask: &Mask) {
+        let mask = Mask::try_from(poly).unwrap();
+        assert_eq!(&mask, expected_mask);
     }
 
     #[rstest]
