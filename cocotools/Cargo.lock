@@ -211,7 +211,7 @@ dependencies = [
 
 [[package]]
 name = "cocotools"
-version = "0.0.4"
+version = "0.0.5"
 dependencies = [
  "anyhow",
  "clap 4.1.8",
