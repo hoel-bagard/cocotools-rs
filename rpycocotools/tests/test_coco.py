@@ -81,7 +81,7 @@ def test_bbox_repr(left: int, top: int, width: int, height: int) -> None:
     assert str(bbox) == f"BBox(left={left}, top={top}, width={width}, height={height})"
 
 
-def test_dataset_from_components():
+def test_dataset_from_components() -> None:
     expected_ann = Annotation(id=1,
                               image_id=1,
                               category_id=1,
@@ -91,7 +91,7 @@ def test_dataset_from_components():
                               iscrowd=1)
     anns = [
         expected_ann,
-        rpycocotools.anns.Annotation(2, 2, 1, rpycocotools.anns.COCO_RLE([1, 1], "b"), 1, rpycocotools.anns.BBox(1, 1, 1, 1), 1),
+        rpycocotools.anns.Annotation(2, 2, 1, COCO_RLE([1, 1], "b"), 1, rpycocotools.anns.BBox(1, 1, 1, 1), 1),
     ]
     imgs = [
         rpycocotools.anns.Image(1, 380, 800, "test1"),
@@ -101,5 +101,5 @@ def test_dataset_from_components():
         rpycocotools.anns.Category(1, "a", "c"),
         rpycocotools.anns.Category(2, "b", "c"),
     ]
-    coco_dataset =  rpycocotools.anns.from_dataset(imgs, anns, cats, "a")
+    coco_dataset = rpycocotools.anns.from_dataset(imgs, anns, cats, "a")
     assert coco_dataset.get_img_anns(1)[0] == expected_ann

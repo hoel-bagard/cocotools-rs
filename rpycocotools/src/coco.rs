@@ -168,9 +168,6 @@ pub fn from_dataset(
     images: Vec<object_detection::Image>,
     annotations: Vec<object_detection::Annotation>,
     categories: Vec<object_detection::Category>,
-    // images: Vec<Py<object_detection::Image>>,
-    // annotations: Vec<Py<object_detection::Annotation>>,
-    // categories: Vec<Py<object_detection::Category>>,
     image_folder_path: &PyUnicode,
 ) -> PyResult<PyCOCO> {
     let image_folder_path = PathBuf::from(image_folder_path.to_str()?);
