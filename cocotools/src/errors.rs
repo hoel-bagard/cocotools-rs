@@ -23,8 +23,8 @@ pub enum LoadingError {
     Read(#[source] std::io::Error, PathBuf),
     #[error("Failed to deserialize the annotation file {1:?}.")]
     Deserialize(#[source] serde_json::Error, PathBuf),
-    #[error("Failed to parse the annotation file {1:?}. Found an annotation for an image id not in the dataset.")]
-    Parsing(#[source] MissingIdError, PathBuf),
+    #[error("Failed to parse the annotation file/dataset. Found an annotation for an image id not in the dataset.")]
+    Parsing(#[source] MissingIdError),
     #[error(transparent)]
     Image(#[from] anyhow::Error),
 }

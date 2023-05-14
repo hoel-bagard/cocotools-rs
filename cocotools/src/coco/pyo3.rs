@@ -5,6 +5,27 @@ use crate::coco::object_detection::*;
 
 #[pymethods]
 impl Annotation {
+    #[new]
+    fn new(
+        id: u32,
+        image_id: u32,
+        category_id: u32,
+        segmentation: Segmentation,
+        area: f64,
+        bbox: Bbox,
+        iscrowd: u32,
+    ) -> Self {
+        Self {
+            id,
+            image_id,
+            category_id,
+            segmentation,
+            area,
+            bbox,
+            iscrowd,
+        }
+    }
+
     fn __repr__(&self) -> String {
         format!(
             "Annotation(id={}, image_id={}, category_id={}, segmentation={}, area={}, bbox={}, iscrowd={})",

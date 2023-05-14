@@ -158,6 +158,28 @@ impl PyCOCO {
     }
 }
 
+/// Construct a COCO dataset from its components and the image folder.
+///
+/// # Errors
+///
+/// Will return `Err` if there is an annotation with an image id X, but no image entry has this id.
+#[pyfunction]
+pub fn from_dataset(
+    images: Vec<object_detection::Image>,
+    annotations: Vec<object_detection::Annotation>,
+    categories: Vec<object_detection::Category>,
+    image_folder_path: &PyUnicode,
+) -> PyResult<PyCOCO> {
+    let image_folder_path = PathBuf::from(image_folder_path.to_str()?);
+    let dataset = object_detection::Dataset {
+        images,
+        annotations,
+        categories,
+    };
+    let dataset = COCO::from_dataset(dataset, image_folder_path).map_err(PyLoadingError::from)?;
+    Ok(PyCOCO(dataset))
+}
+
 #[pyclass(name = "Polygons", module = "rpycocotools.anns")]
 #[derive(Debug)]
 pub struct PyPolygons(pub cocotools::coco::object_detection::Polygons);

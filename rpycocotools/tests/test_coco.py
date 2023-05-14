@@ -2,6 +2,7 @@ from hypothesis import given
 from hypothesis import strategies as st
 
 import rpycocotools
+from rpycocotools.anns import Annotation, BBox, COCO_RLE
 
 u32_max = 4_294_967_295
 u32_st = st.integers(min_value=0, max_value=u32_max)
@@ -78,3 +79,27 @@ def test_bbox_inequality(coords: tuple[tuple[int, int, int, int], tuple[int, int
 def test_bbox_repr(left: int, top: int, width: int, height: int) -> None:
     bbox = rpycocotools.anns.BBox(left, top, width, height)
     assert str(bbox) == f"BBox(left={left}, top={top}, width={width}, height={height})"
+
+
+def test_dataset_from_components() -> None:
+    expected_ann = Annotation(id=1,
+                              image_id=1,
+                              category_id=1,
+                              segmentation=COCO_RLE(size=[380, 800], counts="a"),
+                              area=1,
+                              bbox=BBox(left=1, top=1, width=1, height=1),
+                              iscrowd=1)
+    anns = [
+        expected_ann,
+        rpycocotools.anns.Annotation(2, 2, 1, COCO_RLE([1, 1], "b"), 1, rpycocotools.anns.BBox(1, 1, 1, 1), 1),
+    ]
+    imgs = [
+        rpycocotools.anns.Image(1, 380, 800, "test1"),
+        rpycocotools.anns.Image(2, 640, 480, "test2"),
+    ]
+    cats = [
+        rpycocotools.anns.Category(1, "a", "c"),
+        rpycocotools.anns.Category(2, "b", "c"),
+    ]
+    coco_dataset = rpycocotools.anns.from_dataset(imgs, anns, cats, "a")
+    assert coco_dataset.get_img_anns(1)[0] == expected_ann
