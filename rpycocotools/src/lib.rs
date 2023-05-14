@@ -1,7 +1,7 @@
 #![allow(clippy::redundant_pub_crate)]
 extern crate cocotools;
 use pyo3::types::PyDict;
-use pyo3::{prelude::*, wrap_pymodule};
+use pyo3::{prelude::*, wrap_pyfunction, wrap_pymodule};
 
 pub mod coco;
 pub mod errors;
@@ -17,6 +17,7 @@ fn anns(_py: Python<'_>, module: &PyModule) -> PyResult<()> {
     module.add_class::<cocotools::coco::object_detection::Rle>()?;
     module.add_class::<cocotools::coco::object_detection::CocoRle>()?;
     module.add_class::<cocotools::coco::object_detection::Image>()?;
+    module.add_function(wrap_pyfunction!(coco::from_dataset, module)?)?;
     Ok(())
 }
 
