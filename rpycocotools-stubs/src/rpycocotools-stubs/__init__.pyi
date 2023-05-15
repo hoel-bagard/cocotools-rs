@@ -1,4 +1,4 @@
-__version__ = "0.0.5"
+__version__: str = "0.0.5"
 
 import numpy as np
 import numpy.typing as npt
@@ -19,4 +19,4 @@ class COCO:
     def visualize_img(self: Self, img_id: int) -> None: ...
     def draw_anns(self: Self, img_id: int, draw_bboxes: bool) -> npt.NDArray[np.uint8]:
         """Draw the annotations on the image and returns it as a (RGB) numpy array."""
-    ...
+        ...

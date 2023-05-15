@@ -62,7 +62,7 @@ def encode(mask: npt.NDArray[np.uint8],
     ...
 
 def encode(mask: npt.NDArray[np.uint8],
-           target: Literal["polygons"] | Literal["rle"] | Literal["coco_rle"] | Literal["polygons_rs"],
+           target: Literal["polygons", "rle", "coco_rle", "polygons_rs"],
            ) -> Polygons | RLE | COCO_RLE | PolygonsRS:
     """Encode/compress a mask into the desired format.
 

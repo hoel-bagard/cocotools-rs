@@ -1,4 +1,5 @@
-from typing import Generic, Iterator, Sequence, TypeAlias, TypeVar
+from collections.abc import Iterator, Sequence
+from typing import Generic, TypeAlias, TypeVar
 
 from typing_extensions import Self
 
@@ -14,15 +15,16 @@ class Annotation(Generic[_TSegmentation]):
     area: float
     bbox: BBox
     iscrowd: int
+
     def __init__(
-            self: Self,
-            id: int,
-            image_id: int,
-            category_id: int,
-            segmentation: _TSegmentation,
-            area: float,
-            bbox: BBox,
-            iscrowd: int,
+        self: Self,
+        id: int,
+        image_id: int,
+        category_id: int,
+        segmentation: _TSegmentation,
+        area: float,
+        bbox: BBox,
+        iscrowd: int,
     ) -> None: ...
 
 AnnotationAny: TypeAlias = Annotation[Polygons] | Annotation[PolygonsRS] | Annotation[RLE] | Annotation[COCO_RLE]
