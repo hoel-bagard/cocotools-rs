@@ -1,10 +1,11 @@
 # rpycocotools
 
 [![PyPI](https://img.shields.io/pypi/v/rpycocotools?color=green&style=flat)](https://pypi.org/project/rpycocotools)
-[![PyPI - Implementation](https://img.shields.io/pypi/implementation/rpycocotools?style=flat)](https://pypi.org/project/rpycocotools)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/rpycocotools?style=flat)](https://pypi.org/project/rpycocotools)
 [![PyPI - Downloads](https://img.shields.io/pypi/dm/rpycocotools?style=flat-square)](https://pypistats.org/packages/rpycocotools)
 [![PyPI - License](https://img.shields.io/pypi/l/rpycocotools?style=flat)](https://opensource.org/licenses/MIT)
+![CI Python](https://github.com/hoel-bagard/cocotools-rs/actions/workflows/ci-python-rpycocotools.yaml/badge.svg)
+![CI Rust](https://github.com/hoel-bagard/cocotools-rs/actions/workflows/ci-rust-rpycocotools.yaml/badge.svg)
 
 The `rpycocotools` package provides tools to load, manipulate, convert and visualize COCO format datasets. The documentation is available [here](https://cocotools-rs.readthedocs.io/en/latest/index.html).
 
