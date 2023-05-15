@@ -1,6 +1,7 @@
-name: pre-commit
+name: rpycocotools-stubs CI
 
 on:
+  workflow_dispatch:
   push:
     branches: [ master ]
     paths:
@@ -18,7 +19,26 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  pre-commit:
+  python-lint:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: rpycocotools-stubs
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: "**/requirements*.txt"
+      - run: pip install --upgrade pip
+      - run: pip install -r requirements/requirements-dev.txt
+      - run: ruff .
+      - run: pip install -r requirements/requirements-flake8.txt
+      - run: flake8 .
+
+  python-typing-lint:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -30,6 +50,6 @@ jobs:
         with:
           python-version: "3.11"
           cache: "pip"
-      - run: pip install pre-commit
-      - run: pre-commit install
-      - run: pre-commit run --all-files
+          cache-dependency-path: "**/requirements*.txt"
+      - run: pip install -r requirements/requirements-dev.txt
+      - run: pyright .
