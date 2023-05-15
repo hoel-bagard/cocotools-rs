@@ -1,4 +1,4 @@
-__version__ = "0.0.5"  # noqa: Y052
+__version__ = "0.0.5"  # noqa: Y052, RUF100
 
 import numpy as np
 import numpy.typing as npt
