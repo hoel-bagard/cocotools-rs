@@ -1,0 +1,35 @@
+name: pre-commit
+
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - "rpycocotools-stubs/**.pyi"
+      - .github/workflows/ci-rpycocotools-stubs.yaml
+      - rpycocotools-stubs/pyproject.toml
+  pull_request:
+    paths:
+      - "rpycocotools-stubs/**.pyi"
+      - .github/workflows/ci-rpycocotools-stubs.yaml
+      - rpycocotools-stubs/pyproject.toml
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pre-commit:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: rpycocotools
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+          cache: "pip"
+      - run: pip install pre-commit
+      - run: pre-commit install
+      - run: pre-commit run --all-files
