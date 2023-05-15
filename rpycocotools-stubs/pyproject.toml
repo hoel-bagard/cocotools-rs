@@ -75,10 +75,9 @@ publish = "hatch build --clean && hatch publish"
 select = ["ALL"]
 # A002/A003 Argument/Class attribute `id` is shadowing a python builtin
 # D1: Missing docstring
-# D407: Missing dashed underline after section ("Args", "Returns", etc...)
 # FBT001: Boolean positional arg in function definition
 # PYI021: Docstrings should not be included in stubs
-ignore = ["A002", "A003", "D1", "D407", "FBT001", "PYI021"]
+ignore = ["A002", "A003", "D1", "FBT001", "PYI021"]
 line-length = 120
 
 [tool.ruff.isort]
