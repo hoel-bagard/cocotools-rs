@@ -2,7 +2,7 @@
 [![PyPI](https://img.shields.io/pypi/v/rpycocotools-stubs?style=flat)](https://pypi.org/project/rpycocotools-stubs)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/rpycocotools-stubs?style=flat)](https://pypi.org/project/rpycocotools-stubs)
 [![PyPI - Downloads](https://img.shields.io/pypi/dm/rpycocotools-stubs?style=flat-square)](https://pypistats.org/packages/rpycocotools-stubs)
-![Linting](https://github.com/hoel-bagard/pycocotools-rs/actions/workflows/pre-commit.yaml/badge.svg)
+![Linting](https://github.com/hoel-bagard/cocotools-rs/actions/workflows/ci-rpycocotools-stubs.yaml/badge.svg)
 [![PyPI - License](https://img.shields.io/pypi/l/rpycocotools-stubs?style=flat)](https://opensource.org/licenses/MIT)
 
 

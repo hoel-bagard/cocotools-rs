@@ -1,4 +1,6 @@
 # Cocotools
+![cocotools ci](https://github.com/hoel-bagard/cocotools-rs/actions/workflows/ci-cocotools.yaml/badge.svg)
+
 The `cocotools` crate provides tools to load, manipulate, convert and visualize COCO format datasets.
 
 ## API Usage example
