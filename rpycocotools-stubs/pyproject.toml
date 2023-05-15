@@ -33,8 +33,23 @@ packages = [
 "Bug Tracker" = "https://github.com/hoel-bagard/cocotools-rs/issues"
 
 [project.optional-dependencies]
-dev = ["pre-commit", "pip-tools", "ruff", "pyright"]
+dev = ["pip-tools", "ruff", "pyright"]
 build = ["hatch"]
+flake8 = [
+    "flake8>=5.0.4,<6.0",
+    "flake8-bugbear>=23.3.12,<24.0",
+    "flake8-builtins>=2.1.0,<3.0",
+    "flake8-comprehensions>=3.12.0,<4.0",
+    "flake8-docstrings>=1.7.0,<2.0",
+    "flake8-quotes>=3.3.2,<4",
+    "pep8-naming>=0.13.3",
+    "flake8-import-order>=0.18.2",
+    "flake8-noqa>=1.3.1,<2",
+    "flake8-broken-line>=0.6.0",
+    "flake8-commas>=2.1.0,<3.0",
+    "flake8-pyi>=23.5.0",
+    "Flake8-pyproject>=1.2.3,<2"
+]
 
 [tool.hatch.version]
 path = "src/rpycocotools-stubs/__init__.pyi"
@@ -112,3 +127,20 @@ reportUnusedCallResult = false
 reportUnusedExpression = "warning"
 reportUnnecessaryTypeIgnoreComment = "warning"
 reportMatchNotExhaustive = "warning"
+
+[tool.flake8]
+application_import_names = "rpycocotools"
+exclude = ["env", "venv", "docs"]
+max-line-length = 120
+docstring-convention = "google"
+import-order-style = "smarkets"
+inline-quotes = "double"
+# D1: Missing docstring
+ignore = ["D1"]
+# I100: Import statements are in the wrong order.
+# I201: Missing newline between import groups.
+# F401: imported but unused
+per-file-ignores = [
+    "tests/*.py:D1,I201,I100",
+    "python/rpycocotools/__init__.py:F401"
+]
