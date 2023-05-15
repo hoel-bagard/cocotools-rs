@@ -42,7 +42,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: rpycocotools
+        working-directory: rpycocotools-stubs
 
     steps:
       - uses: actions/checkout@v3
