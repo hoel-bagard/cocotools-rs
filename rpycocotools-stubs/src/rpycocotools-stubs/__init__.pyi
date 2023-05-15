@@ -20,3 +20,6 @@ class COCO:
     def draw_anns(self: Self, img_id: int, draw_bboxes: bool) -> npt.NDArray[np.uint8]:
         """Draw the annotations on the image and returns it as a (RGB) numpy array."""
         ...
+    def json(self: Self) -> str:
+        """Return the dataset as a json string."""
+        ...
