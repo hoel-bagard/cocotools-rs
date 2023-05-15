@@ -371,6 +371,11 @@ impl HashmapDataset {
 
         Ok(())
     }
+
+    pub fn json(&self) -> Result<String, serde_json::Error> {
+        let dataset = Dataset::from(self);
+        serde_json::to_string(&dataset)
+    }
 }
 
 impl From<&HashmapDataset> for Dataset {

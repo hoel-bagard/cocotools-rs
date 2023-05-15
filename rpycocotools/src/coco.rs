@@ -156,6 +156,12 @@ impl PyCOCO {
             .into_pyarray(py);
         Ok(img)
     }
+
+    fn json(&self) -> PyResult<String> {
+        self.0
+            .json()
+            .map_err(|err| PyValueError::new_err(err.to_string()))
+    }
 }
 
 /// Construct a COCO dataset from its components and the image folder.
