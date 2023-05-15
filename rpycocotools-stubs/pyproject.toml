@@ -1,0 +1,145 @@
+[build-system]
+requires = ["hatchling>=1.10.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "rpycocotools-stubs"
+authors = [{name="Bagard Hoel"}]
+description = "Package stubs for rpycocotools."
+keywords = ["COCO", "COCO dataset"]
+readme = "README.md"
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Developers",
+]
+license = {text = "MIT"}
+dynamic = ["version"]
+dependencies = ["typing_extensions>=4.0", "numpy>=1.21.0"]
+requires-python = ">=3.8"
+packages = [
+    { "include" = "rpycocotools-stubs"}
+]
+
+[project.urls]
+"Homepage" = "https://github.com/hoel-bagard/cocotools-rs/tree/master/rpycocotools-stubs"
+"Bug Tracker" = "https://github.com/hoel-bagard/cocotools-rs/issues"
+
+[project.optional-dependencies]
+dev = ["pip-tools", "ruff", "pyright"]
+build = ["hatch"]
+flake8 = [
+    "flake8>=5.0.4,<6.0",
+    "flake8-bugbear>=23.3.12,<24.0",
+    "flake8-builtins>=2.1.0,<3.0",
+    "flake8-comprehensions>=3.12.0,<4.0",
+    "flake8-docstrings>=1.7.0,<2.0",
+    "flake8-quotes>=3.3.2,<4",
+    "pep8-naming>=0.13.3",
+    "flake8-import-order>=0.18.2",
+    "flake8-noqa>=1.3.1,<2",
+    "flake8-broken-line>=0.6.0",
+    "flake8-commas>=2.1.0,<3.0",
+    "flake8-pyi>=23.5.0",
+    "Flake8-pyproject>=1.2.3,<2"
+]
+
+[tool.hatch.version]
+path = "src/rpycocotools-stubs/__init__.pyi"
+
+[tool.hatch.build.targets.sdist]
+exclude = [
+  "/.github",
+  "/.pytest_cache",
+  "/build",
+  "/dist",
+  "/docs",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/rpycocotools-stubs"]
+
+[tool.hatch.envs.pypi.scripts]
+# hatch run pypi:publish_test
+publish_test = "hatch build --clean && hatch publish -r test"
+publish = "hatch build --clean && hatch publish"
+
+[tool.ruff]
+select = ["ALL"]
+# A002/A003 Argument/Class attribute `id` is shadowing a python builtin
+# D1: Missing docstring
+# FBT001: Boolean positional arg in function definition
+# PYI021: Docstrings should not be included in stubs
+ignore = ["A002", "A003", "D1", "FBT001", "PYI021"]
+line-length = 120
+
+[tool.ruff.isort]
+order-by-type = false
+
+[tool.ruff.flake8-quotes]
+docstring-quotes = "double"
+
+[tool.ruff.pydocstyle]
+convention = "google"
+
+[tool.ruff.pylint]
+max-args = 10
+
+[tool.pyright]
+include = ["src/rpycocotools-stubs"]
+pythonVersion = "3.11"
+pythonPlatform = "Linux"
+
+strictListInference = true
+strictDictionaryInference = true
+strictSetInference = true
+reportMissingModuleSource = false
+reportMissingImports = true
+reportMissingTypeStubs = false
+reportUnusedImport = true
+reportUnusedClass = "warning"
+reportUnusedFunction = "warning"
+reportUnusedVariable = "warning"
+reportDuplicateImport = "warning"
+reportUntypedNamedTuple = "warning"
+reportUntypedFunctionDecorator = "warning"
+reportUntypedClassDecorator = "warning"
+reportMissingSuperCall = false
+reportUnknownArgumentType = "warning"
+reportUnknownLambdaType = "warning"
+reportUnknownVariableType = "warning"
+reportUnknownMemberType = false
+reportMissingParameterType = "warning"
+reportMissingTypeArgument = "warning"
+reportCallInDefaultInitializer = false
+reportUnnecessaryIsInstance = "warning"
+reportUnnecessaryCast = "warning"
+reportUnnecessaryComparison = "warning"
+reportImplicitStringConcatenation = false
+reportUnusedCallResult = false
+reportUnusedExpression = "warning"
+reportUnnecessaryTypeIgnoreComment = "warning"
+reportMatchNotExhaustive = "warning"
+
+[tool.flake8]
+application_import_names = "rpycocotools"
+exclude = ["env", "venv", "docs"]
+max-line-length = 120
+docstring-convention = "google"
+import-order-style = "smarkets"
+inline-quotes = "double"
+# A002/A003 Argument/Class attribute `id` is shadowing a python builtin
+# D1: Missing docstring
+# E301/E302: expected 1/2 blank lines, found 0/1
+# E305: expected 2 blank lines after class or function definition, found 1
+# E704: multiple statements on one line (def)
+# Y021: Docstrings should not be included in stubs
+# Y048: Function body should contain exactly one statement  -> This doesn't allow for docstrings
+ignore = ["A002", "A003", "D1", "E301", "E302", "E305", "E704", "NQA103", "Y021", "Y048"]

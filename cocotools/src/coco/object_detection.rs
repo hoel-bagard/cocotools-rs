@@ -372,6 +372,11 @@ impl HashmapDataset {
         Ok(())
     }
 
+    /// Return the dataset as a json string.
+    ///
+    /// # Errors
+    ///
+    /// Will return `Err` if the serialization fails.
     pub fn json(&self) -> Result<String, serde_json::Error> {
         let dataset = Dataset::from(self);
         serde_json::to_string(&dataset)

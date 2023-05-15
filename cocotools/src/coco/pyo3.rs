@@ -32,6 +32,28 @@ impl Annotation {
             self.id, self.image_id, self.category_id, &self.segmentation.__repr__(), self.area, &self.bbox.__repr__(), self.iscrowd
         )
     }
+
+    fn __richcmp__(&self, other: &Self, op: CompareOp, py: Python<'_>) -> PyObject {
+        match op {
+            CompareOp::Eq => (self.id == other.id
+                && self.image_id == other.image_id
+                && self.category_id == other.category_id
+                && self.segmentation == other.segmentation
+                && self.area == other.area
+                && self.bbox == other.bbox
+                && self.iscrowd == other.iscrowd)
+                .into_py(py),
+            CompareOp::Ne => (self.id != other.id
+                || self.image_id != other.image_id
+                || self.category_id != other.category_id
+                || self.segmentation != other.segmentation
+                || self.area != other.area
+                || self.bbox != other.bbox
+                || self.iscrowd != other.iscrowd)
+                .into_py(py),
+            _ => py.NotImplemented(),
+        }
+    }
 }
 
 #[pymethods]
