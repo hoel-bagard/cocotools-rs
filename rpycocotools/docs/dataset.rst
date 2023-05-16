@@ -82,6 +82,21 @@ COCO
     :param bool draw_bboxes: Whether to display bounding boxes or not (if `False`, only the masks will be drawn).
     :raises ValueError: If the image cannot be drawn (potentially due to it not being in the dataset) or cannot be displayed.
 
+    .. method:: json(self: Self) -> str: ...
+
+    Return the dataset as a json string.
+
+    :return: The dataset as a json string.
+    :rtype: str
+
+
+    .. method:: __len__(self: Self) -> int ...
+
+    Return number of images in the dataset.
+
+    :return: The number of images in the dataset.
+    :rtype: int
+
 .. class:: rpycocotools.anns.Annotation(id: int, image_id: int, category_id: int, segmentation: Polygons | PolygonsRS | RLE | COCO_RLE, area: float, bbox: BBox, iscrowd: int) -> None
 
     Create an annotation used for object detection tasks.
