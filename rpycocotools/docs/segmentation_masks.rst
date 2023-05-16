@@ -18,7 +18,7 @@ It follows the same format as the :py:class:`RLE` and :py:class:`COCO_RLE` types
 The advantage of this format if that he polygons can be decoded into a mask of the same as the input image without having to look up its size. However it should not be written to a json file (as it is non-standard).
 
 Decode masks
-----------------
+------------
 
 .. function:: rpycocotools.mask.decode(encoded_mask: RLE | COCO_RLE | Polygons | PolygonsRS, width: None | int, height: None | int) -> npt.NDArray[np.uint8]
 
@@ -33,13 +33,33 @@ Decode masks
 
 
 Encode masks
-----------------
+------------
 
-.. function:: rpycocotools.mask.encode(mask: npt.NDArray[np.uint8], target: Literal["polygons"] | Literal["rle"] | Literal["coco_rle"] | Literal["polygons_rs"]) -> Polygons | RLE | COCO_RLE | PolygonsRS:
+.. function:: rpycocotools.mask.encode(mask: npt.NDArray[np.uint8], target: Literal["polygons", "rle", "coco_rle", "polygons_rs"]) -> Polygons | RLE | COCO_RLE | PolygonsRS:
 
   Encode/compress a :class:`numpy.ndarray` mask to the desired format.
 
-  :param npt.NDArray[np.uint8] encoded_mask: The uncompressed mask.
+  :param npt.NDArray[np.uint8] mask: The uncompressed mask.
   :raise ValueError: If the mask conversion failed.
   :return: The compressed mask.
   :rtype: ``Polygons | RLE | COCO_RLE | PolygonsRS``
+
+
+Utils
+-----
+
+.. function:: rpycocotools.mask.area(encoded_mask: RLE | COCO_RLE | PolygonsRS | Polygons) -> int:
+
+  Compute the area of the given mask.
+
+  :param RLE | COCO_RLE | PolygonsRS | Polygons encoded_mask: The mask whose area should be computed.
+  :return: The area
+  :rtype: ``int``
+
+.. function:: rpycocotools.mask.to_bbox(encoded_mask: RLE | COCO_RLE | PolygonsRS | Polygons) -> rpycocotools.anns.BBox:
+
+  Compute the bounding box of the given mask.
+
+  :param RLE | COCO_RLE | PolygonsRS | Polygons encoded_mask: The mask whose bounding box should be computed.
+  :return: The bounding box
+  :rtype: ``BBox``
