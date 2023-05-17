@@ -1,15 +1,17 @@
 from collections.abc import Iterator, Sequence
-from typing import TypeAlias
+from typing import Generic, TypeAlias, TypeVar
 
 from typing_extensions import Self
 
 from . import COCO
 
-class Annotation:
+_TSegmentation = TypeVar("_TSegmentation", Polygons, PolygonsRS, RLE, COCO_RLE)
+
+class Annotation(Generic[_TSegmentation]):
     id: int
     image_id: int
     category_id: int
-    segmentation: Polygons | PolygonsRS | RLE | COCO_RLE
+    segmentation: _TSegmentation
     area: float
     bbox: BBox
     iscrowd: int
@@ -19,11 +21,13 @@ class Annotation:
         id: int,
         image_id: int,
         category_id: int,
-        segmentation: Polygons | PolygonsRS | RLE | COCO_RLE,
+        segmentation: _TSegmentation,
         area: float,
         bbox: BBox,
         iscrowd: int,
     ) -> None: ...
+
+AnnotationAny: TypeAlias = Annotation[Polygons] | Annotation[PolygonsRS] | Annotation[RLE] | Annotation[COCO_RLE]
 
 class Category:
     id: int
@@ -65,7 +69,7 @@ class COCO_RLE:  # noqa: N801
 
 def from_dataset(
         images: Sequence[Image],
-        annotations: Sequence[Annotation],
+        annotations: Sequence[AnnotationAny],
         categories: Sequence[Category],
         image_folder_path: str,
 ) -> COCO:
