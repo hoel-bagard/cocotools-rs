@@ -83,6 +83,7 @@ convention = "google"
 
 [tool.ruff.per-file-ignores]
 "__init__.py" = ["F401"]
+"python/rpycocotools/anns.py" = ["D101", "F403", "F405"]
 "tests/**/*.py" = ["D1", "INP001", "PLR2004", "S101"]
 
 [tool.pyright]
@@ -135,7 +136,8 @@ inline-quotes = "double"
 # F401: imported but unused
 per-file-ignores = [
     "tests/*.py:D1,I201,I100",
-    "python/rpycocotools/__init__.py:F401"
+    "python/rpycocotools/__init__.py:F401,I100,NQA102",
+    "python/rpycocotools/anns.py:D101,F403,F405"
 ]
 
 [tool.pylint.messages_control]

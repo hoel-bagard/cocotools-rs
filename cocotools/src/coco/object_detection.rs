@@ -46,7 +46,7 @@ pub struct Image {
 /// Finally, the categories field of the annotation structure stores the mapping of category id to category and supercategory names.
 #[cfg_attr(
     feature = "pyo3",
-    pyclass(get_all, set_all, module = "rpycocotools.anns")
+    pyclass(subclass, get_all, set_all, module = "rpycocotools.anns")
 )]
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct Annotation {
