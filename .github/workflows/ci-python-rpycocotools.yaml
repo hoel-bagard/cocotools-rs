@@ -72,4 +72,4 @@ jobs:
           cache-dependency-path: "**/requirements*.txt"
       - run: pip install -r requirements/requirements-test.txt
       - run: pip install .
-      - run: python -m pytest . -vv
+      - run: python -m pytest tests -vv
