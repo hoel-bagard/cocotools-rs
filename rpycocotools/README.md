@@ -58,7 +58,7 @@ The results reported here are done on my own PC and presented only to get a gene
 
 ### Setup
 Some of the benchmarks use the `instances_train2017.json` files from the 2017 COCO dataset.\
-Either place this file in the `data_sample` folder or run the commands below with the ` -m "not coco2017"` option.
+Either place this file in the `data_samples` folder or only run the commands below with the ` -m "not coco2017"` option.
 
 ```bash
 pip install -r requirements/requirements-benchmarks.txt
@@ -87,10 +87,10 @@ python -m pytest benchmarks/area.py -vv -m "not coco2017"
 ```
 
 Results:
-| Test Name                     | Mean time in us |
-|:-----------------------------:|:---------------:|
-| pycocotools on `data_sample`  | 15              |
-| rpycocotools on `data_sample` | 776             |
+| Test Name                                                | Mean time in us |
+|:--------------------------------------------------------:|:---------------:|
+| rpycocotools on `data_samples/coco_25k/annotations.json` | 15              |
+| pycocotools on `data_samples/coco_25k/annotations.json`  | 776             |
 
 
 ```bash
@@ -103,4 +103,27 @@ Results:
 | rpycocotools on COCO `instances_train2017.json` | 880.6           |
 | pycocotools on COCO `instances_train2017.json`  | 19,302.9        |
 
+### Decode masks
+Benchmark how much time it takes to decode all the masks in a COCO dataset.
+
+```bash
+python -m pytest benchmarks/decode.py -vv -m "not coco2017"
+```
+
+Results:
+| Test Name                                                | Mean time in ms |
+|:--------------------------------------------------------:|:---------------:|
+| rpycocotools on `data_samples/coco_25k/annotations.json` | 18.3            |
+| pycocotools on `data_samples/coco_25k/annotations.json`  | 6.6             |
+
+
+```bash
+python -m pytest benchmarks/decode.py -vv -m coco2017
+```
+
+Results:
+| Test Name                                       | Mean time in s |
+|:-----------------------------------------------:|:--------------:|
+| rpycocotools on COCO `instances_train2017.json` | 142            |
+| pycocotools on COCO `instances_train2017.json`  | 384            |
 </details>
