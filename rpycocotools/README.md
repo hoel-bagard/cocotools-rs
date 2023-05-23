@@ -106,16 +106,6 @@ Results:
 ### Decode masks
 Benchmark how much time it takes to decode all the masks in a COCO dataset.
 
-```bash
-python -m pytest benchmarks/decode.py -vv -m "not coco2017"
-```
-
-Results:
-| Test Name                                                | Mean time in ms |
-|:--------------------------------------------------------:|:---------------:|
-| rpycocotools on `data_samples/coco_25k/annotations.json` | 18.3            |
-| pycocotools on `data_samples/coco_25k/annotations.json`  | 6.6             |
-
 
 ```bash
 python -m pytest benchmarks/decode.py -vv -m coco2017
@@ -124,6 +114,13 @@ python -m pytest benchmarks/decode.py -vv -m coco2017
 Results:
 | Test Name                                       | Mean time in s |
 |:-----------------------------------------------:|:--------------:|
-| rpycocotools on COCO `instances_train2017.json` | 142            |
-| pycocotools on COCO `instances_train2017.json`  | 384            |
+| rpycocotools on COCO `instances_train2017.json` | 371            |
+| pycocotools on COCO `instances_train2017.json`  | 141            |
+
+
+Results after converting all the segmentations to RLE before decoding (conversion time not included):
+| Test Name                                       | Mean time in s |
+|:-----------------------------------------------:|:--------------:|
+| rpycocotools on COCO `instances_train2017.json` | 300            |
+| pycocotools on COCO `instances_train2017.json`  | 120            |
 </details>

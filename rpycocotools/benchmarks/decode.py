@@ -22,30 +22,6 @@ def rpycocotools_decode_masks(dataset: rpycocotools.COCO) -> None:
                 rpycocotools.mask.decode(ann.segmentation, width=img.width, height=img.height)
 
 
-def test_rpycocotools_decode_sample(
-        benchmark: BenchmarkFixture,
-        rpycocotools_sample_dataset: rpycocotools.COCO,
-) -> None:
-    benchmark.pedantic(
-        rpycocotools_decode_masks,
-        args=(rpycocotools_sample_dataset, ),
-        rounds=100,
-        iterations=10,
-    )
-
-
-def test_pycocotools_decode_sample(
-        benchmark: BenchmarkFixture,
-        pycocotools_sample_dataset: pycocotools.coco.COCO,
-) -> None:
-    benchmark.pedantic(
-        pycocotools_decode_masks,
-        args=(pycocotools_sample_dataset, ),
-        rounds=100,
-        iterations=10,
-    )
-
-
 @pytest.mark.coco2017()
 def test_rpycocotools_decode_coco2017(
         benchmark: BenchmarkFixture,
@@ -60,6 +36,19 @@ def test_rpycocotools_decode_coco2017(
 
 
 @pytest.mark.coco2017()
+def test_rpycocotools_decode_coco2017_rle(
+        benchmark: BenchmarkFixture,
+        rpycocotools_coco2017_dataset_rle: rpycocotools.COCO,
+) -> None:
+    benchmark.pedantic(
+        rpycocotools_decode_masks,
+        args=(rpycocotools_coco2017_dataset_rle, ),
+        rounds=1,
+        iterations=1,
+    )
+
+
+@pytest.mark.coco2017()
 def test_pycocotools_decode_coco2017(
         benchmark: BenchmarkFixture,
         pycocotools_coco2017_dataset: pycocotools.coco.COCO,
@@ -67,6 +56,19 @@ def test_pycocotools_decode_coco2017(
     benchmark.pedantic(
         pycocotools_decode_masks,
         args=(pycocotools_coco2017_dataset, ),
+        rounds=1,
+        iterations=1,
+    )
+
+
+@pytest.mark.coco2017()
+def test_pycocotools_decode_coco2017_rle(
+        benchmark: BenchmarkFixture,
+        pycocotools_coco2017_dataset_rle: pycocotools.coco.COCO,
+) -> None:
+    benchmark.pedantic(
+        pycocotools_decode_masks,
+        args=(pycocotools_coco2017_dataset_rle, ),
         rounds=1,
         iterations=1,
     )
