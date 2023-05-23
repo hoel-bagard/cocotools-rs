@@ -47,7 +47,7 @@ pub struct License {
     feature = "pyo3",
     pyclass(get_all, set_all, module = "rpycocotools.anns")
 )]
-#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, Deserialize, Serialize)]
 pub struct Image {
     pub id: u64,
     pub width: u32,
