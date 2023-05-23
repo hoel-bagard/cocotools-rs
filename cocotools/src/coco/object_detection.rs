@@ -25,7 +25,7 @@ pub struct Dataset {
     pub licenses: Vec<License>,
 }
 
-#[derive(Clone, Debug, Default, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, Deserialize, Serialize)]
 pub struct Info {
     pub year: u32,
     pub version: String,
@@ -35,7 +35,7 @@ pub struct Info {
     pub date_created: String,
 }
 
-#[derive(Clone, Debug, Default, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, Deserialize, Serialize)]
 pub struct License {
     pub id: u32,
     pub name: String,
