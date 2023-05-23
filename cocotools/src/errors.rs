@@ -7,11 +7,11 @@ use thiserror::Error;
 #[derive(thiserror::Error)]
 pub enum MissingIdError {
     #[error("The following annotation id was not found in the dataset: `{0}`.")]
-    Annotation(u32),
+    Annotation(u64),
     #[error("The following category id was not found in the dataset: `{0}`.")]
     Category(u32),
     #[error("The following image id was not found in the dataset: `{0}`.")]
-    Image(u32),
+    Image(u64),
     // #[error(transparent)]
     // InvalidValue(#[from] anyhow::Error),
 }
