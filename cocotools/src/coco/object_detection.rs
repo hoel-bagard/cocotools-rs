@@ -14,11 +14,32 @@ use crate::utils::load_img;
 use crate::visualize::draw;
 
 /// COCO dataset as-is, without additionnal functionalities.
-#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, PartialEq, Deserialize, Serialize)]
 pub struct Dataset {
+    #[serde(default)]
+    pub info: Info,
     pub images: Vec<Image>,
     pub annotations: Vec<Annotation>,
     pub categories: Vec<Category>,
+    #[serde(default)]
+    pub licenses: Vec<License>,
+}
+
+#[derive(Clone, Debug, Default, PartialEq, Deserialize, Serialize)]
+pub struct Info {
+    pub year: u32,
+    pub version: String,
+    pub description: String,
+    pub contributor: String,
+    pub url: String,
+    pub date_created: String,
+}
+
+#[derive(Clone, Debug, Default, PartialEq, Deserialize, Serialize)]
+pub struct License {
+    pub id: u32,
+    pub name: String,
+    pub url: String,
 }
 
 /// Stores information relating to one image.
