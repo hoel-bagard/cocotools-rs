@@ -1,5 +1,4 @@
 """Module to benchmark how much time it takes to compute the total number of mask pixels in a COCO dataset."""
-
 import pycocotools.coco
 import pytest
 from pytest_benchmark.fixture import BenchmarkFixture
