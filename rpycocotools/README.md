@@ -46,3 +46,15 @@ The mask is a numpy array and can be visualized (for example with opencv):
 <p align="center">
   <img alt="bike_segmentation" src="https://user-images.githubusercontent.com/34478245/226691842-8a11cde1-905d-434e-b287-0c3c685e01d1.png">
 </p>
+
+
+### Benchmark
+
+```bash
+pip install -r requirements/requirements-benchmark.txt
+pip install .
+```
+
+```bash
+python -m pytest benchmark/area.py -vv
+```

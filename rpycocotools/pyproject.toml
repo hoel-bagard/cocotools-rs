@@ -39,7 +39,7 @@ module-name = "rpycocotools._rpycocotools"
 [project.optional-dependencies]
 build = ["maturin"]
 test = ["pytest", "hypothesis"]
-benchmark = ["pytest-benchmark"]
+benchmark = ["pytest-benchmark", "pycocotools"]
 dev = ["pip-tools", "ruff", "pyright"]
 doc = ["sphinx", "sphinx-rtd-theme", "sphinx-hoverxref", "sphinx-codeautolink"]
 flake8 = [
