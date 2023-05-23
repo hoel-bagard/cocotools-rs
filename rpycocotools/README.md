@@ -48,11 +48,15 @@ The mask is a numpy array and can be visualized (for example with opencv):
 </p>
 
 
-### Benchmark
+## Benchmarks
+
+<details>
+<summary>Details</summary>
+
 There are a few benchmarking scripts to compare to `pycocotools`.\
 The results reported here are done on my own PC and presented only to get a general idea. I might run the benchmark on a more reproducible environment in the future.
 
-#### Setup
+### Setup
 Some of the benchmarks use the `instances_train2017.json` files from the 2017 COCO dataset.\
 Either place this file in the `data_sample` folder or run the commands below with the ` -m "not coco2017"` option.
 
@@ -61,7 +65,7 @@ pip install -r requirements/requirements-benchmarks.txt
 pip install .
 ```
 
-#### Load
+### Load
 Benchmark how much time it takes load a COCO dataset.
 
 ```bash
@@ -75,7 +79,7 @@ Results:
 | rpycocotools on COCO `instances_train2017.json` | 4.4            |
 | pycocotools on COCO `instances_train2017.json`  | 16.5           |
 
-#### Area
+### Area
 Benchmark how much time it takes to compute the total number of mask pixels in a COCO dataset.
 
 ```bash
@@ -98,3 +102,5 @@ Results:
 |:-----------------------------------------------:|:---------------:|
 | rpycocotools on COCO `instances_train2017.json` | 880.6           |
 | pycocotools on COCO `instances_train2017.json`  | 19,302.9        |
+
+</details>
