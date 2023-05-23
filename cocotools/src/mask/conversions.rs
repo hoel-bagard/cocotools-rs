@@ -351,9 +351,12 @@ impl TryFrom<&object_detection::PolygonsRS> for Mask {
                     poly[i + 1] as i32,
                 ));
             }
-            if let Some(last_point) = points_poly.last() {
+
+            while let Some(last_point) = points_poly.last() {
                 if points_poly[0].x == last_point.x && points_poly[0].y == last_point.y {
                     points_poly.pop();
+                } else {
+                    break;
                 }
             }
 
