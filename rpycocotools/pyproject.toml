@@ -39,7 +39,7 @@ module-name = "rpycocotools._rpycocotools"
 [project.optional-dependencies]
 build = ["maturin"]
 test = ["pytest", "hypothesis"]
-benchmark = ["pytest-benchmark", "pycocotools"]
+benchmarks = ["pytest-benchmark", "pycocotools"]
 dev = ["pip-tools", "ruff", "pyright"]
 doc = ["sphinx", "sphinx-rtd-theme", "sphinx-hoverxref", "sphinx-codeautolink"]
 flake8 = [
@@ -63,6 +63,7 @@ addopts = [
     "--import-mode=importlib",
     "--strict-markers",
 ]
+markers = ["coco2017"]
 
 [tool.ruff]
 select = ["ALL"]
@@ -86,6 +87,7 @@ convention = "google"
 "__init__.py" = ["F401"]
 "python/rpycocotools/anns.py" = ["D101", "F403", "F405"]
 "tests/**/*.py" = ["D1", "INP001", "PLR2004", "S101"]
+"benchmarks/**/*.py" = ["D1", "INP001", "S101"]
 
 [tool.pyright]
 include = ["tests"]
@@ -136,6 +138,7 @@ inline-quotes = "double"
 # I201: Missing newline between import groups.
 # F401: imported but unused
 per-file-ignores = [
+    "benchmarks/*.py:D1",
     "tests/*.py:D1,I201,I100",
     "python/rpycocotools/__init__.py:F401,I100,NQA102",
     "python/rpycocotools/anns.py:D101,F403,F405"
