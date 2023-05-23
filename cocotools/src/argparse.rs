@@ -21,7 +21,7 @@ pub enum Commands {
         image_folder: PathBuf,
         /// The id of the image to visualize. It is often the same as the filename, but not necessarily.
         #[arg(short, long)]
-        sample_id: Option<u32>,
+        sample_id: Option<u64>,
     },
 
     /// Convert the segmentation format of the labels in a COCO annotation file.
