@@ -4,20 +4,20 @@
 #
 #    pip-compile --extra=build --generate-hashes --output-file=requirements/requirements-build.txt --resolver=backtracking pyproject.toml
 #
-maturin==0.15.1 \
-    --hash=sha256:0e89a87549d671056f9358832c8aa1bb522abcf13eeca83327a58b091d4f5a98 \
-    --hash=sha256:229d7eb6e14455a3c69a10a4546f082c7bd5490b8ec7f50d5d10edcea600dc64 \
-    --hash=sha256:247bec13d82021972e5cb4eb38e7a7aea0e7a034beab60f0e0464ffe7423f24b \
-    --hash=sha256:37ddbc261db778c73829173f43624b6178dd4244fae8e4b278323e050e899a14 \
-    --hash=sha256:3b4c296b12736756d1d084c04b5a60281011e77b763eb9c69c39444d2421ad31 \
-    --hash=sha256:616220c8c875526b22605bbb0be189ff859956abad8fe6e49c9ad2caa761ebca \
-    --hash=sha256:61eda19c37394660c3b0b9c6dbfa7d411a5dca1a93c9dcf7baa718f3a03fda04 \
-    --hash=sha256:7a7e02f265c30bac9f16e65c9d14184b3228c26b03dbe83a15220ab09fceabd7 \
-    --hash=sha256:a40c96dc135e1571159155bdbd8c06509dea14a9317ca0e5b7cae4c8d2016b93 \
-    --hash=sha256:ab5f8d8858440f35d833bce8bbf8233e595afa23fe00c513f7b671183946ea02 \
-    --hash=sha256:b54421ae71e1e3dde92105d300187b9ac3b257a5b33c1d670ff9ee5266a1bd81 \
-    --hash=sha256:dabb8ff46461c6fb1d68e8972a172cf1dede3c9825a41e4a6caecc95c26ca3b4 \
-    --hash=sha256:f604b65fd9f0b94856e88cf8b345e21a27276297e6df4ad9305937887feda13b
+maturin==0.15.3 \
+    --hash=sha256:058f69ab91e8168559e97112eb0594a2a547e6c36aacdefe1f4e60536115dc07 \
+    --hash=sha256:0af91ab0faf1d6c0cc386c9751b2889c860bd228e4f0f5d15e9576ac3d8042a3 \
+    --hash=sha256:1415890346e07fa604d0c40fa31ec61b873326b2c9d57f15a474c98268b4f268 \
+    --hash=sha256:14c258e0595db830a2b4faa1d44ff1aaf651e925396c1da20c65d18f51e5ab6b \
+    --hash=sha256:2bcfd23c961fa1e449eb95984dc48487d83917a1d26aee39d26c297851ac5218 \
+    --hash=sha256:3e9eb8bf3698c2047e5172495869ac806e76dad37bf016d42056f5740c225a54 \
+    --hash=sha256:3fa0ec5f80a2fe13bc91a23a2aab4b2655950f0ac358c79ffad7d539dd8bbd15 \
+    --hash=sha256:6549802af70bc515ac21a7094234d824ffc95b517da970cf004d7a341dc6d370 \
+    --hash=sha256:6a66837319e423ed6945d1d965ca9195a856fc1fa9dc99b7f9a0e4f27fb558f4 \
+    --hash=sha256:9fd402d8492b3d9db23ef6c5d6254a4d9f77868cd17502005934a6ca2456fcf7 \
+    --hash=sha256:bbeb6442e5e6080a445604778de8665cb7c5b5fee7b0fedecf4d12968a062cca \
+    --hash=sha256:e903ab8031cc198711e4ad3f842746f163e31e3c91980345feabe984f0b5e0b0 \
+    --hash=sha256:ee8a7d0987e9d85818df54da20a858f4d35255b5efd302ee6160efe24520c7be
     # via rpycocotools (pyproject.toml)
 numpy==1.24.3 \
     --hash=sha256:0ec87a7084caa559c36e0a2309e4ecb1baa03b687201d0a847c8b0ed476a7187 \
@@ -51,11 +51,11 @@ numpy==1.24.3 \
     # via
     #   rpycocotools (pyproject.toml)
     #   rpycocotools-stubs
-rpycocotools-stubs==0.0.5 \
-    --hash=sha256:7fa8935a1833bf98b27b39839ae07042175e31c04809a1842bde6ac988f8bcb7 \
-    --hash=sha256:8c5ddbad0b6ba72afa83dfe7b1cbaae5e8de12ae19a1694baeef8e1a586ef728
+rpycocotools-stubs==0.0.6 \
+    --hash=sha256:841f94f413eba45304b61ed9dde833901ddb6ba7bc381feebdb2450a55185f19 \
+    --hash=sha256:fac9b6ba4aefc563e3e869c8321e49d5d5184b9f1616578d84f6fdd052b43a08
     # via rpycocotools (pyproject.toml)
-typing-extensions==4.5.0 \
-    --hash=sha256:5cb5f4a79139d699607b3ef622a1dedafa84e115ab0024e0d9c044a9479ca7cb \
-    --hash=sha256:fb33085c39dd998ac16d1431ebc293a8b3eedd00fd4a32de0ff79002c19511b4
+typing-extensions==4.6.0 \
+    --hash=sha256:6ad00b63f849b7dcc313b70b6b304ed67b2b2963b3098a33efe18056b1a9a223 \
+    --hash=sha256:ff6b238610c747e44c268aa4bb23c8c735d665a63726df3f9431ce707f2aa768
     # via rpycocotools-stubs
