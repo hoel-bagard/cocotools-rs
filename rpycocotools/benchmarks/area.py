@@ -1,10 +1,9 @@
 """Module to benchmark how much time it takes to compute the total number of mask pixels in a COCO dataset."""
-from pathlib import Path
 
+import pycocotools.coco
 import pytest
 from pytest_benchmark.fixture import BenchmarkFixture  # pyright: ignore[reportUnknownVariableType]
 
-import pycocotools.coco
 import rpycocotools
 
 

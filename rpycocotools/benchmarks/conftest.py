@@ -1,7 +1,7 @@
+import pycocotools.coco
 import pytest
 
 import rpycocotools
-import pycocotools.coco
 
 
 @pytest.fixture()
