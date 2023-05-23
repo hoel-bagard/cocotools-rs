@@ -61,6 +61,20 @@ pip install -r requirements/requirements-benchmarks.txt
 pip install .
 ```
 
+#### Load
+Benchmark how much time it takes load a COCO dataset.
+
+```bash
+python -m pytest benchmarks/load.py -vv
+```
+
+Results:
+
+| Test Name                                       | Mean time in s |
+|:-----------------------------------------------:|:--------------:|
+| rpycocotools on COCO `instances_train2017.json` | 4.4            |
+| pycocotools on COCO `instances_train2017.json`  | 16.5           |
+
 #### Area
 Benchmark how much time it takes to compute the total number of mask pixels in a COCO dataset.
 
