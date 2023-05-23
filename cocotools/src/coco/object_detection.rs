@@ -14,11 +14,32 @@ use crate::utils::load_img;
 use crate::visualize::draw;
 
 /// COCO dataset as-is, without additionnal functionalities.
-#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, PartialEq, Deserialize, Serialize)]
 pub struct Dataset {
+    #[serde(default)]
+    pub info: Info,
     pub images: Vec<Image>,
     pub annotations: Vec<Annotation>,
     pub categories: Vec<Category>,
+    #[serde(default)]
+    pub licenses: Vec<License>,
+}
+
+#[derive(Clone, Debug, Default, PartialEq, Eq, Deserialize, Serialize)]
+pub struct Info {
+    pub year: u32,
+    pub version: String,
+    pub description: String,
+    pub contributor: String,
+    pub url: String,
+    pub date_created: String,
+}
+
+#[derive(Clone, Debug, Default, PartialEq, Eq, Deserialize, Serialize)]
+pub struct License {
+    pub id: u32,
+    pub name: String,
+    pub url: String,
 }
 
 /// Stores information relating to one image.
@@ -26,16 +47,20 @@ pub struct Dataset {
     feature = "pyo3",
     pyclass(get_all, set_all, module = "rpycocotools.anns")
 )]
-#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, PartialEq, Eq, Deserialize, Serialize)]
 pub struct Image {
-    pub id: u32,
+    pub id: u64,
     pub width: u32,
     pub height: u32,
     pub file_name: String,
-    // "license": int,
-    // "flickr_url": str,
-    // "coco_url": str,
-    // "date_captured": datetime,
+    #[serde(default)]
+    pub license: u32,
+    #[serde(default)]
+    pub flickr_url: String,
+    #[serde(default)]
+    pub coco_url: String,
+    #[serde(default)]
+    pub date_captured: String,
 }
 
 /// Object instance annotation for object detection.\
@@ -50,8 +75,8 @@ pub struct Image {
 )]
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct Annotation {
-    pub id: u32,
-    pub image_id: u32,
+    pub id: u64,
+    pub image_id: u64,
     pub category_id: u32,
     /// Segmentation in the annotation file can be a polygon, RLE or COCO RLE.\
     /// Examples of what each segmentation should look like in the JSON file:
@@ -172,12 +197,12 @@ pub struct Category {
 /// This struct provides methods to make working with the dataset easier and more efficient.
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct HashmapDataset {
-    pub(crate) anns: HashMap<u32, Annotation>,
+    pub(crate) anns: HashMap<u64, Annotation>,
     cats: HashMap<u32, Category>,
-    imgs: HashMap<u32, Image>,
+    imgs: HashMap<u64, Image>,
     /// Hashmap that links an image id to the image's annotations
     // Use Rc to reference the annotations directly ?
-    img_to_anns: HashMap<u32, HashSet<u32>>,
+    img_to_anns: HashMap<u64, HashSet<u64>>,
     pub image_folder: PathBuf,
 }
 
@@ -213,16 +238,16 @@ impl HashmapDataset {
             .map(|category| (category.id, category))
             .collect();
 
-        let imgs: HashMap<u32, Image> = dataset
+        let imgs: HashMap<u64, Image> = dataset
             .images
             .clone()
             .into_iter()
             .map(|image| (image.id, image))
             .collect();
 
-        let mut anns: HashMap<u32, Annotation> = HashMap::new();
+        let mut anns: HashMap<u64, Annotation> = HashMap::new();
         // Have (at least) an empty set for each image to avoid getting an error in the case where an image does not have any annotation.
-        let mut img_to_anns: HashMap<u32, HashSet<u32>> = dataset
+        let mut img_to_anns: HashMap<u64, HashSet<u64>> = dataset
             .images
             .into_iter()
             .map(|image| (image.id, HashSet::new()))
@@ -266,7 +291,7 @@ impl HashmapDataset {
     /// # Errors
     ///
     /// Will return `Err` if there is no entry in the dataset corresponding to `ann_id`.
-    pub fn get_ann(&self, ann_id: u32) -> Result<&Annotation, MissingIdError> {
+    pub fn get_ann(&self, ann_id: u64) -> Result<&Annotation, MissingIdError> {
         self.anns
             .get(&ann_id)
             .ok_or(MissingIdError::Annotation(ann_id))
@@ -300,7 +325,7 @@ impl HashmapDataset {
     /// # Errors
     ///
     /// Will return `Err` if there is no entry corresponding to `img_id`.
-    pub fn get_img(&self, img_id: u32) -> Result<&Image, MissingIdError> {
+    pub fn get_img(&self, img_id: u64) -> Result<&Image, MissingIdError> {
         self.imgs.get(&img_id).ok_or(MissingIdError::Image(img_id))
     }
 
@@ -315,7 +340,7 @@ impl HashmapDataset {
     /// # Errors
     ///
     /// Will return `Err` if there is no entry corresponding to `img_id`.
-    pub fn get_img_anns(&self, img_id: u32) -> Result<Vec<&Annotation>, MissingIdError> {
+    pub fn get_img_anns(&self, img_id: u64) -> Result<Vec<&Annotation>, MissingIdError> {
         self.img_to_anns
             .get(&img_id)
             .map_or(Err(MissingIdError::Image(img_id)), |ann_ids| {
@@ -330,7 +355,7 @@ impl HashmapDataset {
     /// Will return `Err` if there is no image or annotation entry for `img_id`. Or if the segmentation annotations could not be decompressed.
     pub fn draw_img_anns(
         &self,
-        img_id: u32,
+        img_id: u64,
         draw_bbox: bool,
     ) -> Result<image::ImageBuffer<image::Rgb<u8>, Vec<u8>>, errors::CocoError> {
         let img_path = self.image_folder.join(&self.get_img(img_id)?.file_name);
@@ -389,6 +414,7 @@ impl From<&HashmapDataset> for Dataset {
             images: dataset.get_imgs().into_iter().cloned().collect(),
             annotations: dataset.get_anns().into_iter().cloned().collect(),
             categories: dataset.get_cats().into_iter().cloned().collect(),
+            ..Default::default()
         }
     }
 }

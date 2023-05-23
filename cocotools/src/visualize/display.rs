@@ -13,7 +13,7 @@ use crate::utils;
 /// # Errors
 ///
 /// Will return `Err` if `img_id` is not present in the dataset.
-pub fn img_anns(dataset: &HashmapDataset, img_id: u32) -> Result<(), Box<dyn std::error::Error>> {
+pub fn img_anns(dataset: &HashmapDataset, img_id: u64) -> Result<(), Box<dyn std::error::Error>> {
     let anns = dataset.get_img_anns(img_id)?;
     let img_name = &dataset.get_img(img_id)?.file_name;
     let img_path = dataset.image_folder.join(img_name);

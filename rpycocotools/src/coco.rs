@@ -36,7 +36,7 @@ impl PyCOCO {
         self.0.get_imgs().len()
     }
 
-    fn get_img(&self, py: Python<'_>, img_id: u32) -> PyResult<Py<object_detection::Image>> {
+    fn get_img(&self, py: Python<'_>, img_id: u64) -> PyResult<Py<object_detection::Image>> {
         Py::new(
             py,
             self.0
@@ -46,7 +46,7 @@ impl PyCOCO {
         )
     }
 
-    fn get_ann(&self, py: Python<'_>, ann_id: u32) -> PyResult<Py<object_detection::Annotation>> {
+    fn get_ann(&self, py: Python<'_>, ann_id: u64) -> PyResult<Py<object_detection::Annotation>> {
         Py::new(
             py,
             self.0
@@ -93,7 +93,7 @@ impl PyCOCO {
 
     fn get_img_anns(
         &self,
-        img_id: u32,
+        img_id: u64,
         py: Python<'_>,
     ) -> PyResult<Vec<Py<object_detection::Annotation>>> {
         self.0
@@ -109,7 +109,7 @@ impl PyCOCO {
     /// ## Errors
     ///
     /// Will return `Err` if the image cannot be drawn (potentially due to it not being in the dataset) or cannot be displayed.
-    pub fn visualize_img(&self, img_id: u32) -> PyResult<()> {
+    pub fn visualize_img(&self, img_id: u64) -> PyResult<()> {
         let img = self
             .0
             .draw_img_anns(img_id, true)
@@ -138,7 +138,7 @@ impl PyCOCO {
     pub fn draw_anns<'a>(
         &self,
         py: Python<'a>,
-        img_id: u32,
+        img_id: u64,
         draw_bboxes: bool,
     ) -> PyResult<&'a PyArray3<u8>> {
         let img = self
@@ -181,6 +181,7 @@ pub fn from_dataset(
         images,
         annotations,
         categories,
+        ..Default::default()
     };
     let dataset = COCO::from_dataset(dataset, image_folder_path).map_err(PyLoadingError::from)?;
     Ok(PyCOCO(dataset))

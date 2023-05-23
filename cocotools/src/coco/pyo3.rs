@@ -7,8 +7,8 @@ use crate::coco::object_detection::*;
 impl Annotation {
     #[new]
     fn new(
-        id: u32,
-        image_id: u32,
+        id: u64,
+        image_id: u64,
         category_id: u32,
         segmentation: Segmentation,
         area: f64,
@@ -92,12 +92,13 @@ impl Category {
 #[pymethods]
 impl Image {
     #[new]
-    fn new(id: u32, width: u32, height: u32, file_name: String) -> Self {
+    fn new(id: u64, width: u32, height: u32, file_name: String) -> Self {
         Self {
             id,
             width,
             height,
             file_name,
+            ..Default::default()
         }
     }
 
