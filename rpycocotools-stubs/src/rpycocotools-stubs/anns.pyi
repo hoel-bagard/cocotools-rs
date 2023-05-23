@@ -5,7 +5,7 @@ from typing_extensions import Self
 
 from . import COCO
 
-_TSegmentation = TypeVar("_TSegmentation", Polygons, PolygonsRS, RLE, COCO_RLE)
+_TSegmentation = TypeVar("_TSegmentation", Polygons, PolygonsRS, RLE, COCO_RLE, Polygons | PolygonsRS | RLE | COCO_RLE)
 
 class Annotation(Generic[_TSegmentation]):
     id: int
@@ -27,7 +27,7 @@ class Annotation(Generic[_TSegmentation]):
         iscrowd: int,
     ) -> None: ...
 
-AnnotationAny: TypeAlias = Annotation[Polygons] | Annotation[PolygonsRS] | Annotation[RLE] | Annotation[COCO_RLE]
+_AnnotationAny: TypeAlias = Annotation[Polygons | PolygonsRS | RLE | COCO_RLE]
 
 class Category:
     id: int
@@ -69,7 +69,7 @@ class COCO_RLE:  # noqa: N801
 
 def from_dataset(
         images: Sequence[Image],
-        annotations: Sequence[AnnotationAny],
+        annotations: Sequence[_AnnotationAny],
         categories: Sequence[Category],
         image_folder_path: str,
 ) -> COCO:
