@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pycocotools.coco
 import pytest
-from pytest_benchmark.fixture import BenchmarkFixture  # pyright: ignore[reportUnknownVariableType]
+from pytest_benchmark.fixture import BenchmarkFixture
 
 import rpycocotools
 
