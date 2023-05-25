@@ -9,7 +9,7 @@
 project = "rpycocotools"
 copyright = "2023, Hoel Bagard"
 author = "Hoel Bagard"
-release = "0.0.3"
+release = "0.0.7"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

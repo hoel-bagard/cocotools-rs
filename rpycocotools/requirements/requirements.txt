@@ -36,7 +36,7 @@ numpy==1.24.3 \
     # via
     #   rpycocotools (pyproject.toml)
     #   rpycocotools-stubs
-rpycocotools-stubs==0.0.6 \
+rpycocotools-stubs==0.0.7 \
     --hash=sha256:841f94f413eba45304b61ed9dde833901ddb6ba7bc381feebdb2450a55185f19 \
     --hash=sha256:fac9b6ba4aefc563e3e869c8321e49d5d5184b9f1616578d84f6fdd052b43a08
     # via rpycocotools (pyproject.toml)

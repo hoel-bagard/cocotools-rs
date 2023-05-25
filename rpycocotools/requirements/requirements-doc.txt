@@ -211,7 +211,7 @@ requests==2.31.0 \
     --hash=sha256:58cd2187c01e70e6e26505bca751777aa9f2ee0b7f4300988b709f44e013003f \
     --hash=sha256:942c5a758f98d790eaed1a29cb6eefc7ffb0d1cf7af05c3d2791656dbd6ad1e1
     # via sphinx
-rpycocotools-stubs==0.0.6 \
+rpycocotools-stubs==0.0.7 \
     --hash=sha256:841f94f413eba45304b61ed9dde833901ddb6ba7bc381feebdb2450a55185f19 \
     --hash=sha256:fac9b6ba4aefc563e3e869c8321e49d5d5184b9f1616578d84f6fdd052b43a08
     # via rpycocotools (pyproject.toml)

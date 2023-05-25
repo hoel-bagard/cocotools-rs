@@ -328,7 +328,7 @@ python-dateutil==2.8.2 \
     --hash=sha256:0123cacc1627ae19ddf3c27a5de5bd67ee4586fbdd6440d9748f8abb483d3e86 \
     --hash=sha256:961d03dc3453ebbc59dbdea9e4e11c5651520a876d0f4db161e8674aae935da9
     # via matplotlib
-rpycocotools-stubs==0.0.6 \
+rpycocotools-stubs==0.0.7 \
     --hash=sha256:841f94f413eba45304b61ed9dde833901ddb6ba7bc381feebdb2450a55185f19 \
     --hash=sha256:fac9b6ba4aefc563e3e869c8321e49d5d5184b9f1616578d84f6fdd052b43a08
     # via rpycocotools (pyproject.toml)

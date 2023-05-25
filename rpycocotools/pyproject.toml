@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "rpycocotools"
-version = "0.0.6"
+version = "0.0.7"
 authors = [{name="Bagard Hoel"}]
 description = "Package providing utilities to load, manipulate, convert and visualize COCO format datasets."
 keywords = ["COCO", "COCO dataset"]
