@@ -6,7 +6,10 @@
 
 The `cocotools` crate provides tools to load, manipulate/convert and visualize COCO format datasets.
 
-## API Usage 
+## Setup
+Get the crate from [crates.io](https://crates.io/crates/cocotools).
+
+## API Usage
 You can find the documentation [here](https://docs.rs/cocotools/latest/cocotools/index.html).
 
 ### Example
