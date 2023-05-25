@@ -27,7 +27,13 @@ class Annotation(Generic[_TSegmentation]):
         iscrowd: int,
     ) -> None: ...
 
-_AnnotationAny: TypeAlias = Annotation[Polygons | PolygonsRS | RLE | COCO_RLE] | Annotation[Polygons] |  Annotation[PolygonsRS] | Annotation[RLE] | Annotation[COCO_RLE]
+_AnnotationAny: TypeAlias = (
+    Annotation[Polygons | PolygonsRS | RLE | COCO_RLE]
+    | Annotation[Polygons]
+    |  Annotation[PolygonsRS]
+    | Annotation[RLE]
+    | Annotation[COCO_RLE]
+)
 
 class Category:
     id: int
