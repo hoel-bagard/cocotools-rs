@@ -114,6 +114,48 @@ COCO
     :param BBox bbox: The bounding box of the annotation.
     :param int iscrowd: The iscrowd flag for the annotation, which indicates if the annotation represents a group of objects or not.
 
+    .. attribute:: id
+
+        The id of the category.
+
+        :type: int
+
+    .. attribute:: image_id
+
+        The id of the image corresponding to this annotation.
+
+        :type: int
+
+    .. attribute:: category_id
+
+        The id of the category corresponding to this annotation.
+
+        :type: int
+
+    .. attribute:: segmentation
+
+        The segmentation data for the annotation, which can be of type Polygons, PolygonsRS, RLE or COCO_RLE.
+
+        :type: Polygons | PolygonsRS | RLE | COCO_RLE
+
+    .. attribute:: area
+
+        The area of the annotation bounding box.
+
+        :type: float
+
+    .. attribute:: bbox
+
+        The bounding box of the annotation.
+
+        :type: BBox
+
+    .. attribute:: iscrowd
+
+        The iscrowd flag for the annotation, which indicates if the annotation represents a group of objects or not.
+
+        :type: int
+
 .. class:: rpycocotools.anns.Category(id: int, name: str, supercategory: str) -> None
 
     Creates a category used for COCO object detection tasks.
