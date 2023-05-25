@@ -36,11 +36,11 @@ numpy==1.24.3 \
     # via
     #   rpycocotools (pyproject.toml)
     #   rpycocotools-stubs
-rpycocotools-stubs==0.0.5 \
-    --hash=sha256:7fa8935a1833bf98b27b39839ae07042175e31c04809a1842bde6ac988f8bcb7 \
-    --hash=sha256:8c5ddbad0b6ba72afa83dfe7b1cbaae5e8de12ae19a1694baeef8e1a586ef728
+rpycocotools-stubs==0.0.6 \
+    --hash=sha256:841f94f413eba45304b61ed9dde833901ddb6ba7bc381feebdb2450a55185f19 \
+    --hash=sha256:fac9b6ba4aefc563e3e869c8321e49d5d5184b9f1616578d84f6fdd052b43a08
     # via rpycocotools (pyproject.toml)
-typing-extensions==4.5.0 \
-    --hash=sha256:5cb5f4a79139d699607b3ef622a1dedafa84e115ab0024e0d9c044a9479ca7cb \
-    --hash=sha256:fb33085c39dd998ac16d1431ebc293a8b3eedd00fd4a32de0ff79002c19511b4
+typing-extensions==4.6.0 \
+    --hash=sha256:6ad00b63f849b7dcc313b70b6b304ed67b2b2963b3098a33efe18056b1a9a223 \
+    --hash=sha256:ff6b238610c747e44c268aa4bb23c8c735d665a63726df3f9431ce707f2aa768
     # via rpycocotools-stubs

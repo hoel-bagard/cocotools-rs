@@ -46,3 +46,70 @@ The mask is a numpy array and can be visualized (for example with opencv):
 <p align="center">
   <img alt="bike_segmentation" src="https://user-images.githubusercontent.com/34478245/226691842-8a11cde1-905d-434e-b287-0c3c685e01d1.png">
 </p>
+
+
+## Benchmarks
+
+<details>
+<summary>Details</summary>
+
+There are a few benchmarking scripts to compare to `pycocotools`.\
+The results reported here are done on my own PC and presented only to get a general idea. I might run the benchmark on a more reproducible environment in the future.
+
+### Setup
+Some of the benchmarks use the `instances_train2017.json` files from the 2017 COCO dataset.\
+Either place this file in the `data_samples` folder or only run the commands below with the ` -m "not coco2017"` option.
+
+```bash
+pip install -r requirements/requirements-benchmarks.txt
+pip install .
+```
+
+### Load
+Benchmark how much time it takes load a COCO dataset.
+
+```bash
+python -m pytest benchmarks/load.py -vv
+```
+
+Results:
+
+| Test Name                                       | Mean time in s |
+|:-----------------------------------------------:|:--------------:|
+| rpycocotools on COCO `instances_train2017.json` | 4.4            |
+| pycocotools on COCO `instances_train2017.json`  | 16.5           |
+
+### Area
+Benchmark how much time it takes to compute the total number of mask pixels in a COCO dataset.
+
+```bash
+python -m pytest benchmarks/area.py -vv -m coco2017
+```
+
+Results:
+| Test Name                                       | Mean time in ms |
+|:-----------------------------------------------:|:---------------:|
+| rpycocotools on COCO `instances_train2017.json` | 880.6           |
+| pycocotools on COCO `instances_train2017.json`  | 19,302.9        |
+
+### Decode masks
+Benchmark how much time it takes to decode all the masks in a COCO dataset.
+
+
+```bash
+python -m pytest benchmarks/decode.py -vv -m coco2017
+```
+
+Results:
+| Test Name                                       | Mean time in s |
+|:-----------------------------------------------:|:--------------:|
+| rpycocotools on COCO `instances_train2017.json` | 371            |
+| pycocotools on COCO `instances_train2017.json`  | 141            |
+
+
+Results after converting all the segmentations to RLE before decoding (conversion time not included):
+| Test Name                                       | Mean time in s |
+|:-----------------------------------------------:|:--------------:|
+| rpycocotools on COCO `instances_train2017.json` | 300            |
+| pycocotools on COCO `instances_train2017.json`  | 120            |
+</details>

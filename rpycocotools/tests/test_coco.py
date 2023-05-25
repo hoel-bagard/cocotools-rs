@@ -82,13 +82,15 @@ def test_bbox_repr(left: int, top: int, width: int, height: int) -> None:
 
 
 def test_dataset_from_components() -> None:
-    expected_ann = Annotation(id=1,
-                              image_id=1,
-                              category_id=1,
-                              segmentation=COCO_RLE(size=[380, 800], counts="a"),
-                              area=1,
-                              bbox=BBox(left=1, top=1, width=1, height=1),
-                              iscrowd=1)
+    expected_ann = Annotation(
+        id=1,
+        image_id=1,
+        category_id=1,
+        segmentation=COCO_RLE(size=[380, 800], counts="a"),
+        area=1,
+        bbox=BBox(left=1, top=1, width=1, height=1),
+        iscrowd=1,
+    )
     anns = [
         expected_ann,
         rpycocotools.anns.Annotation(2, 2, 1, COCO_RLE([1, 1], "b"), 1, rpycocotools.anns.BBox(1, 1, 1, 1), 1),
