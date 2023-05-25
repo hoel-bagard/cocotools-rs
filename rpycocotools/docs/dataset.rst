@@ -307,3 +307,15 @@ COCO
         The COCO RLE representation of the mask.
 
         :type: str
+
+.. function:: from_dataset(images: Sequence[Image], annotations: Sequence[_AnnotationAny], categories: Sequence[Category], image_folder_path: str) -> COCO
+
+  Construct a COCO dataset from its components and the image folder.
+
+  :param Sequence[Image] images: The image entries composing the data.
+  :param Sequence[Annotation] annotations: The annotations entries composing the data.
+  :param Sequence[Category] categories: The categories entries composing the data.
+  :param str image_folder_path: Path to the folder with the images.
+  :raise ValueError: If there is an annotation with an image id X, but no image entry has this id.
+  :return: The constructed COCO dataset.
+  :rtype: :py:class:`COCO`
