@@ -114,6 +114,48 @@ COCO
     :param BBox bbox: The bounding box of the annotation.
     :param int iscrowd: The iscrowd flag for the annotation, which indicates if the annotation represents a group of objects or not.
 
+    .. attribute:: id
+
+        The id of the category.
+
+        :type: int
+
+    .. attribute:: image_id
+
+        The id of the image corresponding to this annotation.
+
+        :type: int
+
+    .. attribute:: category_id
+
+        The id of the category corresponding to this annotation.
+
+        :type: int
+
+    .. attribute:: segmentation
+
+        The segmentation data for the annotation, which can be of type Polygons, PolygonsRS, RLE or COCO_RLE.
+
+        :type: Polygons | PolygonsRS | RLE | COCO_RLE
+
+    .. attribute:: area
+
+        The area of the annotation bounding box.
+
+        :type: float
+
+    .. attribute:: bbox
+
+        The bounding box of the annotation.
+
+        :type: BBox
+
+    .. attribute:: iscrowd
+
+        The iscrowd flag for the annotation, which indicates if the annotation represents a group of objects or not.
+
+        :type: int
+
 .. class:: rpycocotools.anns.Category(id: int, name: str, supercategory: str) -> None
 
     Creates a category used for COCO object detection tasks.
@@ -265,3 +307,15 @@ COCO
         The COCO RLE representation of the mask.
 
         :type: str
+
+.. function:: from_dataset(images: Sequence[Image], annotations: Sequence[_AnnotationAny], categories: Sequence[Category], image_folder_path: str) -> COCO
+
+  Construct a COCO dataset from its components and the image folder.
+
+  :param Sequence[Image] images: The image entries composing the data.
+  :param Sequence[Annotation] annotations: The annotations entries composing the data.
+  :param Sequence[Category] categories: The categories entries composing the data.
+  :param str image_folder_path: Path to the folder with the images.
+  :raise ValueError: If there is an annotation with an image id X, but no image entry has this id.
+  :return: The constructed COCO dataset.
+  :rtype: :py:class:`COCO`
