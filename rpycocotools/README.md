@@ -83,17 +83,6 @@ Results:
 Benchmark how much time it takes to compute the total number of mask pixels in a COCO dataset.
 
 ```bash
-python -m pytest benchmarks/area.py -vv -m "not coco2017"
-```
-
-Results:
-| Test Name                                                | Mean time in us |
-|:--------------------------------------------------------:|:---------------:|
-| rpycocotools on `data_samples/coco_25k/annotations.json` | 15              |
-| pycocotools on `data_samples/coco_25k/annotations.json`  | 776             |
-
-
-```bash
 python -m pytest benchmarks/area.py -vv -m coco2017
 ```
 
