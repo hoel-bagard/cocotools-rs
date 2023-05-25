@@ -34,13 +34,13 @@ def pycocotools_coco2017_dataset(coco2017_annotations_path: str) -> pycocotools.
 def pycocotools_coco2017_dataset_rle(pycocotools_coco2017_dataset: pycocotools.coco.COCO) -> pycocotools.coco.COCO:
     for ann_id, ann in pycocotools_coco2017_dataset.anns.items():
         rle = pycocotools_coco2017_dataset.annToRLE(ann)
-        pycocotools_coco2017_dataset.anns[ann_id]["segmentation"] = rle  # pyright: ignore
+        pycocotools_coco2017_dataset.anns[ann_id]["segmentation"] = rle  # pyright: ignore[reportGeneralTypeIssues]
     for img_id, anns_list in pycocotools_coco2017_dataset.imgToAnns.items():
         rle_anns_list = []
         for ann in anns_list:
-            ann["segmentation"] = pycocotools_coco2017_dataset.annToRLE(ann)  # pyright: ignore
+            ann["segmentation"] = pycocotools_coco2017_dataset.annToRLE(ann)  # pyright: ignore[reportGeneralTypeIssues]
             rle_anns_list.append(ann)
-        pycocotools_coco2017_dataset.imgToAnns[img_id] = rle_anns_list  # pyright: ignore
+        pycocotools_coco2017_dataset.imgToAnns[img_id] = rle_anns_list
     return pycocotools_coco2017_dataset
 
 
@@ -64,5 +64,5 @@ def rpycocotools_coco2017_dataset_rle(rpycocotools_coco2017_dataset: rpycocotool
         rpycocotools_coco2017_dataset.get_imgs(),
         new_anns,
         rpycocotools_coco2017_dataset.get_cats(),
-        ""
+        "",
     )
