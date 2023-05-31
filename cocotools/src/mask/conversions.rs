@@ -374,9 +374,9 @@ impl TryFrom<&object_detection::PolygonsRS> for Mask {
 /// Decompress a polygon representation of a mask.
 ///
 /// ## Args:
-/// - poly: A mask compressed as a COCO polygon.
-/// - width: The original width of the image the polygon annotation corresponds to.
-/// - height: The original height of the image the polygon annotation corresponds to.
+/// - poly: A mask compressed as COCO polygons.
+/// - width: The original width of the image the polygons corresponds to.
+/// - height: The original height of the image the polygons corresponds to.
 ///
 /// ## Errors
 /// Will return `Err` if the internal conversion from `ImageBuffer` to Mask (ndarray) fails.
@@ -385,20 +385,22 @@ impl TryFrom<&object_detection::PolygonsRS> for Mask {
 /// - The decompressed mask.
 #[allow(clippy::cast_possible_truncation, clippy::module_name_repetitions)]
 pub fn mask_from_poly(
-    poly: &object_detection::Polygons,
+    polygons: &object_detection::Polygons,
     width: u32,
     height: u32,
 ) -> Result<Mask, MaskError> {
-    // FIXME TODO: handle more than one poly.
-    let mut points_poly: Vec<imageproc::point::Point<i32>> = Vec::new();
-    for i in (0..poly[0].len()).step_by(2) {
-        points_poly.push(imageproc::point::Point::new(
-            poly[0][i] as i32,
-            poly[0][i + 1] as i32,
-        ));
-    }
     let mut mask = image::GrayImage::new(width, height);
-    drawing::draw_polygon_mut(&mut mask, &points_poly, image::Luma([1u8]));
+
+    for poly in polygons {
+        let mut points_poly: Vec<imageproc::point::Point<i32>> = Vec::new();
+        for i in (0..poly.len()).step_by(2) {
+            points_poly.push(imageproc::point::Point::new(
+                poly[i] as i32,
+                poly[i + 1] as i32,
+            ));
+        }
+        drawing::draw_polygon_mut(&mut mask, &points_poly, image::Luma([1u8]));
+    }
 
     Mask::from_shape_vec((height as usize, width as usize), mask.into_raw())
         .map_err(MaskError::ImageToNDArrayConversion)
