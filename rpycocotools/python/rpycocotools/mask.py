@@ -6,6 +6,7 @@ import numpy.typing as npt
 
 from rpycocotools._rpycocotools import anns
 from rpycocotools._rpycocotools import mask as _mask
+from _rpycocotools.mask import to_bbox
 
 
 def decode(encoded_mask: anns.RLE | anns.COCO_RLE | anns.PolygonsRS | anns.Polygons,
@@ -77,23 +78,3 @@ def area(encoded_mask: anns.RLE | anns.COCO_RLE | anns.PolygonsRS | anns.Polygon
     else:
         area = _mask.area_poly(encoded_mask)
     return area
-
-
-def to_bbox(encoded_mask: anns.RLE | anns.COCO_RLE | anns.PolygonsRS | anns.Polygons) -> anns.BBox:
-    """Compute the bounding box of the given mask.
-
-    Args:
-        encoded_mask: The mask whose bounding box should be computed.
-
-    Returns:
-        The bounding box
-    """
-    if isinstance(encoded_mask, anns.RLE):
-        bbox = _mask.rle_to_bbox(encoded_mask)
-    elif isinstance(encoded_mask, anns.COCO_RLE):
-        bbox = _mask.coco_rle_to_bbox(encoded_mask)
-    elif isinstance(encoded_mask, anns.PolygonsRS):
-        bbox = _mask.poly_rs_to_bbox(encoded_mask)
-    else:
-        bbox = _mask.poly_to_bbox(encoded_mask)
-    return bbox

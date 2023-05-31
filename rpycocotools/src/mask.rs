@@ -33,10 +33,7 @@ pub fn py_mask(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(area_coco_rle, m)?)?;
     m.add_function(wrap_pyfunction!(area_poly_rs, m)?)?;
     m.add_function(wrap_pyfunction!(area_poly, m)?)?;
-    m.add_function(wrap_pyfunction!(rle_to_bbox, m)?)?;
-    m.add_function(wrap_pyfunction!(coco_rle_to_bbox, m)?)?;
-    m.add_function(wrap_pyfunction!(poly_rs_to_bbox, m)?)?;
-    m.add_function(wrap_pyfunction!(poly_to_bbox, m)?)?;
+    m.add_function(wrap_pyfunction!(to_bbox, m)?)?;
     Ok(())
 }
 
@@ -188,21 +185,6 @@ fn area_poly(poly: object_detection::Polygons) -> u32 {
 }
 
 #[pyfunction]
-fn rle_to_bbox(rle: object_detection::Rle) -> object_detection::Bbox {
-    object_detection::Bbox::from(&rle)
-}
-
-#[pyfunction]
-fn coco_rle_to_bbox(coco_rle: object_detection::CocoRle) -> object_detection::Bbox {
-    object_detection::Bbox::from(&coco_rle)
-}
-
-#[pyfunction]
-fn poly_rs_to_bbox(poly: object_detection::PolygonsRS) -> object_detection::Bbox {
-    object_detection::Bbox::from(&poly)
-}
-
-#[pyfunction]
-fn poly_to_bbox(poly: object_detection::Polygons) -> object_detection::Bbox {
-    object_detection::Bbox::from(&poly)
+fn to_bbox(segmentation: object_detection::Segmentation) -> object_detection::Bbox {
+    object_detection::Bbox::from(&segmentation)
 }

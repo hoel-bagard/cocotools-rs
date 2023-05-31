@@ -1,4 +1,4 @@
-use crate::coco::object_detection::{Bbox, CocoRle, Polygons, PolygonsRS, Rle};
+use crate::coco::object_detection::{Bbox, CocoRle, Polygons, PolygonsRS, Rle, Segmentation};
 use crate::mask::conversions::mask_from_poly;
 use std::cmp;
 
@@ -227,6 +227,17 @@ impl From<&Polygons> for Bbox {
             top,
             width: right - left,
             height: bot - top,
+        }
+    }
+}
+
+impl From<&Segmentation> for Bbox {
+    fn from(segmentation: &Segmentation) -> Self {
+        match segmentation {
+            Segmentation::CocoRle(coco_rle) => Bbox::from(coco_rle),
+            Segmentation::Rle(rle) => Bbox::from(rle),
+            Segmentation::Polygons(poly) => Bbox::from(poly),
+            Segmentation::PolygonsRS(poly_rs) => Bbox::from(poly_rs),
         }
     }
 }
