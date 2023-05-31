@@ -22,6 +22,11 @@ def rpycocotools_decode_masks(dataset: rpycocotools.COCO) -> None:
                 rpycocotools.mask.decode(ann.segmentation, width=img.width, height=img.height)
 
 
+def rpycocotools_decode_masks_rle(dataset: rpycocotools.COCO) -> None:
+    for ann in dataset.get_anns():
+        rpycocotools.mask.decode(ann.segmentation)  # pyright: ignore[reportGeneralTypeIssues]
+
+
 def test_rpycocotools_decode_sample(
         benchmark: BenchmarkFixture,
         rpycocotools_sample_dataset: rpycocotools.COCO,
@@ -65,7 +70,7 @@ def test_rpycocotools_decode_coco2017_rle(
         rpycocotools_coco2017_dataset_rle: rpycocotools.COCO,
 ) -> None:
     benchmark.pedantic(
-        rpycocotools_decode_masks,
+        rpycocotools_decode_masks_rle,
         args=(rpycocotools_coco2017_dataset_rle, ),
         rounds=1,
         iterations=1,
