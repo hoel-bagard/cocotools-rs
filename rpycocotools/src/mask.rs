@@ -119,46 +119,30 @@ fn decode_poly(
 
 #[pyfunction]
 #[allow(clippy::needless_pass_by_value)]
-fn encode_to_rle(
-    py: Python<'_>,
-    mask: PyReadonlyArray2<u8>,
-) -> PyResult<Py<object_detection::Rle>> {
+fn encode_to_rle(mask: PyReadonlyArray2<u8>) -> object_detection::Rle {
     let mask = mask.to_owned_array();
-    let encoded_mask = object_detection::Rle::from(&mask);
-    Py::new(py, encoded_mask)
+    object_detection::Rle::from(&mask)
 }
 
 #[pyfunction]
 #[allow(clippy::needless_pass_by_value)]
-fn encode_to_coco_rle(
-    py: Python<'_>,
-    mask: PyReadonlyArray2<u8>,
-) -> PyResult<Py<object_detection::CocoRle>> {
+fn encode_to_coco_rle(mask: PyReadonlyArray2<u8>) -> PyResult<object_detection::CocoRle> {
     let mask = mask.to_owned_array();
-    let encoded_mask = object_detection::CocoRle::try_from(&mask).map_err(PyMaskError::from)?;
-    Py::new(py, encoded_mask)
+    Ok(object_detection::CocoRle::try_from(&mask).map_err(PyMaskError::from)?)
 }
 
 #[pyfunction]
 #[allow(clippy::needless_pass_by_value)]
-fn encode_to_polygons(
-    py: Python<'_>,
-    uncompressed_mask: PyReadonlyArray2<u8>,
-) -> PyResult<Py<PyPolygons>> {
+fn encode_to_polygons(uncompressed_mask: PyReadonlyArray2<u8>) -> PyPolygons {
     let uncompressed_mask = uncompressed_mask.to_owned_array();
-    let encoded_mask = PyPolygons(conversions::poly_from_mask(&uncompressed_mask));
-    Py::new(py, encoded_mask)
+    PyPolygons(conversions::poly_from_mask(&uncompressed_mask))
 }
 
 #[pyfunction]
 #[allow(clippy::needless_pass_by_value)]
-fn encode_to_polygons_rs(
-    py: Python<'_>,
-    mask: PyReadonlyArray2<u8>,
-) -> PyResult<Py<object_detection::PolygonsRS>> {
+fn encode_to_polygons_rs(mask: PyReadonlyArray2<u8>) -> object_detection::PolygonsRS {
     let mask = mask.to_owned_array();
-    let encoded_mask = object_detection::PolygonsRS::from(&mask);
-    Py::new(py, encoded_mask)
+    object_detection::PolygonsRS::from(&mask)
 }
 
 #[pyfunction]
