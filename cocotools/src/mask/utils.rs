@@ -241,3 +241,14 @@ impl From<&Segmentation> for Bbox {
         }
     }
 }
+
+impl Area for &Segmentation {
+    fn area(&self) -> u32 {
+        match self {
+            Segmentation::CocoRle(coco_rle) => coco_rle.area(),
+            Segmentation::Rle(rle) => rle.area(),
+            Segmentation::Polygons(poly) => poly.area(),
+            Segmentation::PolygonsRS(poly_rs) => poly_rs.area(),
+        }
+    }
+}

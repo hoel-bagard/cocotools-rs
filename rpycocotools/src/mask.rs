@@ -29,10 +29,7 @@ pub fn py_mask(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(encode_to_coco_rle, m)?)?;
     m.add_function(wrap_pyfunction!(encode_to_polygons, m)?)?;
     m.add_function(wrap_pyfunction!(encode_to_polygons_rs, m)?)?;
-    m.add_function(wrap_pyfunction!(area_rle, m)?)?;
-    m.add_function(wrap_pyfunction!(area_coco_rle, m)?)?;
-    m.add_function(wrap_pyfunction!(area_poly_rs, m)?)?;
-    m.add_function(wrap_pyfunction!(area_poly, m)?)?;
+    m.add_function(wrap_pyfunction!(area, m)?)?;
     m.add_function(wrap_pyfunction!(to_bbox, m)?)?;
     Ok(())
 }
@@ -165,23 +162,8 @@ fn encode_to_polygons_rs(
 }
 
 #[pyfunction]
-fn area_rle(rle: object_detection::Rle) -> u32 {
-    rle.area()
-}
-
-#[pyfunction]
-fn area_coco_rle(coco_rle: object_detection::CocoRle) -> u32 {
-    coco_rle.area()
-}
-
-#[pyfunction]
-fn area_poly_rs(poly: object_detection::PolygonsRS) -> u32 {
-    poly.area()
-}
-
-#[pyfunction]
-fn area_poly(poly: object_detection::Polygons) -> u32 {
-    poly.area()
+fn area(segmentation: object_detection::Segmentation) -> u32 {
+    (&segmentation).area()
 }
 
 #[pyfunction]
