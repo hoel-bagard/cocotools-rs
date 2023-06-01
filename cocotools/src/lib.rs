@@ -33,8 +33,8 @@
 //! let coco_dataset = COCO::new(&annotations_file_path, &image_folder_path)?;
 //! let anns = coco_dataset.get_img_anns(174482)?;
 //! let mask = mask::Mask::try_from(&anns[0].segmentation)?;
-//! assert_eq!(mask.ncols(), 388);
-//! assert_eq!(mask.nrows(), 640);
+//! assert_eq!(mask.ncols(), 640);
+//! assert_eq!(mask.nrows(), 388);
 //! # Ok::<(), Box<dyn std::error::Error>>(())
 //! ```
 

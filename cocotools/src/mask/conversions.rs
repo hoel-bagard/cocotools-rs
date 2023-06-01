@@ -364,7 +364,7 @@ impl TryFrom<&object_detection::PolygonsRS> for Mask {
         }
 
         Self::from_shape_vec(
-            (poly_ann.size[1] as usize, poly_ann.size[0] as usize),
+            (poly_ann.size[0] as usize, poly_ann.size[1] as usize),
             mask.into_raw(),
         )
         .map_err(MaskError::ImageToNDArrayConversion)
@@ -402,7 +402,7 @@ pub fn mask_from_poly(
         drawing::draw_polygon_mut(&mut mask, &points_poly, image::Luma([1u8]));
     }
 
-    Mask::from_shape_vec((height as usize, width as usize), mask.into_raw())
+    Mask::from_shape_vec((width as usize, height as usize), mask.into_raw())
         .map_err(MaskError::ImageToNDArrayConversion)
 }
 

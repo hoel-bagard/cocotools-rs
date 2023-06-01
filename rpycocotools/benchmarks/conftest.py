@@ -12,7 +12,8 @@ def sample_annotations_path() -> str:
 
 @pytest.fixture()
 def coco2017_annotations_path() -> str:
-    return "../data_samples/instances_train2017.json"
+    # return "../data_samples/instances_train2017.json"
+    return "../data_samples/val2017/instances_val2017.json"
 
 
 @pytest.fixture()
