@@ -7,7 +7,7 @@ use std::{collections::HashMap, path::PathBuf};
 
 #[cfg(feature = "pyo3")]
 use pyo3::prelude::*;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize, Serializer};
 
 use crate::errors::{self, LoadingError, MissingIdError};
 use crate::utils::load_img;
@@ -172,7 +172,7 @@ pub struct CocoRle {
         module = "rpycocotools.anns"
     )
 )]
-#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize)]
 pub struct Bbox {
     pub left: f64,
     pub top: f64,
@@ -185,7 +185,7 @@ pub struct Bbox {
     feature = "pyo3",
     pyclass(get_all, set_all, module = "rpycocotools.anns")
 )]
-#[derive(Clone, Debug, Eq, PartialEq, Deserialize, Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Deserialize, Serialize)]
 pub struct Category {
     pub id: u32,
     pub name: String,
@@ -204,6 +204,15 @@ pub struct HashmapDataset {
     // Use Rc to reference the annotations directly ?
     img_to_anns: HashMap<u64, HashSet<u64>>,
     pub image_folder: PathBuf,
+}
+
+impl Serialize for Bbox {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        (self.left, self.top, self.width, self.height).serialize(serializer)
+    }
 }
 
 impl HashmapDataset {
@@ -404,7 +413,7 @@ impl HashmapDataset {
     /// Will return `Err` if the serialization fails.
     pub fn json(&self) -> Result<String, serde_json::Error> {
         let dataset = Dataset::from(self);
-        serde_json::to_string(&dataset)
+        serde_json::to_string(&dataset) // TODO: check if this work, if this is where I stopped.
     }
 }
 

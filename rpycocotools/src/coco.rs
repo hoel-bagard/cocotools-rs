@@ -11,6 +11,7 @@ use pyo3::exceptions::{PyKeyError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::PyUnicode;
 
+use crate::anns;
 use crate::errors::{PyLoadingError, PyMissingIdError};
 
 #[pyclass(name = "COCO", module = "rpycocotools")]
@@ -34,6 +35,34 @@ impl PyCOCO {
 
     fn __len__(&self) -> usize {
         self.0.get_imgs().len()
+    }
+
+    fn __repr__(&self) -> String {
+        let imgs = self
+            .0
+            .get_imgs()
+            .iter()
+            .map(|img| img.__repr__() + ", ")
+            .collect::<String>();
+        let anns = self
+            .0
+            .get_anns()
+            .iter()
+            .map(|ann| ann.__repr__() + ", ")
+            .collect::<String>();
+        let cats = self
+            .0
+            .get_cats()
+            .iter()
+            .map(|cat| cat.__repr__() + ", ")
+            .collect::<String>();
+
+        format!(
+            "COCO(images={}, annotations={}, categories={})",
+            &imgs[..imgs.len() - 2],
+            &anns[..anns.len() - 2],
+            &cats[..cats.len() - 2],
+        )
     }
 
     fn get_img(&self, py: Python<'_>, img_id: u64) -> PyResult<Py<object_detection::Image>> {

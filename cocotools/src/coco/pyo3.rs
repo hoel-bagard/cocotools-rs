@@ -26,7 +26,7 @@ impl Annotation {
         }
     }
 
-    fn __repr__(&self) -> String {
+    pub fn __repr__(&self) -> String {
         format!(
             "Annotation(id={}, image_id={}, category_id={}, segmentation={}, area={}, bbox={}, iscrowd={})",
             self.id, self.image_id, self.category_id, &self.segmentation.__repr__(), self.area, &self.bbox.__repr__(), self.iscrowd
@@ -67,7 +67,7 @@ impl Category {
         }
     }
 
-    fn __repr__(&self) -> String {
+    pub fn __repr__(&self) -> String {
         format!(
             "Category(id={}, name='{}', supercategory='{}')",
             self.id, self.name, self.supercategory
@@ -102,7 +102,7 @@ impl Image {
         }
     }
 
-    fn __repr__(&self) -> String {
+    pub fn __repr__(&self) -> String {
         format!(
             "Image(id={}, width='{}', height='{}', file_name='{}')",
             self.id, self.width, self.height, self.file_name
